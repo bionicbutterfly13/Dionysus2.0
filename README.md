@@ -2,6 +2,8 @@
 <!--  <img src="logo.png" style="height: 80px;"> -->
  <h1 align="center">AlphaGo Moment for Model Architecture Discovery</h1>
 </p>
+
+> **🔬 Research Fork Notice**: This is a research fork of the original [ASI-Arch](https://github.com/GAIR-NLP/ASI-Arch) project by GAIR-NLP, enhanced with improved development environment and research tools. All core research credit belongs to the original authors. See [ATTRIBUTION.md](ATTRIBUTION.md) for complete attribution details.
 <p align="center">
  <a href="https://github.com/GAIR-NLP/ASI-Arch/blob/main/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/GAIR-NLP/ASI-Arch"></a>
  <a href="https://arxiv.org/pdf/2507.18074"><img alt="Paper" src="https://img.shields.io/badge/📖-Paper-red"></a>
