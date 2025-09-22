@@ -72,7 +72,7 @@ logs/
 *.sqlite3
 
 # Spec Kit (development tools)
-spec-management/
+# spec-management/ - Now tracked for specifications
 
 # Custom verification scripts
 verify_setup.py
