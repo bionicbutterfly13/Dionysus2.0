@@ -3,7 +3,20 @@
  <h1 align="center">AlphaGo Moment for Model Architecture Discovery</h1>
 </p>
 
-> **🔬 Research Fork Notice**: This is a research fork of the original [ASI-Arch](https://github.com/GAIR-NLP/ASI-Arch) project by GAIR-NLP, enhanced with improved development environment and research tools. All core research credit belongs to the original authors. See [ATTRIBUTION.md](ATTRIBUTION.md) for complete attribution details.
+> **🔬 Research Fork Notice**: This is a research fork of the original [ASI-Arch](https://github.com/GAIR-NLP/ASI-Arch) project by GAIR-NLP, extended with **Pattern Evolution** and **Context Engineering Library** featuring river metaphor framework, attractor basins, neural fields, hybrid graph database, and meta-learning architecture. All core research credit belongs to the original authors. See [ATTRIBUTION.md](ATTRIBUTION.md) for complete attribution details.
+
+## 🌊 Research Extensions
+
+This fork introduces groundbreaking innovations:
+
+- **🧬 Pattern Evolution Extension**: Enhanced evolutionary algorithms for neural architecture search with dynamic adaptation mechanisms
+- **🌊 Context Engineering Library**: Revolutionary river metaphor framework with information streams and confluence points  
+- **🎯 Attractor Basin Systems**: Stable context states with basin dynamics and escape mechanisms
+- **⚡ Neural Fields**: Continuous context representations with field interactions and gradient flows
+- **🔗 Hybrid Graph Database**: Graph-neural integration with dynamic schema evolution and contextual indexing
+- **🧠 Meta-Learning Architecture**: Learning-to-learn systems with architecture meta-evolution and cross-domain transfer
+
+See [RESEARCH_ROADMAP.md](RESEARCH_ROADMAP.md) for detailed implementation plan.
 <p align="center">
  <a href="https://github.com/GAIR-NLP/ASI-Arch/blob/main/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/GAIR-NLP/ASI-Arch"></a>
  <a href="https://arxiv.org/pdf/2507.18074"><img alt="Paper" src="https://img.shields.io/badge/📖-Paper-red"></a>
