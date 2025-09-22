@@ -152,12 +152,19 @@ ASI-Arch (Base Framework)
 - Information geometry (neural fields)
 - Evolutionary computation (pattern evolution)
 - Meta-learning theory (learning-to-learn)
+- **Context Engineering Theory** (Karpathy, Kimai et al.)
 
 ### **Technical Inspirations**
 - River network theory from hydrology
 - Neural field theory from computational neuroscience
 - Graph neural networks from machine learning
 - Evolutionary algorithms from optimization
+- **[Context Engineering Framework](https://github.com/davidkimai/Context-Engineering.git)** by David Kimai
+
+### **Key Synergistic Research**
+- **MEM1 (Singapore-MIT)**: Memory-reasoning consolidation → Attractor basin dynamics
+- **Cognitive Tools (IBM Zurich)**: Modular reasoning templates → River confluence mechanisms  
+- **Emergent Symbols (Princeton ICML)**: Neural symbolic processing → Pattern evolution substrate
 
 ## 🤝 Collaboration Opportunities
 
@@ -170,6 +177,12 @@ ASI-Arch (Base Framework)
 - Open-source context engineering library
 - Academic papers on river metaphor in AI
 - Workshops on meta-learning architectures
+
+### **With Context Engineering Community**
+- Integration with [David Kimai's Context Engineering framework](https://github.com/davidkimai/Context-Engineering.git)
+- Contribute river metaphor extensions to context engineering field
+- Collaborate on neural field theory applications
+- Bridge symbolic reasoning with dynamic context flows
 
 ## 📈 Timeline
 
