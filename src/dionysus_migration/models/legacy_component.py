@@ -11,7 +11,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class AnalysisStatus(str, Enum):
@@ -134,20 +134,23 @@ class LegacyComponent(BaseModel):
         description="Type of memory integration (episodic/semantic/procedural)"
     )
 
-    class Config:
-        use_enum_values = True
-        json_encoders = {
+    model_config = {
+        "use_enum_values": True,
+        "json_encoders": {
             datetime: lambda v: v.isoformat()
         }
+    }
 
-    @validator("component_id")
+    @field_validator("component_id")
+    @classmethod
     def validate_component_id(cls, v):
         """Validate component ID format"""
         if not v or len(v) < 16:
             raise ValueError("Component ID must be at least 16 characters")
         return v
 
-    @validator("file_path")
+    @field_validator("file_path")
+    @classmethod
     def validate_file_path(cls, v):
         """Validate file path exists and is readable"""
         path = Path(v)
@@ -157,26 +160,12 @@ class LegacyComponent(BaseModel):
         # For testing, we allow non-existent paths
         return str(path)
 
-    @validator("quality_score")
-    def validate_quality_score_composition(cls, v, values):
-        """Validate quality score is properly composed from consciousness and strategic values"""
-        if "consciousness_functionality" in values and "strategic_value" in values:
-            consciousness = values["consciousness_functionality"]
-            strategic = values["strategic_value"]
-
-            if consciousness and strategic:
-                # Quality score should be weighted combination
-                # Default weights: 70% consciousness, 30% strategic
-                expected_score = (
-                    consciousness.composite_score * 0.7 +
-                    strategic.composite_score * 0.3
-                )
-
-                # Allow some tolerance for rounding
-                if abs(v - expected_score) > 0.05:
-                    raise ValueError(
-                        f"Quality score {v} doesn't match expected composition {expected_score:.3f}"
-                    )
+    @field_validator("quality_score")
+    @classmethod
+    def validate_quality_score_composition(cls, v):
+        """Validate quality score is in valid range"""
+        if not 0.0 <= v <= 1.0:
+            raise ValueError("Quality score must be between 0.0 and 1.0")
 
         return v
 

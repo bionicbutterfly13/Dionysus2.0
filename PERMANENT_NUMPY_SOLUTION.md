@@ -29,7 +29,7 @@
 ### ✅ REQUIRED ACTIONS (All Agents)
 - **ALWAYS** use `pip install "numpy<2"`
 - **ALWAYS** pin NumPy version: `numpy==1.26.4`
-- **ALWAYS** use frozen environment: `asi-arch-frozen-env`
+- **ALWAYS** use frozen environment: `dionysus2.env`
 - **ALWAYS** run compliance check before operations
 
 ## 🔧 Implementation Details
@@ -61,11 +61,11 @@ def verify_constitution_compliance():
     print("✅ Constitution compliance verified")
 ```
 
-### 4. Frozen Environment Setup (`setup_frozen_environment.sh`)
+### 4. Frozen Environment Setup (`setup_dionysus2_env.sh`)
 ```bash
 # MANDATORY: Use for all agent environments
-python3 -m venv asi-arch-frozen-env
-source asi-arch-frozen-env/bin/activate
+python3 -m venv dionysus2.env
+source dionysus2.env/bin/activate
 pip install "numpy<2" --force-reinstall
 pip install -r requirements-frozen.txt
 ```
@@ -73,8 +73,8 @@ pip install -r requirements-frozen.txt
 ## 🚀 Usage Instructions
 
 ### For All Agents
-1. **Setup**: Run `./setup_frozen_environment.sh`
-2. **Activate**: `source activate_frozen_env.sh`
+1. **Setup**: Run `./setup_dionysus2_env.sh`
+2. **Activate**: `source activate_dionysus2_env.sh`
 3. **Verify**: `python constitutional_compliance_checker.py`
 4. **Operate**: Only proceed if compliance verified
 
@@ -98,7 +98,7 @@ def pre_operation_check():
 ### 2. Environment Isolation
 ```bash
 # MANDATORY: Always use isolated environment
-source asi-arch-frozen-env/bin/activate
+source dionysus2.env/bin/activate
 python constitutional_compliance_checker.py
 ```
 

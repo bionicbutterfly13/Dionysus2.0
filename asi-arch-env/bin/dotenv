@@ -1,4 +1,4 @@
-#!/Volumes/Asylum/devb/ASI-Arch/asi-arch-env/bin/python
+#!/Volumes/Asylum/dev/Dionysus-2.0/asi-arch-env/bin/python
 import sys
 from dotenv.__main__ import cli
 if __name__ == '__main__':

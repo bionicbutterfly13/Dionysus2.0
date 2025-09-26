@@ -7,7 +7,7 @@ with independent context windows and iterative self-improvement.
 
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List
+from typing import Any, Dict, List
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -53,7 +53,7 @@ class DaedalusCoordination(BaseModel):
         default_factory=dict,
         description="Coordination performance metrics"
     )
-    learning_state: Dict[str, any] = Field(
+    learning_state: Dict[str, Any] = Field(
         default_factory=dict,
         description="Coordination improvement data"
     )
@@ -62,5 +62,4 @@ class DaedalusCoordination(BaseModel):
         description="Last optimization timestamp"
     )
 
-    class Config:
-        use_enum_values = True
+    model_config = {"use_enum_values": True}

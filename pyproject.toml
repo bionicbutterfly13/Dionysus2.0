@@ -3,9 +3,9 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "dionysus-migration"
+name = "dionysus-2.0"
 version = "1.0.0"
-description = "Legacy component migration system with ThoughtSeed enhancement"
+description = "Dionysus 2.0 - Consciousness-guided component enhancement system with ThoughtSeed framework"
 authors = [
     {name = "Dionysus 2.0 Team", email = "team@dionysus.ai"}
 ]
@@ -26,6 +26,8 @@ dependencies = [
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",
     "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "aiosqlite>=0.19.0",
     "neo4j>=5.14.0",
     "redis>=5.0.0",
     "pymongo>=4.6.0",
@@ -51,7 +53,13 @@ dev = [
 ]
 
 [project.scripts]
-dionysus-migrate = "dionysus_migration.cli:main"
+dionysus = "dionysus_migration.cli.main:main"
+
+[project.urls]
+Homepage = "https://github.com/dionysus-ai/dionysus-migration"
+Documentation = "https://dionysus-migration.readthedocs.io/"
+Repository = "https://github.com/dionysus-ai/dionysus-migration.git"
+Issues = "https://github.com/dionysus-ai/dionysus-migration/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

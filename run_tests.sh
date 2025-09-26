@@ -6,10 +6,13 @@ echo "🧪 Flux Comprehensive Test Suite - No Skips Policy"
 echo "======================================================"
 
 # Activate environment
-source ../asi-arch-env/bin/activate
+source asi-arch-env/bin/activate
 
 # Change to backend directory
 cd backend
+
+# Set PYTHONPATH to include the project root
+export PYTHONPATH=$PYTHONPATH:..
 
 # Step 1: Enforce no-skip policy (convert any skips to failing TODOs)
 echo "🚫 Step 1: Enforce No-Skip Policy"

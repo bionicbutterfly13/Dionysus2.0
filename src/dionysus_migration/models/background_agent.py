@@ -64,5 +64,4 @@ class BackgroundAgent(BaseModel):
         description="DAEDALUS coordinator managing this agent"
     )
 
-    class Config:
-        use_enum_values = True
+    model_config = {"use_enum_values": True}

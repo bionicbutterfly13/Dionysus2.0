@@ -1,211 +1,201 @@
 <p align="center">
-<!--  <img src="logo.png" style="height: 80px;"> -->
- <h1 align="center">🌊 ASI-Arch Context Flow</h1>
- <h2 align="center">Revolutionary Context Engineering for Neural Architecture Discovery</h2>
- <h3 align="center">Research Fork of ASI-Arch with Consciousness Detection & River Metaphor Framework</h3>
+ <h1 align="center">🧠 Dionysus Migration System</h1>
+ <h2 align="center">Consciousness-Guided Legacy Component Migration</h2>
+ <h3 align="center">ThoughtSeed Framework Integration with DAEDALUS Coordination</h3>
 </p>
 
-> **🔬 Research Fork Notice**: This is a research fork of the original [ASI-Arch](https://github.com/GAIR-NLP/ASI-Arch) project by GAIR-NLP, extended with **Revolutionary Context Engineering System** featuring consciousness detection, river metaphor framework, attractor basins, neural fields, hybrid graph database, and meta-learning architecture. All core ASI-Arch research credit belongs to the original GAIR-NLP authors. See [ATTRIBUTION.md](ATTRIBUTION.md) for complete attribution details.
+> **🚀 Migration System Notice**: This is the Dionysus Migration System for transforming legacy consciousness components into enhanced Dionysus 2.0 implementations. The system uses the ThoughtSeed framework for consciousness-guided enhancement with DAEDALUS distributed coordination and zero downtime migration capabilities.
 
-> **🌊 Context Engineering Innovation**: The Context Engineering System represents novel research contributions in consciousness detection for neural architectures, river metaphor information flow dynamics, and attractor basin stability analysis - built as extensions to the foundational ASI-Arch framework.
+> **🧠 Consciousness Innovation**: The Migration System represents novel approaches to consciousness-aware component transformation, featuring awareness processing, inference capabilities, memory integration, and meta-cognitive enhancement patterns.
 
-## 🌊 Research Extensions
+# Dionysus Migration System
 
-This fork introduces groundbreaking innovations:
+## 🧠 Consciousness-Guided Legacy Component Migration
 
-- **🧬 Pattern Evolution Extension**: Enhanced evolutionary algorithms for neural architecture search with dynamic adaptation mechanisms
-- **🌊 Context Engineering Library**: Revolutionary river metaphor framework with information streams and confluence points  
-- **🎯 Attractor Basin Systems**: Stable context states with basin dynamics and escape mechanisms
-- **📖 Narrative Archetypes**: Resonant attractors serving as archetypal patterns for enhanced active inference and narrative interface
-- **⚡ Neural Fields**: Continuous context representations with field interactions and gradient flows
-- **🔗 Hybrid Graph Database**: Graph-neural integration with dynamic schema evolution and contextual indexing
-- **🧠 Meta-Learning Architecture**: Learning-to-learn systems with architecture meta-evolution and cross-domain transfer
-- **🎭 Active Inference Enhancement**: Narrative-driven active inference using archetypal resonant attractors for improved model understanding
+A comprehensive migration system for transforming legacy Dionysus consciousness components into enhanced Dionysus 2.0 implementations using the ThoughtSeed framework.
 
-See [RESEARCH_ROADMAP.md](RESEARCH_ROADMAP.md) for detailed implementation plan.
-<p align="center">
- <a href="https://github.com/GAIR-NLP/ASI-Arch/blob/main/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/GAIR-NLP/ASI-Arch"></a>
- <a href="https://arxiv.org/pdf/2507.18074"><img alt="Paper" src="https://img.shields.io/badge/📖-Paper-red"></a>
- <a href="https://github.com/GAIR-NLP/ASI-Arch"></a>
- <a href="https://gair-nlp.github.io/ASI-Arch/"><img alt="Architectures" src="https://img.shields.io/badge/🔬-106_Architectures-blue"></a>
-</p>
+### 🌟 Key Features
 
-<p align="center">
-  <img src="./images/scaling.png" alt="ASI-Arch Main Results" width="1000"/>
-</p>
+- **🔍 Component Discovery**: Automated analysis of legacy codebases for consciousness patterns
+- **📊 Quality Assessment**: Consciousness functionality (70%) and strategic value (30%) evaluation
+- **🧬 ThoughtSeed Enhancement**: AI-guided component rewriting with consciousness amplification
+- **🤖 DAEDALUS Coordination**: Distributed agent management with independent context windows
+- **⚡ Zero Downtime Migration**: Background processing without disrupting active development
+- **🔄 Fast Rollback**: <30 second component rollback with comprehensive checkpointing
+## 🏗️ Architecture
 
-## 📋 Overview
+### Core Components
 
-This is the official repository for our work "[AlphaGo Moment for Model Architecture Discovery](https://arxiv.org/pdf/2507.18074)". We present a highly autonomous, multi-agent framework that empowers a Large Language Model (LLM) to conduct end-to-end scientific research in the challenging domain of linear attention mechanisms.
-
-
-- 📖 **Paper**: Read our paper (Coming Soon)
-- 💻 **Code**: Complete pipeline, database, and cognitive library available in this repository
-- 🔬 **Architectures**: We open-source all 106 discovered state-of-the-art linear attention architectures
-
-Our framework supports the following functionalities:
-
-- **Autonomous Architecture Discovery Pipeline**:
-Complete multi-agent system that autonomously hypothesizes novel architectural concepts, implements them as code, and empirically validates their performance through systematic experimentation.
-
-- **Architecture Database**:
-MongoDB-based cloud service storing all historical experimental data and enabling agent information retrieval, supporting multi-pipeline parallel execution.
-
-- **Cognition Base**:
-MongoDB-powered knowledge repository providing relevant paper cognitions and research insights to guide the autonomous research process.
-
-![Pipeline](./images/pipeline.png)
-*ASI-Arch autonomous research framework demonstrating AI's capability to conduct end-to-end scientific discovery, from hypothesis generation to empirical validation.*
-
-
-## 🏆 Performance
-
-ASI-Arch has successfully discovered **106 novel linear attention architectures** that achieve state-of-the-art performance across various benchmarks.
-
-![Top Architecture Performance](images/performance_table.png)
-*Performance comparison of 5 selected novel linear attention architectures discovered by ASI-Arch.*
-
-Our system demonstrates **continuous optimization capability**, consistently improving architecture quality throughout the autonomous research process.
-
-![Performance Trends](images/combined_trend_analysis.png)
-*Performance indicators showing steady improvement in benchmark scores and consistent reduction in loss values, with composite fitness scores demonstrating rapid initial improvement followed by gradual plateau.*
-
-![Architecture Exploration](images/Alpha_and_ASI.png)
-<!-- *Phylogenetic tree showing evolutionary relationships among 1,773 explored architectures, with colors indicating performance scores from low (red) to high (blue).* -->
-
-## 📋 Table of Contents
-
-- [🚀 Get Started](#-get-started)
-  - [System Requirements](#system-requirements)
-  - [Installation](#installation)
-  - [Environment Setup](#environment-setup)
-  - [Running Architecture Discovery](#running-architecture-discovery)
-- [🔧 Framework Components](#-framework-components)
-- [Acknowledgement](#-acknowledgement)
-- [Citation](#️-citation)
-
-## 🚀 Get Started
-
-#### System Requirements
-
-- Python 3.8+
-- MongoDB 4.4+
-- Docker & Docker Compose
-- CUDA-compatible GPU (recommended)
-- Minimum 16GB RAM, 32GB recommended
-
-#### Installation
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/GAIR-NLP/ASI-Arch.git
-    cd ASI-Arch
-    ```
-2.  **Create Conda Environment:**
-    ```bash
-    conda create -n asi-arch python=3.10
-    conda activate asi-arch
-    ```
-3.  **Install Dependencies:**
-    ```bash
-    # Install main requirements
-    pip install -r requirements.txt
-
-    # Install PyTorch with CUDA support
-    pip3 install torch==2.4.0 --index-url https://download.pytorch.org/whl/cu124
-
-    # Install component-specific requirements
-    pip install -r database/requirements.txt
-    pip install -r cognition_base/requirements.txt
-    ```
-
-#### Environment Setup
-The framework relies on Docker to run the Database and Cognition Base services in the background.
-
-1.  **Start Database Service:**
-    *In a new terminal*, run the following commands to launch the MongoDB container and its API server.
-    ```bash
-    cd database
-    docker-compose up -d
-    ./start_api.sh
-    ```
-
-2.  **Start Cognition Base Service:**
-    *In another new terminal*, run the following commands to launch the OpenSearch container and the RAG API.
-    ```bash
-    cd cognition_base
-    docker-compose up -d
-    python rag_api.py
-    ```
-
-#### Running Architecture Discovery
-Once the backend services are running, you can start the main discovery pipeline.
-
-*In a new terminal*, execute the following:
-```bash
-# Ensure you are in the asi-arch conda environment
-conda activate asi-arch
-
-# Execute a single evolution cycle
-cd pipeline
-python pipeline.py
+```
+Dionysus Migration System
+├── 🧠 Consciousness Analysis
+│   ├── Awareness Processing (Pattern Detection)
+│   ├── Inference Capabilities (Reasoning Analysis)
+│   └── Memory Integration (Knowledge Systems)
+├── ⚡ Strategic Value Assessment
+│   ├── Architectural Uniqueness
+│   ├── Code Reusability Potential
+│   └── Framework Alignment
+├── 🚀 Migration Pipeline
+│   ├── Component Discovery
+│   ├── Quality Assessment & Prioritization
+│   ├── ThoughtSeed Enhancement
+│   └── Background Deployment
+├── 🤖 DAEDALUS Coordination
+│   ├── Distributed Agent Management
+│   ├── Independent Context Windows
+│   ├── Task Queue & Load Balancing
+│   └── Self-Improvement Learning
+└── 🔄 Rollback System
+    ├── Comprehensive Checkpointing
+    ├── <30 Second Recovery
+    └── State Preservation
 ```
 
-## 🔧 Framework Components
+### Tech Stack
 
-ASI-Arch is composed of three interconnected systems working in concert to achieve autonomous scientific discovery.
+- **🐍 Python 3.11+**: Modern async programming
+- **⚡ FastAPI**: High-performance web framework
+- **🗃️ SQLite/PostgreSQL**: Flexible database backend
+- **📡 Redis**: Task queuing and caching (via LangGraph)
+- **🌐 Neo4j**: Optional graph database for complex relationships
+- **🎨 Rich**: Beautiful CLI interface
+- **📝 Pydantic**: Data validation and settings
 
-### 🧬 Autonomous Architecture Discovery Pipeline (`pipeline/`)
+## 🚀 Quick Start
 
-The pipeline is the core engine of ASI-Arch, executing an autonomous loop of architectural innovation. It orchestrates a team of specialized agents to systematically hypothesize, implement, and validate new linear attention mechanisms.
+### Installation
 
--   **Core Modules**:
-    -   **`evolve`**: The creative heart of the system. It generates novel architectural ideas by evolving existing designs. This module includes a `Planner` to design new models, a `Code Checker` to ensure correctness, and `Deduplication` agents to foster true innovation.
-    -   **`eval`**: The empirical validation module. It takes new architectures, trains them, and runs benchmarks. A `Trainer` agent handles the training process, while a `Debugger` agent can automatically analyze and fix errors during training.
-    -   **`analyse`**: The analysis module. An `Analyzer` agent provides a comprehensive breakdown of an experiment's results, comparing them to baselines and previous experiments to extract key insights.
--   **Workflow**: The pipeline follows a continuous cycle: **Sample** an effective parent architecture from the database -> **Evolve** it into a new design -> **Evaluate** its performance through training and testing -> **Analyze** the results to generate insights -> **Update** the database with the new findings.
--   **Execution**: The entire loop can be started with `python pipeline/pipeline.py`.
+```bash
+# Clone the repository
+git clone https://github.com/dionysus-ai/dionysus-migration.git
+cd dionysus-migration
 
-### 🗄️ Architecture Database (`database/`)
+# Install dependencies
+pip install -e .
 
-The database serves as the collective memory of the entire research process. It stores all historical experimental data, including architectures, results, analysis, and evolutionary lineage, enabling agents to learn from past successes and failures.
+# Initialize database
+dionysus-migration config
 
--   **Technology**: Built on MongoDB for robust data storage, with a FastAPI server (`mongodb_api.py`) providing a comprehensive REST API for data access.
--   **Key Components**:
-    -   **`mongodb_database.py`**: A high-level client for all database operations, managing the storage and retrieval of experimental `DataElement`s.
-    -   **`candidate_manager.py`**: Maintains a curated list of the top-performing architectures (the "candidate set"). This elite set is used to guide the evolutionary process towards promising directions.
-    -   **`faiss_manager.py`**: Integrates FAISS for high-speed vector similarity search. This is crucial for the `Deduplication` agent to quickly check if a new idea is truly novel or just a rehash of a previous one.
-    -   **`evaluate_agent/`**: Contains a specialized `Model Judger` agent that provides a quantitative score for any given architecture based on its performance, innovation, and complexity.
--   **Usage**: The database service is launched via `database/start_api.sh`, which starts the MongoDB container and the FastAPI server.
+# Start the API server
+uvicorn dionysus_migration.app:app --reload --port 8000
+```
 
-### 🧠 Cognition Base (`cognition_base/`)
+### Basic Usage
 
-The Cognition Base acts as the system's "domain expert," providing the agents with relevant knowledge from a vast library of scientific papers. It uses a Retrieval-Augmented Generation (RAG) approach to ground the agents' decisions in established research.
+#### 1. Discover Components
+```bash
+# Discover consciousness components in legacy codebase
+dionysus-migration discover /path/to/legacy/codebase
 
--   **Technology**: Implemented as a RAG service (`rag_service.py`) that uses vector embeddings to find relevant passages from a corpus of research papers stored in the `cognition/` directory.
--   **Key Components**:
-    -   **Knowledge Corpus**: The `cognition/` directory contains hundreds of JSON files, each representing a processed research paper on relevant topics like model architecture and attention mechanisms.
-    -   **`rag_service.py`**: The core service that loads the knowledge corpus, creates vector embeddings for the text, and uses a vector database (like OpenSearch) for efficient retrieval.
-    -   **`rag_api.py`**: A Flask-based API that allows other parts of the system, particularly the `Analyzer` and `Planner` agents in the pipeline, to query the knowledge base with natural language questions and receive the most relevant research insights.
--   **Usage**: The RAG service is started via `python cognition_base/rag_api.py`, making the knowledge base available to the entire framework.
+# Filter by consciousness threshold
+dionysus-migration discover /path/to/legacy/codebase --consciousness-threshold 0.6
 
+# Export results to JSON
+dionysus-migration discover /path/to/legacy/codebase --output components.json
+```
 
-## Acknowledgement
+#### 2. Start Migration Pipeline
+```bash
+# Start complete migration pipeline
+dionysus-migration migrate /path/to/legacy/codebase
 
-ASI-Arch is inspired by various open-source projects with its implementation based on [FLAME](https://github.com/fla-org/flame), [LM-Evaluation-Harness](https://github.com/EleutherAI/lm-evaluation-harness) and [Flash Linear Attention (FLA)](https://github.com/sustcsonglin/flash-linear-attention). We deeply appreciate the contributions of these teams to open-source research and development.
+# With custom quality threshold
+dionysus-migration migrate /path/to/legacy/codebase --quality-threshold 0.8
 
-## Citation
+# Dry run (simulation only)
+dionysus-migration migrate /path/to/legacy/codebase --dry-run
+```
 
-Please cite this work if it contributes to your research:
+#### 3. Monitor Progress
+```bash
+# Check pipeline status
+dionysus-migration status <pipeline-id>
 
-```bibtex
-@misc{liu2025alphagomomentmodelarchitecture,
-      title={AlphaGo Moment for Model Architecture Discovery}, 
-      author={Yixiu Liu and Yang Nan and Weixian Xu and Xiangkun Hu and Lyumanshan Ye and Zhen Qin and Pengfei Liu},
-      year={2025},
-      eprint={2507.18074},
-      archivePrefix={arXiv},
-      primaryClass={cs.AI},
-      url={https://arxiv.org/abs/2507.18074}, 
-}
-``` 
+# Watch for real-time updates
+dionysus-migration status <pipeline-id> --watch
+
+# View all active operations
+dionysus-migration status
+```
+
+#### 4. Rollback if Needed
+```bash
+# Create checkpoint before migration
+dionysus-migration checkpoint <component-id>
+
+# Rollback to checkpoint
+dionysus-migration rollback <checkpoint-id>
+```
+
+## 📡 API Reference
+
+### Migration Endpoints
+
+- **POST** `/api/v1/migration/pipeline` - Start migration pipeline
+- **GET** `/api/v1/migration/pipeline/{id}` - Get pipeline status
+- **POST** `/api/v1/migration/discover` - Discover components
+- **POST** `/api/v1/migration/assess` - Assess component quality
+- **POST** `/api/v1/migration/enhance` - Apply ThoughtSeed enhancement
+
+### Component Management
+
+- **GET** `/api/v1/components/{id}` - Get component details
+- **GET** `/api/v1/components/` - List components with filtering
+- **POST** `/api/v1/components/{id}/checkpoint` - Create rollback checkpoint
+- **POST** `/api/v1/components/{id}/rollback` - Rollback component
+
+### Coordination & Monitoring
+
+- **POST** `/api/v1/coordination/initialize` - Initialize DAEDALUS coordination
+- **POST** `/api/v1/coordination/{id}/agents` - Spawn background agents
+- **GET** `/api/v1/monitoring/metrics` - System metrics
+- **GET** `/api/v1/monitoring/health` - Health status
+
+## 🧠 Consciousness Evaluation
+
+### Consciousness Functionality Metrics (70% weight)
+
+1. **Awareness Score** (0.0 - 1.0)
+   - Pattern recognition capabilities
+   - State monitoring and context awareness
+   - Attention and focus mechanisms
+   - Self-monitoring and introspection
+
+2. **Inference Score** (0.0 - 1.0)
+   - Reasoning and logical processing
+   - Predictive modeling capabilities
+   - Decision-making mechanisms
+   - Causal understanding
+
+3. **Memory Score** (0.0 - 1.0)
+   - Episodic memory integration
+   - Semantic knowledge systems
+   - Procedural learning capabilities
+   - Knowledge retention and retrieval
+
+### Strategic Value Metrics (30% weight)
+
+1. **Uniqueness Score** (0.0 - 1.0)
+   - Architectural innovation
+   - Novel algorithm implementations
+   - Proprietary methodologies
+   - Research value
+
+2. **Reusability Score** (0.0 - 1.0)
+   - Modular design quality
+   - Interface abstraction
+   - Documentation completeness
+   - Generic applicability
+
+3. **Framework Alignment Score** (0.0 - 1.0)
+   - Modern Python patterns (async/await)
+   - Type safety and validation
+   - Framework compatibility (FastAPI, Pydantic)
+   - Testing and maintainability
+
+---
+
+**Built with 🧠 by the Dionysus AI Team**
+
+For support, please open an issue on GitHub or contact dev@dionysus-ai.com 

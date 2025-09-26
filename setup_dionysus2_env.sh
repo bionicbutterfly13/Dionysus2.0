@@ -1,13 +1,13 @@
 #!/bin/bash
-# ASI-Arch Frozen Environment Setup
+# Dionysus2 Environment Setup
 # Constitutional compliance: NumPy < 2.0 MANDATORY
 # Version: 1.0.0
 # Date: 2025-09-24
 
 set -e  # Exit on any error
 
-echo "🏛️ ASI-Arch Frozen Environment Setup"
-echo "======================================"
+echo "🏛️ Dionysus2 Environment Setup"
+echo "======================================="
 echo "Constitutional compliance: NumPy < 2.0 MANDATORY"
 echo ""
 
@@ -45,18 +45,18 @@ else
 fi
 
 # Step 2: Create frozen environment
-print_status "Creating frozen environment..."
-if [ -d "asi-arch-frozen-env" ]; then
-    print_warning "Frozen environment already exists, removing..."
-    rm -rf asi-arch-frozen-env
+print_status "Creating dionysus2.env environment..."
+if [ -d "dionysus2.env" ]; then
+    print_warning "dionysus2.env environment already exists, removing..."
+    rm -rf dionysus2.env
 fi
 
-python3 -m venv asi-arch-frozen-env
-print_success "Frozen environment created"
+python3 -m venv dionysus2.env
+print_success "dionysus2.env environment created"
 
 # Step 3: Activate environment
-print_status "Activating frozen environment..."
-source asi-arch-frozen-env/bin/activate
+print_status "Activating dionysus2.env environment..."
+source dionysus2.env/bin/activate
 print_success "Environment activated"
 
 # Step 4: Upgrade pip
@@ -114,17 +114,17 @@ print_success "ThoughtSeed integration verified"
 
 # Step 10: Create activation script
 print_status "Creating activation script..."
-cat > activate_frozen_env.sh << 'EOF'
+cat > activate_dionysus2_env.sh << 'EOF'
 #!/bin/bash
-# ASI-Arch Frozen Environment Activation
+# Dionysus2 Environment Activation
 # Constitutional compliance: NumPy < 2.0 MANDATORY
 
-echo "🏛️ Activating ASI-Arch Frozen Environment"
+echo "🏛️ Activating Dionysus2 Environment"
 echo "Constitutional compliance: NumPy < 2.0 MANDATORY"
 echo ""
 
 # Activate environment
-source asi-arch-frozen-env/bin/activate
+source dionysus2.env/bin/activate
 
 # Verify compliance
 python -c "
@@ -138,26 +138,26 @@ else:
     print(f'✅ NumPy {version} compliant')
 "
 
-echo "✅ Frozen environment activated and verified"
-echo "🚀 Ready for ASI-Arch operations"
+echo "✅ Dionysus2 environment activated and verified"
+echo "🚀 Ready for Dionysus2 operations"
 EOF
 
-chmod +x activate_frozen_env.sh
-print_success "Activation script created"
+chmod +x activate_dionysus2_env.sh
+print_success "Activation script created: activate_dionysus2_env.sh"
 
 # Step 11: Create deactivation script
 print_status "Creating deactivation script..."
-cat > deactivate_frozen_env.sh << 'EOF'
+cat > deactivate_dionysus2_env.sh << 'EOF'
 #!/bin/bash
-# ASI-Arch Frozen Environment Deactivation
+# Dionysus2 Environment Deactivation
 
-echo "🏛️ Deactivating ASI-Arch Frozen Environment"
+echo "🏛️ Deactivating Dionysus2 Environment"
 deactivate
-echo "✅ Frozen environment deactivated"
+echo "✅ Dionysus2 environment deactivated"
 EOF
 
-chmod +x deactivate_frozen_env.sh
-print_success "Deactivation script created"
+chmod +x deactivate_dionysus2_env.sh
+print_success "Deactivation script created: deactivate_dionysus2_env.sh"
 
 # Step 12: Final verification
 print_status "Running final verification..."
@@ -173,17 +173,17 @@ print_success "Final verification complete"
 
 # Summary
 echo ""
-echo "🎉 ASI-Arch Frozen Environment Setup Complete!"
-echo "============================================="
+echo "🎉 Dionysus2 Environment Setup Complete!"
+echo "========================================"
 echo ""
-echo "✅ Environment: asi-arch-frozen-env"
+echo "✅ Environment: dionysus2.env"
 echo "✅ NumPy: $(python -c 'import numpy; print(numpy.__version__)')"
 echo "✅ Constitutional compliance: VERIFIED"
 echo "✅ ThoughtSeed integration: READY"
 echo ""
 echo "📋 Usage Instructions:"
-echo "  Activate:   source activate_frozen_env.sh"
-echo "  Deactivate: source deactivate_frozen_env.sh"
+echo "  Activate:   source activate_dionysus2_env.sh"
+echo "  Deactivate: source deactivate_dionysus2_env.sh"
 echo "  Check:      python constitutional_compliance_checker.py"
 echo ""
 echo "🛡️ Constitutional Requirements:"
@@ -192,4 +192,4 @@ echo "  - Always use frozen environment"
 echo "  - Run compliance check before operations"
 echo "  - Coordinate with other agents"
 echo ""
-echo "🚀 Ready for ASI-Arch operations!"
+echo "🚀 Ready for Dionysus2 operations!"
