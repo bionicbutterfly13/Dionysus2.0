@@ -1,0 +1,84 @@
+# ASI-Arch Frozen Requirements
+# Constitutional compliance: NumPy < 2.0 MANDATORY
+# Version: 1.0.0
+# Date: 2025-09-24
+
+# CORE NUMERICAL COMPUTING (CONSTITUTIONAL REQUIREMENT)
+numpy==1.26.4                    # MANDATORY: Never upgrade to 2.x
+scipy==1.11.4                    # Compatible with NumPy 1.26.4
+
+# MACHINE LEARNING FRAMEWORKS (CONSTITUTIONAL COMPLIANCE)
+torch==2.2.2                     # Compatible with NumPy 1.26.4
+torchvision==0.17.2              # Compatible with torch 2.2.2
+transformers==4.55.4             # Compatible with torch 2.2.2
+tensorflow==2.16.2               # Compatible with NumPy 1.26.4
+
+# NATURAL LANGUAGE PROCESSING
+sentence-transformers==5.1.0     # Compatible with transformers 4.55.4
+spacy==3.7.2                     # Compatible with NumPy 1.26.4
+nltk==3.8.1                      # Compatible with NumPy 1.26.4
+
+# DATA PROCESSING
+pandas==2.0.3                    # Compatible with NumPy 1.26.4
+scikit-learn==1.3.2              # Compatible with NumPy 1.26.4
+matplotlib==3.7.5                # Compatible with NumPy 1.26.4
+seaborn==0.12.2                  # Compatible with matplotlib 3.7.5
+
+# DATABASE AND STORAGE
+redis==5.0.1                     # Redis client
+pymongo==4.14.1                 # MongoDB client
+neo4j==5.15.0                   # Neo4j client
+opensearch-py==3.0.0            # OpenSearch client
+
+# WEB FRAMEWORKS
+fastapi==0.116.1                # Web API framework
+uvicorn==0.24.0                 # ASGI server
+flask==3.0.0                    # Web framework
+flask-cors==4.0.0               # CORS support
+
+# ASYNC AND CONCURRENCY
+asyncio-mqtt==0.16.1            # Async MQTT client
+aiohttp==3.8.6                  # Async HTTP client
+asyncio==3.4.3                  # Async support
+
+# SCIENTIFIC COMPUTING
+sympy==1.12                     # Symbolic mathematics
+networkx==3.2.1                 # Graph algorithms
+plotly==5.17.0                  # Interactive plotting
+
+# DEVELOPMENT AND TESTING
+pytest==7.4.3                   # Testing framework
+pytest-asyncio==0.21.1          # Async testing
+black==23.9.1                   # Code formatting
+flake8==6.1.0                   # Linting
+
+# UTILITIES
+python-dateutil==2.8.2          # Date utilities
+requests==2.31.0                # HTTP client
+urllib3==2.0.7                  # HTTP library
+certifi==2023.7.22              # SSL certificates
+tqdm==4.66.1                    # Progress bars
+click==8.1.7                    # CLI framework
+
+# SECURITY
+cryptography==41.0.7            # Cryptographic functions
+pyjwt==2.8.0                    # JWT tokens
+passlib==1.7.4                  # Password hashing
+
+# CONFIGURATION
+pydantic==2.5.0                 # Data validation
+pyyaml==6.0.1                   # YAML parsing
+toml==0.10.2                    # TOML parsing
+python-dotenv==1.0.0            # Environment variables
+
+# MONITORING AND LOGGING
+structlog==23.2.0               # Structured logging
+prometheus-client==0.19.0       # Metrics collection
+psutil==5.9.6                   # System monitoring
+
+# CONSTITUTIONAL COMPLIANCE NOTES:
+# - All packages tested with NumPy 1.26.4
+# - No packages require NumPy 2.x
+# - All ML packages compatible with frozen versions
+# - Environment isolation recommended
+# - Regular compliance testing required

@@ -1,0 +1,166 @@
+openapi: 3.0.3
+info:
+  title: Flux Document Ingestion API
+  version: 0.1.0
+  description: |
+    Flux (our implementation) ingestion endpoint. Accepts user documents (PDF/Markdown/web links)
+    and routes them through ThoughtSeed context-engineering pipeline. Enforces knowledge graph SSoT,
+    mock data transparency, and local-first processing.
+servers:
+  - url: http://localhost:8000
+    description: Flux backend (local)
+  - url: http://{host}:{port}
+    description: Configurable self-hosted deployment
+    variables:
+      host:
+        default: localhost
+      port:
+        default: "8000"
+paths:
+  /api/v1/documents:
+    post:
+      summary: Ingest documents into Flux
+      description: |
+        Uploads one or more documents (bulk) or registers remote references. The backend processes each
+        file through ASI-Arch ThoughtSeed attractor basins, stores canonical metadata in Neo4j, and creates
+        evaluation frames per constitutional requirements. Runs locally by default (Ollama/LLaMA for NLP).
+      operationId: ingestDocuments
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Uploaded documents (PDF, Markdown, plain text)
+                links:
+                  type: array
+                  items:
+                    type: string
+                    format: uri
+                  description: Remote URLs to fetch (processed locally via downloader)
+                metadata:
+                  type: string
+                  format: json
+                  description: JSON string mapping filenames/links to metadata overrides
+            encoding:
+              files:
+                contentType: application/pdf, text/markdown, text/plain
+          application/json:
+            schema:
+              type: object
+              properties:
+                documents:
+                  type: array
+                  items:
+                    type: object
+                    required: [source_type, payload]
+                    properties:
+                      source_type:
+                        type: string
+                        enum: [pdf, markdown, website, audio, video]
+                      payload:
+                        type: string
+                        description: Base64 content or URL
+                      title:
+                        type: string
+                        description: Optional title override
+                      mock_data:
+                        type: boolean
+                        default: false
+                      tags:
+                        type: array
+                        items:
+                          type: string
+              required: [documents]
+      responses:
+        "202":
+          description: Accepted for processing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  batch_id:
+                    type: string
+                    format: uuid
+                  documents:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        document_id:
+                          type: string
+                          format: uuid
+                        status:
+                          type: string
+                          enum: [pending, queued]
+                        mock_data:
+                          type: boolean
+                        message:
+                          type: string
+                      required: [document_id, status]
+                  evaluation_frame_id:
+                    type: string
+                    format: uuid
+                    nullable: true
+                  message:
+                    type: string
+                    example: "Documents accepted for processing. ThoughtSeed evaluation pending."
+        "400":
+          description: Invalid request (unsupported format, size limit, or validation failure)
+        "409":
+          description: Duplicate content detected (hash match)
+        "500":
+          description: Internal error during ingestion
+      security:
+        - localAuth: []
+      tags:
+        - Ingestion
+
+components:
+  securitySchemes:
+    localAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    EvaluationFrame:
+      type: object
+      properties:
+        frame_id:
+          type: string
+          format: uuid
+        whats_good:
+          type: string
+        whats_broken:
+          type: string
+        works_but_shouldnt:
+          type: string
+        pretends_but_doesnt:
+          type: string
+      required: [frame_id, whats_good, whats_broken, works_but_shouldnt, pretends_but_doesnt]
+    DocumentStatus:
+      type: object
+      properties:
+        document_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, processing, processed, error]
+        mock_data:
+          type: boolean
+          default: false
+        evaluation_frame_id:
+          type: string
+          format: uuid
+          nullable: true
+        message:
+          type: string
+      required: [document_id, status]

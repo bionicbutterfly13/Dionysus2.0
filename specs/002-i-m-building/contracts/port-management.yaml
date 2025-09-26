@@ -1,0 +1,92 @@
+openapi: 3.0.3
+info:
+  title: Flux Port Management System
+  description: |
+    Port conflict detection and auto-resolution system for Flux services.
+    Ensures reliable service startup with automatic conflict resolution.
+  version: 1.0.0
+
+paths:
+  /system/ports/status:
+    get:
+      summary: Get port allocation status
+      description: Returns current port allocation status and any conflicts
+      tags:
+        - System Management
+      responses:
+        '200':
+          description: Port status information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortStatus'
+
+components:
+  schemas:
+    PortStatus:
+      type: object
+      required:
+        - allocated_ports
+        - conflicts_detected
+        - all_ports_available
+        - notifications
+      properties:
+        allocated_ports:
+          type: object
+          description: Currently allocated ports for each service
+          properties:
+            backend_api:
+              type: integer
+              example: 9127
+            frontend_dev:
+              type: integer
+              example: 9243
+            websocket_stream:
+              type: integer
+              example: 9129
+            health_monitor:
+              type: integer
+              example: 9131
+        conflicts_detected:
+          type: integer
+          description: Number of port conflicts detected
+          example: 0
+        all_ports_available:
+          type: boolean
+          description: Whether all preferred ports are available
+          example: true
+        notifications:
+          type: array
+          description: Port conflict notification messages
+          items:
+            type: string
+            example: "Port conflict: backend_api moved from 9100 to 9127"
+
+# Implementation Requirements
+x-implementation:
+  features:
+    - Port availability detection
+    - Automatic conflict resolution (try up to 100 alternative ports)
+    - Unique odd port preferences to minimize conflicts
+    - Real-time conflict notifications
+    - Random port fallback for high availability
+
+  port_strategy:
+    preferred_ports:
+      backend_api: 9127  # Unique odd port
+      frontend_dev: 9243  # Another unique odd port
+      websocket_stream: 9129  # Sequential odd from backend
+      health_monitor: 9131  # Sequential odd from websocket
+
+    conflict_resolution:
+      - Try next available port sequentially
+      - Generate notification with old/new port details
+      - Fall back to random ports in ephemeral range (49152-65535)
+      - Fail only after 100+ attempts
+
+  testing:
+    - Unit tests for port detection
+    - Port conflict simulation tests
+    - Notification system tests
+    - Integration with FastAPI startup
+    - Performance tests (response time < 100ms)

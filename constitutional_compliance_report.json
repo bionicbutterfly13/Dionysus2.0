@@ -1,0 +1,35 @@
+{
+  "timestamp": "2025-09-24T12:28:27.130578",
+  "violations": [],
+  "warnings": [
+    {
+      "type": "MEDIUM",
+      "component": "sentence_transformers",
+      "issue": "sentence_transformers not installed",
+      "requirement": "sentence_transformers recommended for ML operations",
+      "fix": "pip install sentence_transformers"
+    },
+    {
+      "type": "MEDIUM",
+      "component": "scikit-learn",
+      "issue": "scikit-learn not installed",
+      "requirement": "scikit-learn recommended for ML operations",
+      "fix": "pip install scikit-learn"
+    },
+    {
+      "type": "MEDIUM",
+      "component": "Environment",
+      "issue": "Not in virtual environment",
+      "requirement": "Virtual environment recommended for isolation",
+      "fix": "python -m venv asi-arch-env && source asi-arch-env/bin/activate"
+    }
+  ],
+  "compliance_score": 0.85,
+  "recommendations": [
+    "\u26a0\ufe0f Address warnings to improve compliance",
+    "\ud83d\udccb Use frozen requirements: pip install -r requirements-frozen.txt",
+    "\ud83d\udee1\ufe0f Always use virtual environments for isolation",
+    "\ud83e\udd1d Coordinate with other agents before starting services",
+    "\ud83e\uddea Run compliance check before any major operations"
+  ]
+}

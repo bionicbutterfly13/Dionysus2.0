@@ -1,0 +1,34 @@
+{
+  "timestamp": "2025-09-24T12:21:28.583098",
+  "summary": {
+    "healthy": 3,
+    "warnings": 1,
+    "errors": 0
+  },
+  "services": {
+    "Python Environment": {
+      "status": "WARNING",
+      "details": "Virtual environment not active",
+      "response_time": null,
+      "last_checked": "2025-09-24T12:21:26.879895"
+    },
+    "Database API": {
+      "status": "HEALTHY",
+      "details": "Responding (HTTP 200)",
+      "response_time": 0.3668241500854492,
+      "last_checked": "2025-09-24T12:21:27.574682"
+    },
+    "RAG API": {
+      "status": "WARNING",
+      "details": "HTTP 403",
+      "response_time": 0.007718086242675781,
+      "last_checked": "2025-09-24T12:21:27.582418"
+    },
+    "System Resources": {
+      "status": "HEALTHY",
+      "details": "CPU: 40.2% | Memory: 71.4% | Disk: 7.2%",
+      "response_time": null,
+      "last_checked": "2025-09-24T12:21:28.582980"
+    }
+  }
+}

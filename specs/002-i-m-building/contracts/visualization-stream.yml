@@ -1,0 +1,174 @@
+openapi: 3.0.3
+info:
+  title: Flux Visualization Stream API
+  version: 0.1.0
+  description: Real-time stream for Flux ThoughtSeed visualizations, affordance dashboards, and evaluative feedback.
+servers:
+  - url: http://localhost:8000
+    description: Local Flux backend
+paths:
+  /ws/v1/visualizations:
+    get:
+      summary: Subscribe to visualization updates (WebSocket)
+      description: |
+        Establishes a WebSocket connection delivering real-time updates for ThoughtSeed competitions, curiosity signals,
+        evaluation frames, and Mosaic observation snapshots. Clients specify subscriptions via query params or initial message.
+      operationId: connectVisualizationWebSocket
+      parameters:
+        - in: query
+          name: user_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: query
+          name: views
+          schema:
+            type: string
+            description: Comma-separated view types (graph,card_stack,timeline,dashboard)
+      responses:
+        "101":
+          description: Switching protocols (WebSocket upgrade)
+        "400":
+          description: Missing or invalid parameters
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal error during handshake
+      tags:
+        - Visualization
+
+components:
+  schemas:
+    VisualizationMessage:
+      type: object
+      required: [type, timestamp]
+      properties:
+        type:
+          type: string
+          enum: [graph_update, card_stack_update, curiosity_signal, evaluation_frame, mosaic_state]
+        timestamp:
+          type: string
+          format: date-time
+        payload:
+          oneOf:
+            - $ref: '#/components/schemas/GraphUpdate'
+            - $ref: '#/components/schemas/CardStackUpdate'
+            - $ref: '#/components/schemas/CuriositySignal'
+            - $ref: '#/components/schemas/EvaluationFrameMessage'
+            - $ref: '#/components/schemas/MosaicState'
+    GraphUpdate:
+      type: object
+      properties:
+        active_nodes:
+          type: array
+          items:
+            type: string
+          description: Concept/ThoughtSeed node IDs currently highlighted
+        edges:
+          type: array
+          items:
+            type: object
+            properties:
+              source:
+                type: string
+              target:
+                type: string
+              relation:
+                type: string
+        focus_document_id:
+          type: string
+          format: uuid
+          nullable: true
+    CardStackUpdate:
+      type: object
+      properties:
+        stack_id:
+          type: string
+          format: uuid
+        cards:
+          type: array
+          items:
+            type: object
+            properties:
+              document_id:
+                type: string
+                format: uuid
+              title:
+                type: string
+              highlights:
+                type: array
+                items:
+                  type: string
+              summary:
+                type: string
+    CuriositySignal:
+      type: object
+      properties:
+        mission_id:
+          type: string
+          format: uuid
+          nullable: true
+        signal_strength:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        replay_priority:
+          type: string
+          enum: [immediate, scheduled, nightly]
+        status:
+          type: string
+          enum: [queued, searching, retrieved, integrated, dismissed]
+        explanation:
+          type: string
+    EvaluationFrameMessage:
+      allOf:
+        - $ref: '#/components/schemas/EvaluationFrame'
+        - type: object
+          properties:
+            context_type:
+              type: string
+              enum: [ingestion, curiosity, reasoning, visualization]
+            context_id:
+              type: string
+              format: uuid
+    MosaicState:
+      type: object
+      properties:
+        senses:
+          type: number
+          minimum: 0
+          maximum: 1
+        actions:
+          type: number
+          minimum: 0
+          maximum: 1
+        emotions:
+          type: number
+          minimum: 0
+          maximum: 1
+        impulses:
+          type: number
+          minimum: 0
+          maximum: 1
+        cognitions:
+          type: number
+          minimum: 0
+          maximum: 1
+
+    EvaluationFrame:
+      type: object
+      properties:
+        frame_id:
+          type: string
+          format: uuid
+        whats_good:
+          type: string
+        whats_broken:
+          type: string
+        works_but_shouldnt:
+          type: string
+        pretends_but_doesnt:
+          type: string
+      required: [frame_id, whats_good, whats_broken, works_but_shouldnt, pretends_but_doesnt]

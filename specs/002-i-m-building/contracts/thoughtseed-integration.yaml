@@ -1,0 +1,333 @@
+openapi: 3.0.3
+info:
+  title: Flux ThoughtSeed Integration API
+  version: 0.1.0
+  description: |
+    Integration endpoints for existing ASI-Arch ThoughtSeed modules including:
+    - AutoSchema KG for automatic knowledge graph construction
+    - LangGraph hybrid fusion engine for workflow orchestration
+    - Context engineering pipeline integration
+servers:
+  - url: http://localhost:8000
+    description: Flux backend (local)
+paths:
+  /api/v1/thoughtseed/process:
+    post:
+      summary: Process content through ThoughtSeed pipeline
+      description: |
+        Processes uploaded content through the existing ASI-Arch ThoughtSeed consciousness pipeline,
+        integrating AutoSchema KG and LangGraph workflow orchestration.
+      operationId: processThoughtSeed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content, content_type]
+              properties:
+                content:
+                  type: string
+                  description: Content to process (document text, conversation, etc.)
+                content_type:
+                  type: string
+                  enum: [document, conversation, research_note, specification]
+                  description: Type of content for appropriate processing
+                metadata:
+                  type: object
+                  additionalProperties: true
+                  description: Additional metadata for processing context
+                consciousness_config:
+                  type: object
+                  properties:
+                    enable_autoschema:
+                      type: boolean
+                      default: true
+                      description: Enable AutoSchema KG triple extraction
+                    enable_langgraph:
+                      type: boolean
+                      default: true
+                      description: Enable LangGraph workflow orchestration
+                    consciousness_threshold:
+                      type: number
+                      format: float
+                      minimum: 0.0
+                      maximum: 1.0
+                      default: 0.6
+                      description: Consciousness detection threshold
+      responses:
+        "202":
+          description: Processing initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  processing_id:
+                    type: string
+                    format: uuid
+                    description: Unique processing session identifier
+                  langgraph_thread_id:
+                    type: string
+                    description: LangGraph workflow thread ID
+                  estimated_completion:
+                    type: string
+                    format: date-time
+                    description: Estimated processing completion time
+                  status:
+                    type: string
+                    enum: [queued, processing]
+        "400":
+          description: Invalid content or configuration
+
+  /api/v1/thoughtseed/status/{processing_id}:
+    get:
+      summary: Get ThoughtSeed processing status
+      description: |
+        Retrieves the current status of ThoughtSeed processing including
+        LangGraph workflow state and consciousness detection results.
+      operationId: getThoughtSeedStatus
+      parameters:
+        - name: processing_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Processing status information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThoughtSeedStatus'
+        "404":
+          description: Processing ID not found
+
+  /api/v1/thoughtseed/autoschema/extract:
+    post:
+      summary: Extract knowledge graph triples using AutoSchema KG
+      description: |
+        Uses the existing AutoSchema KG integration to extract RDF triples
+        from unstructured content and build knowledge graphs automatically.
+      operationId: extractAutoSchemaTriples
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [documents]
+              properties:
+                documents:
+                  type: array
+                  items:
+                    type: object
+                    required: [id, content]
+                    properties:
+                      id:
+                        type: string
+                        description: Document identifier
+                      content:
+                        type: string
+                        description: Document text content
+                      type:
+                        type: string
+                        default: "document"
+                config:
+                  type: object
+                  properties:
+                    max_triples:
+                      type: integer
+                      default: 100
+                      description: Maximum triples to extract per document
+                    confidence_threshold:
+                      type: number
+                      format: float
+                      default: 0.7
+                      description: Minimum confidence for triple extraction
+      responses:
+        "200":
+          description: Triple extraction completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  triples:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/KnowledgeTriple'
+                  graph_statistics:
+                    type: object
+                    properties:
+                      total_triples:
+                        type: integer
+                      unique_entities:
+                        type: integer
+                      unique_relations:
+                        type: integer
+
+  /api/v1/thoughtseed/langgraph/workflow/{thread_id}:
+    get:
+      summary: Get LangGraph workflow state
+      description: |
+        Retrieves the current state of a LangGraph workflow thread including
+        consciousness states, attractor basin activations, and processing steps.
+      operationId: getLangGraphWorkflowState
+      parameters:
+        - name: thread_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Workflow state information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LangGraphWorkflowState'
+        "404":
+          description: Thread ID not found
+
+components:
+  schemas:
+    ThoughtSeedStatus:
+      type: object
+      properties:
+        processing_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [queued, processing, completed, failed]
+        langgraph_thread_id:
+          type: string
+        consciousness_state:
+          type: string
+          enum: [dormant, emerging, active, self-aware, meta-aware, dreaming]
+        autoschema_results:
+          type: object
+          properties:
+            triples_extracted:
+              type: integer
+            entities_created:
+              type: integer
+            processing_time_seconds:
+              type: number
+              format: float
+        attractor_basins:
+          type: array
+          items:
+            type: object
+            properties:
+              basin_id:
+                type: string
+              activation_strength:
+                type: number
+                format: float
+              concepts:
+                type: array
+                items:
+                  type: string
+        evaluation_frame:
+          $ref: '#/components/schemas/EvaluationFrame'
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    LangGraphWorkflowState:
+      type: object
+      properties:
+        thread_id:
+          type: string
+        current_state:
+          type: string
+          description: Current LangGraph state node
+        state_history:
+          type: array
+          items:
+            type: object
+            properties:
+              state:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+              metadata:
+                type: object
+                additionalProperties: true
+        checkpoints:
+          type: array
+          items:
+            type: object
+            properties:
+              checkpoint_id:
+                type: string
+              state_snapshot:
+                type: object
+                additionalProperties: true
+              created_at:
+                type: string
+                format: date-time
+        consciousness_metrics:
+          type: object
+          properties:
+            awareness_level:
+              type: number
+              format: float
+            integration_score:
+              type: number
+              format: float
+            meta_cognitive_depth:
+              type: number
+              format: float
+
+    KnowledgeTriple:
+      type: object
+      properties:
+        subject:
+          type: string
+          description: Subject entity of the triple
+        predicate:
+          type: string
+          description: Relationship/property
+        object:
+          type: string
+          description: Object entity or value
+        confidence:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Extraction confidence score
+        source_document:
+          type: string
+          description: Source document ID
+        extracted_at:
+          type: string
+          format: date-time
+
+    EvaluationFrame:
+      type: object
+      properties:
+        frame_id:
+          type: string
+          format: uuid
+        whats_good:
+          type: string
+        whats_broken:
+          type: string
+        works_but_shouldnt:
+          type: string
+        pretends_but_doesnt:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required: [frame_id, whats_good, whats_broken, works_but_shouldnt, pretends_but_doesnt]

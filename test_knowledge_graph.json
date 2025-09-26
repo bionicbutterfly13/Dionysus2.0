@@ -1,0 +1,128 @@
+{
+  "metadata": {
+    "exported_at": "2025-09-22T10:11:39.890468",
+    "architecture_count": 5,
+    "graph_nodes": 5,
+    "graph_edges": 0
+  },
+  "consciousness_distribution": {
+    "DORMANT": 5
+  },
+  "top_architectures": [
+    {
+      "id": "evolved_arch_0",
+      "name": "evolved_arch_0",
+      "program": "class EvolvedArch0(nn.Module): pass",
+      "result": "{\"test\": \"acc=0.75\"}",
+      "motivation": "evolved motivation 0",
+      "analysis": "basic analysis 0",
+      "consciousness_level": "DORMANT",
+      "consciousness_score": 0.0,
+      "created_at": "2025-09-22T10:11:37.349321"
+    },
+    {
+      "id": "evolved_arch_1",
+      "name": "evolved_arch_1",
+      "program": "class EvolvedArch1(nn.Module): pass",
+      "result": "{\"test\": \"acc=0.78\"}",
+      "motivation": "evolved motivation 1",
+      "analysis": "basic analysis 1",
+      "consciousness_level": "DORMANT",
+      "consciousness_score": 0.0,
+      "created_at": "2025-09-22T10:11:37.859560"
+    },
+    {
+      "id": "evolved_arch_2",
+      "name": "evolved_arch_2",
+      "program": "class EvolvedArch2(nn.Module): pass",
+      "result": "{\"test\": \"acc=0.81\"}",
+      "motivation": "evolved motivation 2",
+      "analysis": "basic analysis 2",
+      "consciousness_level": "DORMANT",
+      "consciousness_score": 0.0,
+      "created_at": "2025-09-22T10:11:38.369845"
+    },
+    {
+      "id": "evolved_arch_3",
+      "name": "evolved_arch_3",
+      "program": "class EvolvedArch3(nn.Module): pass",
+      "result": "{\"test\": \"acc=0.84\"}",
+      "motivation": "evolved motivation 3",
+      "analysis": "shows emergent self-attention patterns",
+      "consciousness_level": "DORMANT",
+      "consciousness_score": 0.0,
+      "created_at": "2025-09-22T10:11:38.877047"
+    },
+    {
+      "id": "evolved_arch_4",
+      "name": "evolved_arch_4",
+      "program": "class EvolvedArch4(nn.Module): pass",
+      "result": "{\"test\": \"acc=0.87\"}",
+      "motivation": "evolved motivation 4",
+      "analysis": "shows emergent self-attention patterns",
+      "consciousness_level": "DORMANT",
+      "consciousness_score": 0.0,
+      "created_at": "2025-09-22T10:11:39.384653"
+    }
+  ],
+  "graph_structure": {
+    "nodes": [
+      {
+        "id": "evolved_arch_0",
+        "type": "architecture",
+        "properties": {
+          "name": "evolved_arch_0",
+          "consciousness_level": "DORMANT",
+          "consciousness_score": 0.0,
+          "performance": 0.75
+        },
+        "created_at": "2025-09-22T10:11:37.349154"
+      },
+      {
+        "id": "evolved_arch_1",
+        "type": "architecture",
+        "properties": {
+          "name": "evolved_arch_1",
+          "consciousness_level": "DORMANT",
+          "consciousness_score": 0.0,
+          "performance": 0.78
+        },
+        "created_at": "2025-09-22T10:11:37.859399"
+      },
+      {
+        "id": "evolved_arch_2",
+        "type": "architecture",
+        "properties": {
+          "name": "evolved_arch_2",
+          "consciousness_level": "DORMANT",
+          "consciousness_score": 0.0,
+          "performance": 0.81
+        },
+        "created_at": "2025-09-22T10:11:38.369608"
+      },
+      {
+        "id": "evolved_arch_3",
+        "type": "architecture",
+        "properties": {
+          "name": "evolved_arch_3",
+          "consciousness_level": "DORMANT",
+          "consciousness_score": 0.0,
+          "performance": 0.84
+        },
+        "created_at": "2025-09-22T10:11:38.876883"
+      },
+      {
+        "id": "evolved_arch_4",
+        "type": "architecture",
+        "properties": {
+          "name": "evolved_arch_4",
+          "consciousness_level": "DORMANT",
+          "consciousness_score": 0.0,
+          "performance": 0.87
+        },
+        "created_at": "2025-09-22T10:11:39.384421"
+      }
+    ],
+    "edges": []
+  }
+}

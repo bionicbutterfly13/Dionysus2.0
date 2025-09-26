@@ -1,9 +1,13 @@
 <p align="center">
 <!--  <img src="logo.png" style="height: 80px;"> -->
- <h1 align="center">AlphaGo Moment for Model Architecture Discovery</h1>
+ <h1 align="center">🌊 ASI-Arch Context Flow</h1>
+ <h2 align="center">Revolutionary Context Engineering for Neural Architecture Discovery</h2>
+ <h3 align="center">Research Fork of ASI-Arch with Consciousness Detection & River Metaphor Framework</h3>
 </p>
 
-> **🔬 Research Fork Notice**: This is a research fork of the original [ASI-Arch](https://github.com/GAIR-NLP/ASI-Arch) project by GAIR-NLP, extended with **Pattern Evolution** and **Context Engineering Library** featuring river metaphor framework, attractor basins, neural fields, hybrid graph database, and meta-learning architecture. All core research credit belongs to the original authors. See [ATTRIBUTION.md](ATTRIBUTION.md) for complete attribution details.
+> **🔬 Research Fork Notice**: This is a research fork of the original [ASI-Arch](https://github.com/GAIR-NLP/ASI-Arch) project by GAIR-NLP, extended with **Revolutionary Context Engineering System** featuring consciousness detection, river metaphor framework, attractor basins, neural fields, hybrid graph database, and meta-learning architecture. All core ASI-Arch research credit belongs to the original GAIR-NLP authors. See [ATTRIBUTION.md](ATTRIBUTION.md) for complete attribution details.
+
+> **🌊 Context Engineering Innovation**: The Context Engineering System represents novel research contributions in consciousness detection for neural architectures, river metaphor information flow dynamics, and attractor basin stability analysis - built as extensions to the foundational ASI-Arch framework.
 
 ## 🌊 Research Extensions
 
@@ -12,9 +16,11 @@ This fork introduces groundbreaking innovations:
 - **🧬 Pattern Evolution Extension**: Enhanced evolutionary algorithms for neural architecture search with dynamic adaptation mechanisms
 - **🌊 Context Engineering Library**: Revolutionary river metaphor framework with information streams and confluence points  
 - **🎯 Attractor Basin Systems**: Stable context states with basin dynamics and escape mechanisms
+- **📖 Narrative Archetypes**: Resonant attractors serving as archetypal patterns for enhanced active inference and narrative interface
 - **⚡ Neural Fields**: Continuous context representations with field interactions and gradient flows
 - **🔗 Hybrid Graph Database**: Graph-neural integration with dynamic schema evolution and contextual indexing
 - **🧠 Meta-Learning Architecture**: Learning-to-learn systems with architecture meta-evolution and cross-domain transfer
+- **🎭 Active Inference Enhancement**: Narrative-driven active inference using archetypal resonant attractors for improved model understanding
 
 See [RESEARCH_ROADMAP.md](RESEARCH_ROADMAP.md) for detailed implementation plan.
 <p align="center">

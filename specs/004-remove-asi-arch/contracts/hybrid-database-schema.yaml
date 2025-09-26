@@ -1,0 +1,331 @@
+openapi: 3.0.3
+info:
+  title: Hybrid Vector+Graph Database Schema
+  description: AutoSchemaKG integration with vector similarity and graph relationships
+  version: 1.0.0
+
+components:
+  schemas:
+    AutoSchemaEntity:
+      type: object
+      description: Dynamically generated entity from document processing
+      properties:
+        entity_id:
+          type: string
+          format: uuid
+        entity_type:
+          type: string
+          description: Auto-detected entity type (Person, Concept, Method, etc.)
+        name:
+          type: string
+        properties:
+          type: object
+          additionalProperties: true
+          description: Dynamic properties based on document content
+        vector_embedding:
+          type: array
+          items:
+            type: number
+          description: Semantic embedding from local OLLAMA
+        source_documents:
+          type: array
+          items:
+            type: string
+            format: uuid
+        confidence_score:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        created_timestamp:
+          type: string
+          format: date-time
+
+    AutoSchemaRelationship:
+      type: object
+      description: Auto-discovered relationship between entities
+      properties:
+        relationship_id:
+          type: string
+          format: uuid
+        source_entity_id:
+          type: string
+          format: uuid
+        target_entity_id:
+          type: string
+          format: uuid
+        relationship_type:
+          type: string
+          description: Auto-detected relationship (INFLUENCES, CONTAINS, SIMILAR_TO, etc.)
+        strength:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+          description: Relationship strength from semantic analysis
+        properties:
+          type: object
+          additionalProperties: true
+        evidence_text:
+          type: string
+          description: Original text supporting this relationship
+        source_document_id:
+          type: string
+          format: uuid
+
+    VectorSearchResult:
+      type: object
+      description: Semantic similarity search result
+      properties:
+        entity_id:
+          type: string
+          format: uuid
+        similarity_score:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        entity_name:
+          type: string
+        entity_type:
+          type: string
+        snippet:
+          type: string
+          description: Relevant text excerpt
+        graph_connections:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphConnection'
+
+    GraphConnection:
+      type: object
+      description: Connected entities from graph traversal
+      properties:
+        connected_entity_id:
+          type: string
+          format: uuid
+        connected_entity_name:
+          type: string
+        relationship_type:
+          type: string
+        relationship_strength:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        path_length:
+          type: integer
+          description: Degrees of separation in graph
+
+    HybridQueryResult:
+      type: object
+      description: Combined vector similarity + graph relationship results
+      properties:
+        query:
+          type: string
+        vector_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/VectorSearchResult'
+        graph_clusters:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphCluster'
+        semantic_concepts:
+          type: array
+          items:
+            type: string
+          description: Key concepts identified across results
+        processing_stats:
+          type: object
+          properties:
+            vector_search_time_ms:
+              type: integer
+            graph_traversal_time_ms:
+              type: integer
+            total_entities_found:
+              type: integer
+            total_relationships_traversed:
+              type: integer
+
+    GraphCluster:
+      type: object
+      description: Cluster of related entities from graph analysis
+      properties:
+        cluster_id:
+          type: string
+        cluster_concept:
+          type: string
+          description: Central concept of this cluster
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/AutoSchemaEntity'
+        internal_relationships:
+          type: array
+          items:
+            $ref: '#/components/schemas/AutoSchemaRelationship'
+        cluster_coherence:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+
+paths:
+  /hybrid/search:
+    post:
+      summary: Hybrid vector+graph search
+      description: |
+        Performs semantic vector search followed by graph relationship traversal
+        Uses local OLLAMA for embedding generation and entity extraction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  description: Research query for hybrid search
+                vector_similarity_threshold:
+                  type: number
+                  default: 0.7
+                  minimum: 0.0
+                  maximum: 1.0
+                graph_traversal_depth:
+                  type: integer
+                  default: 2
+                  minimum: 1
+                  maximum: 5
+                  description: Maximum degrees of separation to traverse
+                include_schema_evolution:
+                  type: boolean
+                  default: true
+                  description: Include newly discovered entity types
+      responses:
+        '200':
+          description: Hybrid search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HybridQueryResult'
+
+  /schema/entities:
+    get:
+      summary: Get AutoSchemaKG discovered entities
+      description: Retrieve dynamically discovered entities with their properties
+      parameters:
+        - name: entity_type
+          in: query
+          schema:
+            type: string
+          description: Filter by auto-detected entity type
+        - name: confidence_threshold
+          in: query
+          schema:
+            type: number
+            minimum: 0.0
+            maximum: 1.0
+          description: Minimum confidence score
+      responses:
+        '200':
+          description: Entity list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entities:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AutoSchemaEntity'
+                  schema_stats:
+                    type: object
+                    properties:
+                      total_entity_types:
+                        type: integer
+                      most_common_types:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                            count:
+                              type: integer
+
+  /schema/relationships:
+    get:
+      summary: Get discovered relationships
+      description: Retrieve auto-detected relationships between entities
+      parameters:
+        - name: relationship_type
+          in: query
+          schema:
+            type: string
+          description: Filter by relationship type
+        - name: min_strength
+          in: query
+          schema:
+            type: number
+            minimum: 0.0
+            maximum: 1.0
+          description: Minimum relationship strength
+      responses:
+        '200':
+          description: Relationship list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  relationships:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AutoSchemaRelationship'
+
+  /schema/evolve:
+    post:
+      summary: Trigger schema evolution
+      description: |
+        Process new document and evolve schema based on discovered entities/relationships
+        Uses local OLLAMA for entity extraction and relationship detection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - document_content
+              properties:
+                document_content:
+                  type: string
+                  description: Text content for schema evolution
+                document_id:
+                  type: string
+                  format: uuid
+                extract_new_types:
+                  type: boolean
+                  default: true
+                update_embeddings:
+                  type: boolean
+                  default: true
+      responses:
+        '200':
+          description: Schema evolution completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  new_entities_discovered:
+                    type: integer
+                  new_relationships_discovered:
+                    type: integer
+                  new_entity_types:
+                    type: array
+                    items:
+                      type: string
+                  schema_confidence_change:
+                    type: number
+                  processing_time_ms:
+                    type: integer

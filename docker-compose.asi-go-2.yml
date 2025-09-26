@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # Redis for ThoughtSeed caching and active inference state
+  redis-thoughtseed:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+
+  # Neo4j for AutoSchemaKG knowledge graph
+  neo4j-autoschema:
+    image: neo4j:5.13
+    ports:
+      - "7474:7474"   # HTTP
+      - "7687:7687"   # Bolt
+    environment:
+      NEO4J_AUTH: neo4j/password123
+      NEO4J_dbms_memory_heap_initial__size: 1G
+      NEO4J_dbms_memory_heap_max__size: 2G
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+
+  # Qdrant for vector database semantic similarity
+  qdrant-vectors:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"   # HTTP API
+      - "6334:6334"   # gRPC
+    volumes:
+      - qdrant-data:/qdrant/storage
+
+  # OLLAMA for local LLM processing (privacy-preserving)
+  ollama-local:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    # GPU support (uncomment if available)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+volumes:
+  redis-data:
+  neo4j-data:
+  neo4j-logs:
+  qdrant-data:
+  ollama-data:

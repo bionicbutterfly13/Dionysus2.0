@@ -1,0 +1,71 @@
+FROM python:3.11-slim
+
+# Set environment variables for NumPy 2.0 compilation
+ENV NPY_NUM_BUILD_JOBS=4
+ENV NUMPY_VERSION=2.3.3
+
+# Install system dependencies for compilation
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    libssl-dev \
+    libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create working directory
+WORKDIR /frozen-binary
+
+# Install NumPy 2.0+ first
+RUN pip install "numpy>=$NUMPY_VERSION" --no-cache-dir
+
+# Build PyTorch from source with NumPy 2.0 support
+RUN pip install --no-cache-dir \
+    typing-extensions \
+    sympy \
+    networkx \
+    jinja2 \
+    fsspec \
+    filelock
+
+# Clone and build PyTorch with NumPy 2.0 compatibility
+RUN git clone --recursive https://github.com/pytorch/pytorch.git && \
+    cd pytorch && \
+    git checkout v2.4.1 && \
+    git submodule sync && \
+    git submodule update --init --recursive
+
+# Set environment for NumPy 2.0 build
+ENV USE_NUMPY=1
+ENV BUILD_TEST=0
+ENV USE_CUDA=0
+ENV USE_ROCM=0
+ENV USE_MKL=0
+
+# Build PyTorch with NumPy 2.0
+RUN cd pytorch && \
+    python setup.py develop
+
+# Install SentenceTransformers and other dependencies with NumPy 2.0 support
+RUN pip install --no-cache-dir \
+    "sentence-transformers>=5.1.0" \
+    "transformers>=4.50.0" \
+    "scikit-learn" \
+    "scipy" \
+    "redis" \
+    "neo4j" \
+    "asyncio" \
+    "aiofiles"
+
+# Create frozen binary directory
+RUN mkdir -p /frozen-binary/lib && \
+    cp -r /usr/local/lib/python3.11/site-packages/* /frozen-binary/lib/
+
+# Test the installation
+RUN python -c "import numpy as np; import torch; import sentence_transformers; print(f'NumPy: {np.__version__}'); print(f'PyTorch: {torch.__version__}'); print(f'SentenceTransformers: {sentence_transformers.__version__}'); print('✅ All NumPy 2.0 compatible!')"
+
+# Create entrypoint
+COPY . /app
+WORKDIR /app
+
+CMD ["python", "-c", "print('NumPy 2.0 Frozen Binary Ready!')"]

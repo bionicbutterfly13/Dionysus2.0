@@ -1,0 +1,7 @@
+# LogFire Integration for ThoughtSeed Observability
+logfire>=1.0.0
+pydantic>=2.0.0
+
+# Optional: Advanced integrations
+logfire[fastapi]  # If we add FastAPI endpoints
+logfire[redis]    # For Redis integration

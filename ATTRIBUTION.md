@@ -1,13 +1,29 @@
 # 🏛️ Attribution and Credits
 
-## Original Work
+## 🌊 ASI-Arch Context Flow - Dual Attribution
 
-This repository is a **research fork** of the original ASI-Arch project:
+This repository represents a **research fork** with two distinct but integrated contributions:
+
+### 1. 🏗️ Foundational ASI-Arch Framework (Original Work)
 
 **Original Repository**: https://github.com/GAIR-NLP/ASI-Arch  
 **Original Authors**: GAIR-NLP Research Team  
 **Original Paper**: "AlphaGo Moment for Model Architecture Discovery" (https://arxiv.org/pdf/2507.18074)  
 **License**: Apache License 2.0  
+**Contribution**: Complete neural architecture discovery pipeline, evolutionary algorithms, evaluation framework
+
+### 2. 🌊 Context Engineering System (Research Extension)
+
+**Extension Name**: ASI-Arch Context Flow  
+**Research Focus**: Consciousness detection, river metaphor framework, attractor basin analysis  
+**Key Innovations**:
+- Real-time consciousness detection in neural architectures
+- River metaphor information flow dynamics
+- Attractor basin stability analysis
+- Hybrid graph database system
+- Meta-learning evolution enhancement
+
+**Built Upon**: The foundational ASI-Arch framework (with full attribution to original authors)  
 
 ## Citation
 

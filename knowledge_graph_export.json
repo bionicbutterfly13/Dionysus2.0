@@ -1,0 +1,60 @@
+{
+  "metadata": {
+    "exported_at": "2025-09-22T10:04:32.255976",
+    "architecture_count": 1,
+    "graph_nodes": 2,
+    "graph_edges": 1
+  },
+  "consciousness_distribution": {
+    "ACTIVE": 1
+  },
+  "top_architectures": [
+    {
+      "id": "test_linear_attention",
+      "name": "test_linear_attention",
+      "program": "class TestLinearAttention(nn.Module): pass",
+      "result": "{\"test\": \"acc=0.85\"}",
+      "motivation": "testing hybrid database",
+      "analysis": "shows good integration with database",
+      "consciousness_level": "ACTIVE",
+      "consciousness_score": 0.65,
+      "created_at": "2025-09-22T10:04:32.253538"
+    }
+  ],
+  "graph_structure": {
+    "nodes": [
+      {
+        "id": "test_linear_attention",
+        "type": "architecture",
+        "properties": {
+          "name": "test_linear_attention",
+          "consciousness_level": "ACTIVE",
+          "consciousness_score": 0.65,
+          "performance": 0.85
+        },
+        "created_at": "2025-09-22T10:04:32.254762"
+      },
+      {
+        "id": "parent_arch",
+        "type": "architecture",
+        "properties": {
+          "name": "parent",
+          "consciousness_level": "DORMANT"
+        },
+        "created_at": "2025-09-22T10:04:32.254790"
+      }
+    ],
+    "edges": [
+      {
+        "source_id": "parent_arch",
+        "target_id": "test_linear_attention",
+        "type": "evolved_from",
+        "properties": {
+          "strength": 0.8
+        },
+        "weight": 0.8,
+        "created_at": "2025-09-22T10:04:32.254800"
+      }
+    ]
+  }
+}

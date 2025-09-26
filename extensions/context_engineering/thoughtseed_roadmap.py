@@ -23,6 +23,21 @@ from dataclasses import dataclass
 from enum import Enum
 from abc import ABC, abstractmethod
 
+# Import episodic meta-learning types (from Ritter et al. 2018 integration)
+try:
+    from .theoretical_foundations import (
+        EpisodicMetaLearningProfile, 
+        TaskReoccurrenceStrategy,
+        EpisodicMemoryType,
+        ReinstatementGateFunction
+    )
+except ImportError:
+    # Fallback definitions if theoretical_foundations not available
+    EpisodicMetaLearningProfile = None
+    TaskReoccurrenceStrategy = None
+    EpisodicMemoryType = None
+    ReinstatementGateFunction = None
+
 # =============================================================================
 # Thoughtseed Design Specifications
 # =============================================================================
@@ -42,6 +57,18 @@ class ActiveInferenceMode(Enum):
     ACTIVE_SAMPLING = "active_sampling"     # Actively seeks information
     COUNTERFACTUAL = "counterfactual"       # Considers alternative scenarios
     HIERARCHICAL = "hierarchical"           # Multi-level inference
+    ARCHETYPAL_RESONANCE = "archetypal_resonance"  # Narrative archetypes as resonant attractors
+    EPISODIC_RECALL = "episodic_recall"     # Uses episodic memory for inference (Ritter et al. 2018)
+    COMPOSITIONAL_MEMORY = "compositional_memory"  # Combines memory components for new situations
+
+class ArchetypalPattern(Enum):
+    """Fundamental archetypal patterns serving as resonant attractors"""
+    HERO_JOURNEY = "hero_journey"           # Architecture overcoming challenges
+    CREATOR_BUILDER = "creator_builder"     # Architecture creating new patterns
+    EXPLORER_SEEKER = "explorer_seeker"     # Architecture discovering new spaces
+    SAGE_TEACHER = "sage_teacher"           # Architecture sharing knowledge
+    TRANSFORMER_ALCHEMIST = "transformer_alchemist"  # Architecture transforming itself
+    GUARDIAN_PROTECTOR = "guardian_protector"  # Architecture maintaining stability
 
 @dataclass
 class ThoughtseedProfile:
@@ -69,6 +96,24 @@ class ThoughtseedProfile:
     counterfactual_reasoning_ability: float # Considers "what if" scenarios  
     model_uncertainty_estimation: float     # Knows what it doesn't know
     adaptive_attention_allocation: float    # Dynamically allocates attention
+    
+    # Narrative Archetypal Resonance
+    dominant_archetypal_pattern: ArchetypalPattern  # Primary archetypal attractor
+    archetypal_resonance_strength: float    # How strongly it resonates with archetypes
+    narrative_coherence_score: float        # Coherence of its developmental narrative
+    archetypal_transition_capability: float # Ability to shift between archetypal patterns
+    
+    # Episodic Meta-Learning (Ritter et al. 2018)
+    episodic_memory_capacity: float         # Ability to store and retrieve episodic memories
+    task_reoccurrence_recognition: float    # How well it recognizes recurring tasks/contexts
+    memory_consolidation_efficiency: float  # How effectively it consolidates memories
+    reinstatement_gate_control: float       # Control over memory reinstatement gates
+    compositional_memory_usage: float       # Ability to compose memories for new situations
+    catastrophic_forgetting_resistance: float # Resistance to forgetting old tasks
+    
+    # Integration Parameters
+    memory_archetype_coupling: float        # How strongly episodic memory couples with archetypes
+    temporal_narrative_coherence: float     # Coherence of memories with narrative development
 
 # =============================================================================
 # Integration with Current Context Engineering System

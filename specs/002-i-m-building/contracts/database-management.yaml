@@ -1,0 +1,222 @@
+openapi: 3.0.3
+info:
+  title: Flux Database Management API
+  version: 0.1.0
+  description: |
+    Internal database management endpoints for Neo4j, Redis, and Qdrant integration.
+    These are system-level APIs for service health monitoring and database operations.
+servers:
+  - url: http://localhost:8000
+    description: Flux backend (local)
+paths:
+  /health/databases:
+    get:
+      summary: Database health check endpoint
+      description: |
+        Quick health check endpoint for all databases. Returns connection status,
+        response times, and overall health assessment. Used by monitoring systems.
+      operationId: getDatabaseHealth
+      responses:
+        "200":
+          description: Database health information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  neo4j:
+                    $ref: '#/components/schemas/DatabaseHealthStatus'
+                  redis:
+                    $ref: '#/components/schemas/DatabaseHealthStatus'
+                  qdrant:
+                    $ref: '#/components/schemas/DatabaseHealthStatus'
+                  overall_status:
+                    type: string
+                    enum: [healthy, partial, unavailable]
+                    description: Overall health status
+                  healthy_count:
+                    type: integer
+                    description: Number of healthy databases
+                  total_count:
+                    type: integer
+                    description: Total number of databases
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /api/v1/system/databases/status:
+    get:
+      summary: Check database connection status
+      description: |
+        Returns the connection status of all configured databases (Neo4j, Redis, Qdrant).
+        Used for health monitoring and troubleshooting.
+      operationId: getDatabaseStatus
+      responses:
+        "200":
+          description: Database status information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  databases:
+                    type: object
+                    properties:
+                      neo4j:
+                        $ref: '#/components/schemas/DatabaseStatus'
+                      redis:
+                        $ref: '#/components/schemas/DatabaseStatus'
+                      qdrant:
+                        $ref: '#/components/schemas/DatabaseStatus'
+                  overall_health:
+                    type: string
+                    enum: [healthy, degraded, unhealthy]
+                  timestamp:
+                    type: string
+                    format: date-time
+        "500":
+          description: System error during status check
+
+  /api/v1/system/databases/neo4j/schema:
+    post:
+      summary: Initialize Neo4j schema
+      description: |
+        Creates the required Neo4j schema including constraints, indexes, and node types
+        for the Flux consciousness emulator. Idempotent operation.
+      operationId: initializeNeo4jSchema
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                force_recreate:
+                  type: boolean
+                  default: false
+                  description: Drop and recreate existing schema
+      responses:
+        "200":
+          description: Schema initialized successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  nodes_created:
+                    type: array
+                    items:
+                      type: string
+                  indexes_created:
+                    type: array
+                    items:
+                      type: string
+                  constraints_created:
+                    type: array
+                    items:
+                      type: string
+        "500":
+          description: Schema initialization failed
+
+  /api/v1/system/databases/qdrant/collections:
+    post:
+      summary: Initialize Qdrant collections
+      description: |
+        Creates the required Qdrant collections for vector embeddings with proper
+        configuration for distance metrics and indexing.
+      operationId: initializeQdrantCollections
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                vector_size:
+                  type: integer
+                  default: 384
+                  description: Vector embedding dimension
+                distance:
+                  type: string
+                  enum: [cosine, euclidean, dot]
+                  default: cosine
+      responses:
+        "200":
+          description: Collections initialized successfully
+        "500":
+          description: Collection initialization failed
+
+  /api/v1/system/databases/redis/streams:
+    post:
+      summary: Initialize Redis streams
+      description: |
+        Sets up Redis streams for curiosity missions and consciousness events
+        with proper consumer groups and retention policies.
+      operationId: initializeRedisStreams
+      responses:
+        "200":
+          description: Streams initialized successfully
+        "500":
+          description: Stream initialization failed
+
+components:
+  schemas:
+    DatabaseHealthStatus:
+      type: object
+      required:
+        - status
+        - message
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy, unavailable]
+          description: Database health status
+        message:
+          type: string
+          description: Human-readable status message
+        timestamp:
+          type: string
+          format: date-time
+          description: When this status was checked
+        response_time_ms:
+          type: number
+          format: float
+          nullable: true
+          description: Response time in milliseconds (null if unavailable)
+        additional_info:
+          type: object
+          nullable: true
+          description: Additional database-specific information
+
+    DatabaseStatus:
+      type: object
+      properties:
+        connected:
+          type: boolean
+          description: Whether the database is currently connected
+        response_time_ms:
+          type: number
+          format: float
+          description: Last response time in milliseconds
+        error_message:
+          type: string
+          nullable: true
+          description: Error message if connection failed
+        version:
+          type: string
+          nullable: true
+          description: Database server version
+        pool_status:
+          type: object
+          nullable: true
+          properties:
+            active_connections:
+              type: integer
+            idle_connections:
+              type: integer
+            max_connections:
+              type: integer
+      required: [connected]

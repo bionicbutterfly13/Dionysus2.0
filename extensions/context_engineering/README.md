@@ -46,6 +46,12 @@ python start_context_engineering.py --no-dashboard
 - **Stability-informed exploration** balancing innovation and reliability
 - **Meta-learning evolution** that gets smarter over time
 
+### **5. Narrative Archetypes & Active Inference**
+- **Resonant Attractors**: Archetypal patterns that serve as stable reference points for architecture evolution
+- **Narrative Interface**: Story-driven understanding of architecture development and consciousness emergence
+- **Active Inference Enhancement**: Predictive processing improved through archetypal pattern recognition
+- **Archetypal Evolution**: Architecture discovery guided by fundamental archetypal attractors
+
 ## 📊 Live Dashboard Features
 
 ### **Real-Time Visualizations**

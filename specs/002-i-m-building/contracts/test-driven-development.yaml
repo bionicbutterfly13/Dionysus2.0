@@ -1,0 +1,198 @@
+openapi: 3.0.3
+info:
+  title: Flux Test-Driven Development System
+  description: |
+    Comprehensive TDD system for Flux development with strict RED → GREEN → REFACTOR cycle.
+    Ensures high code quality and comprehensive test coverage.
+  version: 1.0.0
+
+# This is a development system specification, not an API
+# But we document it in OpenAPI format for consistency
+
+paths:
+  /dev/tests/run:
+    post:
+      summary: Run test suite
+      description: Execute the comprehensive test suite with coverage reporting
+      tags:
+        - Development Tools
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                test_pattern:
+                  type: string
+                  description: Pytest pattern to run specific tests
+                  example: "tests/test_port_management.py"
+                coverage:
+                  type: boolean
+                  description: Include coverage reporting
+                  default: true
+                verbose:
+                  type: boolean
+                  description: Verbose output
+                  default: false
+      responses:
+        '200':
+          description: Test results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestResults'
+
+  /dev/tests/status:
+    get:
+      summary: Get test suite status
+      description: Current status of all test categories
+      responses:
+        '200':
+          description: Test status information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestStatus'
+
+components:
+  schemas:
+    TestResults:
+      type: object
+      required:
+        - passed
+        - failed
+        - total
+        - duration
+        - coverage
+      properties:
+        passed:
+          type: integer
+          description: Number of passed tests
+        failed:
+          type: integer
+          description: Number of failed tests
+        total:
+          type: integer
+          description: Total number of tests
+        duration:
+          type: number
+          description: Test execution time in seconds
+        coverage:
+          type: object
+          properties:
+            percentage:
+              type: number
+              description: Overall code coverage percentage
+            lines_covered:
+              type: integer
+            lines_total:
+              type: integer
+        categories:
+          type: object
+          properties:
+            unit:
+              $ref: '#/components/schemas/TestCategoryResult'
+            integration:
+              $ref: '#/components/schemas/TestCategoryResult'
+            e2e:
+              $ref: '#/components/schemas/TestCategoryResult'
+
+    TestCategoryResult:
+      type: object
+      properties:
+        passed:
+          type: integer
+        failed:
+          type: integer
+        total:
+          type: integer
+
+    TestStatus:
+      type: object
+      required:
+        - working_tests
+        - todo_tests
+        - no_skip_policy_enforced
+      properties:
+        working_tests:
+          type: array
+          description: Tests that must always pass (regression protection)
+          items:
+            type: string
+          example:
+            - "tests/test_port_management.py"
+            - "tests/test_database_health.py"
+        todo_tests:
+          type: array
+          description: Tests that fail with clear TODO messages
+          items:
+            type: string
+          example:
+            - "tests/contract/test_curiosity_missions.py"
+            - "tests/integration/test_document_ingestion_flow.py"
+        no_skip_policy_enforced:
+          type: boolean
+          description: Whether no-skip policy is active
+        last_run:
+          type: string
+          format: date-time
+          description: When tests were last executed
+
+# TDD System Implementation Requirements
+x-tdd-system:
+  rules:
+    cycle: "RED → GREEN → REFACTOR"
+    never_skip_tests: true
+    comprehensive_coverage: true
+    regression_protection: true
+
+  test_categories:
+    unit:
+      description: "Test individual functions/methods in isolation"
+      requirements:
+        - "Mock external dependencies"
+        - "Fast execution (< 1ms per test)"
+        - "No network calls, no database connections, no file I/O"
+
+    integration:
+      description: "Test interaction between components"
+      requirements:
+        - "Can use real dependencies in controlled environment"
+        - "Test realistic scenarios"
+        - "Slower execution acceptable"
+
+    e2e:
+      description: "Test complete user workflows"
+      requirements:
+        - "Use real services when possible"
+        - "Test critical business paths"
+        - "Slowest execution category"
+
+  pytest_configuration:
+    test_discovery: "tests/"
+    naming_convention: "test_*.py"
+    coverage_minimum: 90
+    parallel_execution: true
+    fixtures_supported: true
+    parametrization_supported: true
+
+  enforcement:
+    no_skip_policy:
+      enabled: true
+      enforcement_script: "backend/enforce_no_skip_tests.py"
+      rule: "All tests must either PASS or FAIL with clear TODO messages"
+
+    regression_protection:
+      working_tests_must_pass: true
+      fail_on_regression: true
+
+    documentation:
+      git_diffs_required: true
+      rationales_required: true
+      test_results_documented: true
+
+  tools:
+    test_runner: "pytest"
+    coverage_tool: "pytest-cov"
+    rules_file: "TDD_RULES.md"
+    policy_file: "TEST_POLICY.md"

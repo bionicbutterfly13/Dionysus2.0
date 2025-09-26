@@ -1,0 +1,341 @@
+openapi: 3.0.3
+info:
+  title: ASI-GO-2 Research Intelligence API
+  description: Research query processing and document ingestion with Context Engineering
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8001/api/v1
+    description: ASI-GO-2 Development server (unique port)
+
+paths:
+  /research/query:
+    post:
+      summary: Process research query with ASI-GO-2 intelligence
+      description: |
+        Processes research question through thoughtseed competition, pattern selection,
+        and Context Engineering-guided synthesis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  description: Research question to process
+                  example: "What are the key mechanisms of consciousness emergence in neural networks?"
+                context:
+                  type: object
+                  description: Optional context for query processing
+                  properties:
+                    domain_focus:
+                      type: array
+                      items:
+                        type: string
+                      example: ["neuroscience", "artificial_intelligence"]
+                    consciousness_level_required:
+                      type: number
+                      minimum: 0.0
+                      maximum: 1.0
+                      example: 0.7
+      responses:
+        '200':
+          description: Research synthesis generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearchResponse'
+        '400':
+          description: Invalid query format
+        '500':
+          description: Processing error
+
+  /research/patterns:
+    get:
+      summary: Retrieve accumulated research patterns
+      description: Get patterns stored in Cognition Base with filtering options
+      parameters:
+        - name: domain
+          in: query
+          schema:
+            type: string
+          description: Filter by knowledge domain
+        - name: min_confidence
+          in: query
+          schema:
+            type: number
+            minimum: 0.0
+            maximum: 1.0
+          description: Minimum confidence threshold
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+          description: Maximum patterns to return
+      responses:
+        '200':
+          description: Pattern list retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  patterns:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CognitionPattern'
+                  total_count:
+                    type: integer
+
+  /documents/process:
+    post:
+      summary: Process document and extract patterns
+      description: |
+        Ingests document through 5-layer ThoughtSeed hierarchy and extracts patterns
+        for Cognition Base accumulation
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Document file to process
+                extract_narratives:
+                  type: boolean
+                  default: true
+                  description: Enable narrative/motif pattern extraction
+                thoughtseed_layers:
+                  type: array
+                  items:
+                    type: string
+                    enum: [sensory, perceptual, conceptual, abstract, metacognitive]
+                  description: Specific ThoughtSeed layers to activate
+      responses:
+        '200':
+          description: Document processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentProcessingResult'
+        '400':
+          description: Invalid file format
+        '413':
+          description: File too large
+
+  /thoughtseed/workspace/{workspace_id}:
+    get:
+      summary: Get ThoughtSeed workspace details
+      description: Retrieve detailed thoughtseed competition and processing trace
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Workspace details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThoughtseedWorkspace'
+        '404':
+          description: Workspace not found
+
+  /context-engineering/basins:
+    get:
+      summary: Get attractor basin states
+      description: Retrieve Context Engineering attractor basins and their configurations
+      parameters:
+        - name: active_only
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Return only currently active basins
+      responses:
+        '200':
+          description: Basin states retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  basins:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AttractorBasin'
+
+components:
+  schemas:
+    ResearchResponse:
+      type: object
+      properties:
+        query_id:
+          type: string
+          format: uuid
+        synthesis:
+          type: string
+          description: Generated research answer
+        confidence_score:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        patterns_used:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: CognitionBase pattern IDs used
+        thoughtseed_workspace_id:
+          type: string
+          format: uuid
+        consciousness_level:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        processing_time_ms:
+          type: integer
+        attractor_basins_activated:
+          type: array
+          items:
+            type: string
+
+    CognitionPattern:
+      type: object
+      properties:
+        pattern_id:
+          type: string
+          format: uuid
+        pattern_name:
+          type: string
+        description:
+          type: string
+        success_rate:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        confidence:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        domain_tags:
+          type: array
+          items:
+            type: string
+        thoughtseed_layer:
+          type: string
+          enum: [sensory, perceptual, conceptual, abstract, metacognitive]
+        usage_count:
+          type: integer
+        last_used:
+          type: string
+          format: date-time
+
+    DocumentProcessingResult:
+      type: object
+      properties:
+        document_id:
+          type: string
+          format: uuid
+        processing_status:
+          type: string
+          enum: [success, partial, failed]
+        extraction_quality:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        patterns_extracted:
+          type: array
+          items:
+            type: string
+            format: uuid
+        narrative_elements:
+          type: object
+          properties:
+            themes:
+              type: array
+              items:
+                type: string
+            motifs:
+              type: array
+              items:
+                type: string
+            story_structures:
+              type: array
+              items:
+                type: string
+        thoughtseed_traces:
+          type: array
+          items:
+            type: string
+            format: uuid
+        processing_time_ms:
+          type: integer
+
+    ThoughtseedWorkspace:
+      type: object
+      properties:
+        workspace_id:
+          type: string
+          format: uuid
+        research_query:
+          type: string
+        competing_patterns:
+          type: array
+          items:
+            type: string
+            format: uuid
+        winning_pattern:
+          type: string
+          format: uuid
+        consciousness_level:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        competition_trace:
+          type: object
+          description: Detailed competition dynamics
+        neural_field_state:
+          type: object
+          description: Context Engineering field configuration
+        thoughtseed_layers_activated:
+          type: array
+          items:
+            type: string
+            enum: [sensory, perceptual, conceptual, abstract, metacognitive]
+
+    AttractorBasin:
+      type: object
+      properties:
+        basin_id:
+          type: string
+          format: uuid
+        basin_name:
+          type: string
+        knowledge_domain:
+          type: string
+        stability_level:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        pattern_count:
+          type: integer
+          description: Number of patterns clustered in this basin
+        last_activation:
+          type: string
+          format: date-time
+        emergence_conditions:
+          type: object

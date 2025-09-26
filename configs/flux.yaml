@@ -1,0 +1,140 @@
+# Flux Self-Teaching Consciousness Emulator Configuration
+# Local-first configuration with constitutional compliance settings
+
+app:
+  name: "Flux Self-Teaching Consciousness Emulator"
+  version: "0.1.0"
+  debug: true
+  local_first: true
+
+# Flux-specific ports (unique odd numbers to avoid conflicts)
+server:
+  host: "127.0.0.1"
+  port: 9127  # Flux Backend API (unique odd port)
+  cors_origins:
+    - "http://localhost:9243"  # Flux Frontend
+    - "http://127.0.0.1:9243"
+
+# Port allocation for Flux ecosystem (unique odd ports)
+ports:
+  backend_api: 9127       # FastAPI backend (unique odd)
+  frontend_dev: 9243      # React development server (unique odd)
+  websocket_stream: 9129  # WebSocket visualization stream (sequential odd)
+  health_monitor: 9131    # Health monitoring dashboard (sequential odd)
+
+database:
+  # Neo4j as canonical knowledge graph (SSoT)
+  neo4j:
+    uri: "bolt://localhost:7687"
+    user: "neo4j"
+    password: "neo4j_password"  # Change in production
+    database: "flux"
+    max_connection_pool_size: 10
+
+  # Qdrant for vector embeddings
+  qdrant:
+    host: "localhost"
+    port: 6333
+    collection_name: "flux_embeddings"
+    vector_size: 384  # sentence-transformers/all-MiniLM-L6-v2
+
+  # Redis for transient curiosity signals
+  redis:
+    host: "localhost"
+    port: 6379
+    db: 0
+    password: null
+    max_connections: 20
+
+# Local inference configuration
+inference:
+  ollama:
+    base_url: "http://localhost:11434"
+    model: "llama3.1"
+    temperature: 0.7
+    max_tokens: 2048
+    timeout: 30
+
+  # Fallback embedding service
+  embeddings:
+    provider: "sentence-transformers"
+    model: "all-MiniLM-L6-v2"
+
+# ThoughtSeed consciousness system settings
+thoughtseed:
+  consciousness_states:
+    - "dormant"
+    - "emerging"
+    - "active"
+    - "self-aware"
+    - "meta-aware"
+    - "dreaming"
+
+  attractor_basins:
+    enable: true
+    decay_rate: 0.1
+    activation_threshold: 0.6
+
+  evaluation_framework:
+    require_frames: true
+    constitutional_questions:
+      - "whats_good"
+      - "whats_broken"
+      - "works_but_shouldnt"
+      - "pretends_but_doesnt"
+
+# Curiosity engine configuration
+curiosity:
+  enable: true
+  redis_resilience:
+    suspend_on_failure: true
+    retry_attempts: 3
+    retry_delay: 5
+
+  replay:
+    nightly_enabled: true
+    nightly_hour: 2  # 2 AM local time
+    relevance_threshold: 0.5
+    decay_model: "NEMORI"
+
+  trust_scoring:
+    minimum_trust: 0.3
+    source_weights:
+      academic: 0.9
+      wikipedia: 0.7
+      blog: 0.4
+      social: 0.2
+
+# Constitutional compliance settings
+constitution:
+  mock_data_transparency: true
+  scientific_objectivity: true
+  local_first_enforcement: true
+  redundancy_prevention: true
+  evaluation_mandatory: true
+
+# Mosaic observation system (affective state)
+mosaic:
+  dimensions:
+    - "senses"
+    - "actions"
+    - "emotions"
+    - "impulses"
+    - "cognitions"
+  scale_range: [0.0, 1.0]
+
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  handlers:
+    - console
+    - file
+  file_path: "logs/flux.log"
+
+# Development settings
+development:
+  auto_reload: true
+  mock_data_allowed: true
+  debug_websockets: true
+  evaluation_verbose: true

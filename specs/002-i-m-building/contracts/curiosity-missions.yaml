@@ -1,0 +1,204 @@
+openapi: 3.0.3
+info:
+  title: Flux Curiosity Mission API
+  version: 0.1.0
+  description: |
+    Curiosity engine interface for Flux (our implementation). Manages missions triggered by knowledge gaps,
+    executes searches, tracks trust scores, and enforces relevance-based replay.
+servers:
+  - url: http://localhost:8000
+    description: Local curiosity service
+paths:
+  /api/v1/curiosity/missions:
+    post:
+      summary: Create a curiosity mission
+      description: |
+        Accepts a mission describing the knowledge gap, triggered event, and initial hypotheses. Mission is queued
+        for immediate or scheduled exploration depending on replay priority and curiosity intensity settings.
+      operationId: createCuriosityMission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [trigger_event_id, prompt]
+              properties:
+                trigger_event_id:
+                  type: string
+                  format: uuid
+                  description: EventNode identifier causing the mission
+                prompt:
+                  type: string
+                  description: Natural language problem statement / hypothesis description
+                curiosity_mode:
+                  type: string
+                  enum: [focused, balanced, exploratory]
+                  default: balanced
+                replay_priority:
+                  type: string
+                  enum: [immediate, scheduled, nightly]
+                  default: scheduled
+                max_results:
+                  type: integer
+                  default: 5
+                require_user_confirmation:
+                  type: boolean
+                  default: true
+      responses:
+        "201":
+          description: Mission created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mission_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum: [queued]
+                  message:
+                    type: string
+                    example: "Curiosity mission queued for scheduled replay."
+        "400":
+          description: Validation error (missing fields or invalid mode)
+  /api/v1/curiosity/missions/{mission_id}:
+    get:
+      summary: Get mission details
+      operationId: getCuriosityMission
+      parameters:
+        - name: mission_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Mission details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CuriosityMission'
+        "404":
+          description: Mission not found
+    patch:
+      summary: Update mission status
+      operationId: updateCuriosityMission
+      parameters:
+        - name: mission_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [searching, retrieved, integrated, dismissed]
+                retrieved_sources:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/SourceReference'
+                trust_score:
+                  type: number
+                  format: float
+                  minimum: 0
+                  maximum: 1
+                evaluation_frame:
+                  $ref: '#/components/schemas/EvaluationFrame'
+                integrated_document_ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        "200":
+          description: Mission updated
+        "400":
+          description: Invalid update payload
+        "404":
+          description: Mission not found
+
+components:
+  schemas:
+    CuriosityMission:
+      type: object
+      properties:
+        mission_id:
+          type: string
+          format: uuid
+        trigger_event_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [queued, searching, retrieved, integrated, dismissed]
+        prompt:
+          type: string
+        curiosity_mode:
+          type: string
+          enum: [focused, balanced, exploratory]
+        replay_priority:
+          type: string
+          enum: [immediate, scheduled, nightly]
+        trust_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        retrieved_sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceReference'
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+    SourceReference:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        title:
+          type: string
+        summary:
+          type: string
+        provenance:
+          type: string
+          description: How credibility/trust score was computed
+        trust_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        requires_confirmation:
+          type: boolean
+      required: [url, trust_score]
+    EvaluationFrame:
+      type: object
+      properties:
+        frame_id:
+          type: string
+          format: uuid
+        whats_good:
+          type: string
+        whats_broken:
+          type: string
+        works_but_shouldnt:
+          type: string
+        pretends_but_doesnt:
+          type: string
+      required: [frame_id, whats_good, whats_broken, works_but_shouldnt, pretends_but_doesnt]
