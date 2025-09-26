@@ -1,0 +1,498 @@
+openapi: 3.0.3
+info:
+  title: Dionysus Legacy Component Migration API
+  description: API for distributed background migration of legacy consciousness components
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+
+paths:
+  /migration/pipeline:
+    post:
+      summary: Initialize migration pipeline
+      description: Start distributed background migration process
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                legacy_codebase_path:
+                  type: string
+                  description: Path to legacy Dionysus consciousness codebase
+                migration_strategy:
+                  type: string
+                  enum: [complete_rewrite, selective_enhancement]
+                  default: complete_rewrite
+                quality_threshold:
+                  type: number
+                  format: float
+                  minimum: 0.0
+                  maximum: 1.0
+                  description: Minimum quality score for component migration
+              required:
+                - legacy_codebase_path
+      responses:
+        201:
+          description: Migration pipeline created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pipeline_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum: [initializing]
+                  estimated_components:
+                    type: integer
+                  coordinator_agent_id:
+                    type: string
+
+    get:
+      summary: List active migration pipelines
+      responses:
+        200:
+          description: List of migration pipelines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MigrationPipeline'
+
+  /migration/pipeline/{pipeline_id}:
+    get:
+      summary: Get migration pipeline status
+      parameters:
+        - name: pipeline_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Migration pipeline details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MigrationPipeline'
+
+    delete:
+      summary: Stop migration pipeline
+      parameters:
+        - name: pipeline_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        202:
+          description: Pipeline shutdown initiated
+
+  /migration/components:
+    get:
+      summary: List legacy components discovered
+      parameters:
+        - name: pipeline_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, analyzing, analyzed, migrating, completed, failed]
+        - name: min_quality_score
+          in: query
+          schema:
+            type: number
+            format: float
+      responses:
+        200:
+          description: List of legacy components
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LegacyComponent'
+
+  /migration/components/{component_id}:
+    get:
+      summary: Get component details and migration status
+      parameters:
+        - name: component_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Component details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegacyComponent'
+
+  /migration/components/{component_id}/approve:
+    post:
+      summary: Approve component migration
+      description: Individual component approval with detailed analysis
+      parameters:
+        - name: component_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                approved:
+                  type: boolean
+                approval_notes:
+                  type: string
+                consciousness_impact_review:
+                  type: object
+                  properties:
+                    awareness_enhancement:
+                      type: boolean
+                    inference_improvement:
+                      type: boolean
+                    memory_integration:
+                      type: boolean
+              required:
+                - approved
+      responses:
+        200:
+          description: Approval recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  component_id:
+                    type: string
+                  approval_status:
+                    type: string
+                    enum: [approved, rejected]
+                  migration_scheduled:
+                    type: boolean
+
+  /migration/components/{component_id}/rollback:
+    post:
+      summary: Rollback individual component to legacy version
+      parameters:
+        - name: component_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        202:
+          description: Rollback initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rollback_id:
+                    type: string
+                    format: uuid
+                  estimated_completion:
+                    type: string
+                    format: date-time
+
+  /coordination/agents:
+    get:
+      summary: List active DAEDALUS coordination agents
+      responses:
+        200:
+          description: List of coordination agents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CoordinationAgent'
+
+  /coordination/agents/{agent_id}/status:
+    get:
+      summary: Get agent status and current task
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Agent status details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BackgroundAgent'
+
+  /thoughtseed/enhancements:
+    get:
+      summary: List ThoughtSeed enhancement results
+      parameters:
+        - name: component_id
+          in: query
+          schema:
+            type: string
+        - name: enhancement_type
+          in: query
+          schema:
+            type: string
+            enum: [active_inference, consciousness_detection, meta_cognitive]
+      responses:
+        200:
+          description: List of ThoughtSeed enhancements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ThoughtSeedEnhancement'
+
+  /thoughtseed/enhancements/{enhancement_id}:
+    get:
+      summary: Get ThoughtSeed enhancement details
+      parameters:
+        - name: enhancement_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Enhancement details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThoughtSeedEnhancement'
+
+components:
+  schemas:
+    MigrationPipeline:
+      type: object
+      properties:
+        pipeline_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [initializing, analyzing, migrating, testing, completed, failed]
+        total_components:
+          type: integer
+        completed_components:
+          type: integer
+        failed_components:
+          type: integer
+        active_agents:
+          type: array
+          items:
+            type: string
+            format: uuid
+        started_at:
+          type: string
+          format: date-time
+        estimated_completion:
+          type: string
+          format: date-time
+        coordinator_agent_id:
+          type: string
+          format: uuid
+
+    LegacyComponent:
+      type: object
+      properties:
+        component_id:
+          type: string
+        name:
+          type: string
+        file_path:
+          type: string
+        dependencies:
+          type: array
+          items:
+            type: string
+        consciousness_functionality:
+          type: object
+          properties:
+            awareness_score:
+              type: number
+              format: float
+            inference_score:
+              type: number
+              format: float
+            memory_score:
+              type: number
+              format: float
+        strategic_value:
+          type: object
+          properties:
+            uniqueness_score:
+              type: number
+              format: float
+            reusability_score:
+              type: number
+              format: float
+            framework_alignment_score:
+              type: number
+              format: float
+        quality_score:
+          type: number
+          format: float
+        analysis_status:
+          type: string
+          enum: [pending, analyzing, analyzed, failed]
+        extracted_at:
+          type: string
+          format: date-time
+
+    ThoughtSeedEnhancement:
+      type: object
+      properties:
+        enhancement_id:
+          type: string
+          format: uuid
+        source_component_id:
+          type: string
+        enhanced_component_path:
+          type: string
+        enhancement_type:
+          type: string
+          enum: [active_inference, consciousness_detection, meta_cognitive]
+        legacy_functionality_preserved:
+          type: array
+          items:
+            type: string
+        new_capabilities_added:
+          type: array
+          items:
+            type: string
+        rewrite_status:
+          type: string
+          enum: [planned, in_progress, completed, tested, approved, deployed, rolled_back]
+        performance_metrics:
+          type: object
+          properties:
+            before_latency_ms:
+              type: number
+              format: float
+            after_latency_ms:
+              type: number
+              format: float
+            memory_improvement_percent:
+              type: number
+              format: float
+        consciousness_metrics:
+          type: object
+          properties:
+            awareness_enhancement:
+              type: number
+              format: float
+            inference_improvement:
+              type: number
+              format: float
+            meta_cognitive_capabilities:
+              type: array
+              items:
+                type: string
+        approved_by:
+          type: string
+        approved_at:
+          type: string
+          format: date-time
+
+    CoordinationAgent:
+      type: object
+      properties:
+        coordination_id:
+          type: string
+          format: uuid
+        coordinator_status:
+          type: string
+          enum: [initializing, coordinating, scaling, maintaining, shutting_down]
+        active_subagents:
+          type: array
+          items:
+            type: object
+            properties:
+              agent_id:
+                type: string
+                format: uuid
+              context_window_id:
+                type: string
+              current_task:
+                type: string
+        task_queue:
+          type: array
+          items:
+            type: string
+        performance_metrics:
+          type: object
+          properties:
+            throughput_tasks_per_hour:
+              type: number
+              format: float
+            success_rate_percent:
+              type: number
+              format: float
+            resource_utilization_percent:
+              type: number
+              format: float
+
+    BackgroundAgent:
+      type: object
+      properties:
+        agent_id:
+          type: string
+          format: uuid
+        context_window_id:
+          type: string
+        agent_status:
+          type: string
+          enum: [idle, analyzing, rewriting, testing, reporting]
+        current_task_id:
+          type: string
+        assigned_component_id:
+          type: string
+        task_history:
+          type: array
+          items:
+            type: string
+        performance_stats:
+          type: object
+          properties:
+            avg_task_completion_minutes:
+              type: number
+              format: float
+            success_rate_percent:
+              type: number
+              format: float
+        context_isolation:
+          type: boolean
+        last_activity:
+          type: string
+          format: date-time
+        coordinator_id:
+          type: string
+          format: uuid

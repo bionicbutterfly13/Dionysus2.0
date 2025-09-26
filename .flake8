@@ -1,0 +1,33 @@
+[flake8]
+max-line-length = 88
+extend-ignore =
+    # Black compatibility
+    E203,  # whitespace before ':'
+    E501,  # line too long
+    W503,  # line break before binary operator
+    # Common patterns in AI/ML code
+    E722,  # bare except
+select =
+    E,
+    W,
+    F,
+    # Additional consciousness-specific checks
+    C90,   # complexity
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    .tox,
+    build,
+    dist,
+    *.egg-info,
+    .pytest_cache,
+    # Exclude legacy code during migration
+    legacy/,
+max-complexity = 10
+# Consciousness systems can be complex, but keep functions focused
+per-file-ignores =
+    # Init files can have unused imports
+    __init__.py:F401,F403
+    # Test files can have longer lines and unused fixtures
+    tests/*:E501,F811
