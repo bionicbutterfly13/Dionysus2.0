@@ -36,6 +36,13 @@ Following Test-Driven Development (TDD) best practices to build incrementally fr
 - System MUST generate permutations of improvement strategies
 - System MUST adapt affordances from external codebases to local capabilities
 
+### FR-005: Daedalus-Archimedes Strategic Collaboration System
+- Daedalus MUST handle agent generation and orchestration strategies
+- Archimedes MUST provide context-aware enhancement strategies per problem
+- System MUST enable collaborative strategy combinations for optimal agent deployment
+- System MUST adapt agent capabilities based on Archimedes' analysis of context
+- System MUST create synergistic agent pairs optimized for specific problem domains
+
 ## Implementation Tasks (Ordered by Priority)
 
 ### Phase 1: Foundation (Branch: 019-minimal-working-backend)
@@ -59,27 +66,44 @@ def test_dashboard_stats_endpoint():
 - [ ] Ensure CORS properly configured for frontend
 - [ ] Test frontend can connect to backend
 
-### Phase 2: Agent Development System (Branch: 020-agent-development-pairs)
+### Phase 2: Agent Development System (Branch: 020-daedalus-archimedes-collaboration)
 **Tests First:**
 ```python
-# test_agent_pairs.py
-def test_create_agent_pair():
-    pair = create_agent_pair("backend_developer", "code_reviewer")
-    assert pair.primary_agent.role == "backend_developer"
-    assert pair.review_agent.role == "code_reviewer"
+# test_strategic_collaboration.py
+def test_daedalus_agent_generation():
+    context = ProblemContext("implement document processing")
+    agents = daedalus.generate_agent_strategies(context)
+    assert len(agents) > 0
+    assert agents[0].role in ["document_processor", "validation_specialist"]
 
-def test_actor_critic_validation():
-    task = "implement health endpoint"
-    result = actor_critic_system.validate_implementation(task, code)
-    assert result.implementation_valid == True
-    assert result.test_coverage >= 0.8
+def test_archimedes_context_enhancement():
+    context = ProblemContext("implement document processing")
+    enhancements = archimedes.analyze_context_for_enhancements(context)
+    assert enhancements.strategy_improvements != []
+    assert enhancements.cognitive_tools_applicable == True
+
+def test_collaborative_strategy_combination():
+    context = ProblemContext("implement document processing")
+    daedalus_strategy = daedalus.generate_agent_strategies(context)
+    archimedes_enhancements = archimedes.analyze_context_for_enhancements(context)
+    
+    combined_strategy = combine_strategies(daedalus_strategy, archimedes_enhancements)
+    assert combined_strategy.effectiveness_score > daedalus_strategy.base_score
+    assert combined_strategy.has_cognitive_enhancements == True
+
+def test_synergistic_agent_pairs():
+    pair = create_enhanced_agent_pair("backend_developer", "code_reviewer", context)
+    assert pair.primary_agent.enhanced_with_archimedes_insights == True
+    assert pair.collaboration_strategy.optimized_for_context == True
 ```
 
 **Implementation:**
-- [ ] Create agent pair coordination system
-- [ ] Implement actor-critic validation pattern
-- [ ] Create Tree of Thought planning for features
-- [ ] Add implementation promise tracking
+- [ ] Create Daedalus agent generation and orchestration system
+- [ ] Implement Archimedes context-aware enhancement analysis
+- [ ] Build collaborative strategy combination framework
+- [ ] Create synergistic agent pairs optimized for problem domains
+- [ ] Implement actor-critic validation with enhanced strategies
+- [ ] Add Tree of Thought planning with strategic collaboration
 
 ### Phase 3: Document Processing Foundation (Branch: 021-document-processing-base)
 **Tests First:**
@@ -186,14 +210,17 @@ def test_implementation_pattern_detection():
 - Proper CORS configuration
 - Frontend-backend communication
 
-### Task 2: Agent System Architect Pair  
-**Primary Agent**: `agent_system_architect`
-**Review Agent**: `system_integration_validator`
+### Task 2: Daedalus-Archimedes Strategic Collaboration Pair
+**Primary Agent**: `daedalus_orchestrator` (Agent Generation & Strategy)
+**Review Agent**: `archimedes_strategist` (Context Enhancement & Analysis)
+**Collaboration Mission**: Dynamic strategy combinations for optimal agent deployment
 **Deliverables**:
-- Agent pair coordination framework
-- Actor-critic validation system
-- Tree of Thought planning implementation
-- Implementation promise tracking
+- Daedalus agent generation system with role specialization
+- Archimedes context-aware enhancement analysis framework
+- Strategic collaboration engine for combining approaches
+- Synergistic agent pairs optimized for specific problem domains
+- Actor-critic validation enhanced with cognitive tools
+- Tree of Thought planning with strategic meta-reasoning
 
 ### Task 3: Document Processing Pair
 **Primary Agent**: `document_processor_developer`
@@ -232,6 +259,37 @@ def test_implementation_pattern_detection():
 - Implementation extraction
 - Enhancement recommendations
 - System integration
+
+## Strategic Collaboration Framework
+
+### Daedalus-Archimedes Partnership Model
+```
+Problem Context Input
+    ↓
+Daedalus Analysis → Agent Generation Strategies
+    ↓                    ↓
+    ↓              Archimedes Enhancement
+    ↓                    ↓
+    ↓              Context-Aware Improvements
+    ↓                    ↓
+Strategic Combination Engine
+    ↓
+Enhanced Agent Pairs with Optimized Strategies
+    ↓
+Deployment with Continuous Learning Feedback
+```
+
+### Context-Aware Strategy Enhancement
+- **Problem Domain Analysis**: Archimedes evaluates context complexity, requirements, constraints
+- **Strategy Optimization**: Identifies cognitive tools and patterns applicable to specific context
+- **Agent Enhancement**: Augments Daedalus-generated agents with context-specific capabilities
+- **Synergy Detection**: Finds collaboration opportunities between different agent specializations
+
+### Dynamic Strategy Combinations
+- **Base Strategy (Daedalus)**: Role specialization, task distribution, coordination patterns
+- **Enhancement Layer (Archimedes)**: Cognitive tools, pattern recognition, meta-learning insights
+- **Combined Output**: Agents with both specialized capabilities and adaptive intelligence
+- **Continuous Improvement**: Feedback loop for strategy refinement based on outcomes
 
 ## Actor-Critic Validation Framework
 
