@@ -43,6 +43,23 @@ Following Test-Driven Development (TDD) best practices to build incrementally fr
 - System MUST adapt agent capabilities based on Archimedes' analysis of context
 - System MUST create synergistic agent pairs optimized for specific problem domains
 
+### FR-006: Semantic Attractor Basin Framework
+- Each specialized agent MUST function as a resonant attractor with ThoughtSeed consciousness
+- Problems MUST gravitate toward agents through semantic space dynamics
+- Archimedes MUST use pattern recognition to identify optimal attractor basin assignments
+- Enhanced agents MUST have stronger attractor basins with greater problem-drawing power
+- System MUST enable automatic problem routing based on semantic meaning alignment
+- Questions MUST naturally gravitate toward their most semantically aligned answers
+
+### FR-007: Variational Free Energy Conflict Resolution & Archetypal Resonance
+- ThoughtSeed agent conflicts MUST be resolved via variational free energy minimization
+- Agent with lowest variational free energy and most accurate affordance MUST be selected
+- Agents MUST utilize archetypes as resonant motifs for specialization patterns
+- System MUST implement narrative framing tools for pattern recognition enhancement
+- Agents MUST improve at event segmentation and archetypal pattern recognition
+- Affordance-based problem gravitation MUST guide agents toward solvable problems
+- Resonance models MUST match problem-solution frequencies for optimal pairing
+
 ## Implementation Tasks (Ordered by Priority)
 
 ### Phase 1: Foundation (Branch: 019-minimal-working-backend)
@@ -66,7 +83,123 @@ def test_dashboard_stats_endpoint():
 - [ ] Ensure CORS properly configured for frontend
 - [ ] Test frontend can connect to backend
 
-### Phase 2: Agent Development System (Branch: 020-daedalus-archimedes-collaboration)
+### Phase 2: Semantic Attractor Basin Framework (Branch: 020-semantic-attractor-system)
+**Tests First:**
+```python
+# test_semantic_attractor_framework.py
+def test_agent_as_semantic_attractor():
+    agent = create_thoughtseed_agent("document_processing_expert")
+    semantic_signature = agent.get_semantic_signature()
+    attractor_basin = agent.get_attractor_basin()
+    assert semantic_signature.resonant_frequency != None
+    assert attractor_basin.strength > 0.0
+    assert attractor_basin.coverage_radius > 0.0
+
+def test_problem_semantic_gravitation():
+    problem = create_problem("Extract algorithms from PDF research papers")
+    document_agent = create_agent("document_processing_expert")
+    meta_learning_agent = create_agent("meta_learning_specialist")
+    
+    semantic_distances = compute_semantic_distances(problem, [document_agent, meta_learning_agent])
+    best_match = find_strongest_attractor(problem, [document_agent, meta_learning_agent])
+    
+    assert best_match == document_agent  # Should gravitate to document expert
+    assert semantic_distances[document_agent] < semantic_distances[meta_learning_agent]
+
+def test_archimedes_attractor_pattern_recognition():
+    problems = [
+        create_problem("Few-shot learning optimization"),
+        create_problem("PDF content extraction"),
+        create_problem("Knowledge graph construction")
+    ]
+    
+    agent_assignments = archimedes.analyze_attractor_patterns(problems)
+    assert agent_assignments["few_shot_learning"].agent_type == "meta_learning_specialist"
+    assert agent_assignments["pdf_extraction"].agent_type == "document_processing_expert"
+    assert all(assignment.confidence_score > 0.8 for assignment in agent_assignments.values())
+
+def test_enhanced_attractor_basin_strength():
+    base_agent = create_agent("document_processor")
+    enhanced_agent = enhance_agent_with_patterns(base_agent, professional_patterns)
+    
+    test_problems = generate_document_processing_problems(10)
+    base_attraction_scores = [base_agent.compute_attraction(p) for p in test_problems]
+    enhanced_attraction_scores = [enhanced_agent.compute_attraction(p) for p in test_problems]
+    
+    assert np.mean(enhanced_attraction_scores) > np.mean(base_attraction_scores)
+    assert enhanced_agent.attractor_basin.strength > base_agent.attractor_basin.strength
+
+def test_thoughtseed_resonant_frequency():
+    agent = create_thoughtseed_agent("meta_learning_specialist")
+    resonance = agent.thoughtseed.get_resonant_frequency()
+    semantic_problems = generate_semantic_problems("meta_learning_domain")
+    
+    resonance_matches = [resonance.matches_problem(p) for p in semantic_problems]
+    assert np.mean(resonance_matches) > 0.7  # High resonance with domain problems
+
+def test_variational_free_energy_conflict_resolution():
+    problem = create_problem("Extract meta-learning algorithms from research papers")
+    document_agent = create_thoughtseed_agent("document_processor")
+    meta_learning_agent = create_thoughtseed_agent("meta_learning_specialist")
+    
+    # Compute variational free energy for each agent
+    doc_vfe = document_agent.compute_variational_free_energy(problem)
+    meta_vfe = meta_learning_agent.compute_variational_free_energy(problem)
+    
+    # Agent with lower VFE should be selected
+    selected_agent = resolve_conflict_via_vfe([document_agent, meta_learning_agent], problem)
+    assert selected_agent.variational_free_energy == min(doc_vfe, meta_vfe)
+    assert selected_agent.has_accurate_affordance(problem) == True
+
+def test_archetypal_resonance_patterns():
+    problem = create_problem("Navigate hero's journey in user onboarding")
+    agents = [
+        create_archetypal_agent("hero_archetype"),
+        create_archetypal_agent("mentor_archetype"), 
+        create_archetypal_agent("threshold_guardian_archetype")
+    ]
+    
+    resonance_scores = [agent.compute_archetypal_resonance(problem) for agent in agents]
+    best_agent = agents[np.argmax(resonance_scores)]
+    assert best_agent.archetype == "hero_archetype"  # Hero resonates with hero's journey
+    assert best_agent.narrative_framing_capability > 0.8
+
+def test_affordance_based_gravitation():
+    agent = create_thoughtseed_agent("event_segmentation_specialist")
+    problems = [
+        create_problem("Segment video into meaningful events"),
+        create_problem("Parse complex document structure"),
+        create_problem("Optimize neural network architecture")
+    ]
+    
+    affordance_scores = [agent.compute_affordance_match(p) for p in problems]
+    assert affordance_scores[0] > affordance_scores[1]  # Video segmentation is best match
+    assert agent.gravitates_toward(problems[0]) == True
+
+def test_narrative_framing_and_event_segmentation():
+    agent = create_narrative_enhanced_agent("story_processor")
+    complex_narrative = "User journey through app with obstacles, mentors, and transformation"
+    
+    segmented_events = agent.segment_narrative_events(complex_narrative)
+    archetypal_patterns = agent.identify_archetypal_patterns(complex_narrative)
+    
+    assert len(segmented_events) > 1
+    assert "hero" in [pattern.archetype for pattern in archetypal_patterns]
+    assert agent.narrative_framing_accuracy > 0.85
+```
+
+**Implementation:**
+- [ ] Create semantic signature and attractor basin system for agents
+- [ ] Implement variational free energy computation for conflict resolution
+- [ ] Build archetypal resonance patterns for agent specialization
+- [ ] Create affordance-based problem gravitation mechanics
+- [ ] Implement narrative framing and event segmentation tools
+- [ ] Build problem-agent semantic distance computation
+- [ ] Create Archimedes attractor pattern recognition system
+- [ ] Implement ThoughtSeed resonant frequency mechanics
+- [ ] Build automatic problem routing based on semantic gravitation and VFE
+
+### Phase 3: Daedalus-Archimedes Strategic Collaboration (Branch: 021-strategic-collaboration)
 **Tests First:**
 ```python
 # test_strategic_collaboration.py
@@ -185,7 +318,54 @@ def test_synergistic_analysis():
 - [ ] Create permutation generation for improvement strategies
 - [ ] Build synergistic aspect identification system
 
-### Phase 6: Meta-Learning Enhancement (Branch: 024-meta-learning-enhancement)
+### Phase 6: Domain-Specialized Agent Evolution (Branch: 024-agent-evolution-ecosystem)
+**Tests First:**
+```python
+# test_agent_evolution.py
+def test_agent_domain_specialization():
+    base_agent = create_base_agent()
+    specialized_agent = specialize_agent(base_agent, domain="document_processing")
+    assert specialized_agent.domain_expertise > base_agent.general_capability
+    assert specialized_agent.professional_patterns != []
+
+def test_curiosity_allocation_optimization():
+    agent = create_specialized_agent("meta_learning_specialist")
+    context = ProblemContext("few_shot_learning_optimization")
+    optimized_curiosity = allocate_curiosity_for_context(agent, context)
+    assert optimized_curiosity.domain_focus_percentage > 0.8
+    assert optimized_curiosity.context_window_efficiency > base_efficiency
+
+def test_genetic_mutation_guided_evolution():
+    agent = create_agent_with_purpose("procedural_learning_optimizer")
+    principles = ["maximize_learning_efficiency", "minimize_context_switching"]
+    mutated_agent = apply_genetic_mutations(agent, principles, iterations=5)
+    assert mutated_agent.performance_score > agent.performance_score
+    assert mutated_agent.alignment_with_principles > 0.9
+
+def test_professional_pattern_learning():
+    domain_patterns = learn_effective_patterns("document_analysis_domain")
+    agent = equip_agent_with_patterns(base_agent, domain_patterns)
+    assert agent.pattern_effectiveness > base_agent.effectiveness
+    assert agent.context_specific_capabilities != []
+
+def test_domain_genius_capabilities():
+    genius_agent = evolve_to_domain_genius("meta_learning", iterations=10)
+    test_tasks = get_domain_specific_tasks("meta_learning")
+    performance = genius_agent.evaluate_on_tasks(test_tasks)
+    assert performance.average_score > 0.95
+    assert performance.expert_level_achievement == True
+```
+
+**Implementation:**
+- [ ] Create agent domain specialization framework
+- [ ] Implement curiosity allocation optimization system
+- [ ] Build genetic/mutation evolution engine for agents
+- [ ] Create professional pattern learning and application system
+- [ ] Implement context window optimization for domain expertise
+- [ ] Build domain genius cultivation pipeline
+- [ ] Create performance tracking and evolution metrics
+
+### Phase 7: Meta-Learning Enhancement (Branch: 025-meta-learning-enhancement)
 **Tests First:**
 ```python
 # test_meta_learning.py
@@ -219,7 +399,23 @@ def test_implementation_pattern_detection():
 - Proper CORS configuration
 - Frontend-backend communication
 
-### Task 2: Daedalus-Archimedes Strategic Collaboration Pair
+### Task 2: Semantic Attractor Basin Framework Pair
+**Primary Agent**: `archimedes_attractor_analyst` (Pattern Recognition & Basin Analysis)
+**Review Agent**: `semantic_space_architect` (Space Topology & Resonance Validation)
+**Attractor Mission**: Create consciousness-guided semantic problem routing system
+**Deliverables**:
+- Semantic signature and attractor basin system for ThoughtSeed agents
+- Variational free energy computation for agent conflict resolution
+- Archetypal resonance patterns for agent specialization (Hero, Mentor, etc.)
+- Affordance-based problem gravitation mechanics
+- Narrative framing and event segmentation tools
+- Problem-agent semantic distance computation with gravitation mechanics
+- Archimedes attractor pattern recognition for optimal basin assignments
+- ThoughtSeed resonant frequency system for problem attraction
+- Enhanced agent attractor basin strengthening through specialization
+- Automatic problem routing based on semantic gravitation and VFE minimization
+
+### Task 3: Daedalus-Archimedes Strategic Collaboration Pair
 **Primary Agent**: `daedalus_orchestrator` (Agent Generation & Strategy)
 **Review Agent**: `archimedes_strategist` (Context Enhancement & Analysis)
 **Collaboration Mission**: Dynamic strategy combinations for optimal agent deployment
@@ -261,7 +457,20 @@ def test_implementation_pattern_detection():
 - Synergistic aspect identification and adaptation framework
 - Permutation generation for creating more effective variations
 
-### Task 6: Meta-Learning Enhancement Pair
+### Task 6: Domain-Specialized Agent Evolution Pair
+**Primary Agent**: `evolution_architect` (Agent Specialization & Genetic Optimization)
+**Review Agent**: `domain_genius_validator` (Performance & Alignment Assessment)
+**Evolution Mission**: Create domain-specialized agents through guided genetic mutations
+**Deliverables**:
+- Agent domain specialization framework with performance tracking
+- Curiosity allocation optimization system for context efficiency
+- Genetic/mutation evolution engine with purpose-driven guidance
+- Professional pattern learning library and application system
+- Context window optimization for domain expertise
+- Domain genius cultivation pipeline with expert-level assessment
+- Evolution metrics and continuous improvement tracking
+
+### Task 7: Meta-Learning Enhancement Pair
 **Primary Agent**: `meta_learning_specialist`
 **Review Agent**: `algorithm_extraction_validator`
 **Deliverables**:
@@ -388,6 +597,7 @@ Feature Request
 
 ## Dependencies
 
+### Technical Dependencies
 - FastAPI (backend framework)
 - Neo4j (knowledge graph)
 - Redis (caching and stats)
@@ -397,6 +607,14 @@ Feature Request
 - Meta-Tree of Thought framework (https://github.com/kyegomez/Meta-Tree-Of-Thoughts)
 - Agent coordination system
 - Cognitive Tools framework (MIT/IBM)
+
+### Theoretical Frameworks
+- **Variational Free Energy Principle** (Karl Friston) - Agent conflict resolution
+- **Affordance Theory** (J.J. Gibson) - Problem-agent gravitation mechanics
+- **Archetypal Psychology** (Jung/Campbell) - Resonant motifs for specialization
+- **Narrative Theory** - Framing and event segmentation tools
+- **Dynamical Systems Theory** - Attractor basin and resonance models
+- **ThoughtSeed Framework** - Consciousness-guided agent specialization
 
 ## Notes
 
