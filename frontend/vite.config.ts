@@ -11,14 +11,14 @@ export default defineConfig({
     },
   },
   server: {
-    port: 9243,
+    port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:9127',
+        target: 'http://localhost:8000',
         changeOrigin: true,
       },
       '/ws': {
-        target: 'ws://localhost:9127',
+        target: 'ws://localhost:8000',
         ws: true,
       },
     },
