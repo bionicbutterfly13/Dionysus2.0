@@ -6,7 +6,7 @@ Starts the FastAPI server with uvicorn.
 import uvicorn
 import os
 from dotenv import load_dotenv
-from src.utils.port_manager import get_flux_backend_port, check_port_conflicts
+from utils.port_manager import get_flux_backend_port, check_port_conflicts
 
 load_dotenv()
 

@@ -1,0 +1,785 @@
+openapi: 3.0.3
+info:
+  title: ThoughtSeed Pipeline API
+  description: Complete consciousness-guided document processing pipeline
+  version: 1.0.0
+  contact:
+    name: ThoughtSeed Research Team
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Development server
+
+paths:
+  /documents/bulk:
+    post:
+      summary: Upload multiple documents for ThoughtSeed processing
+      description: |
+        Upload up to 1000 documents (max 500MB each) for processing through
+        the complete ThoughtSeed consciousness pipeline
+      operationId: uploadBulkDocuments
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - files
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  maxItems: 1000
+                  description: Documents to process (PDF, DOCX, TXT, MD)
+                batch_name:
+                  type: string
+                  maxLength: 255
+                  description: Optional name for the processing batch
+                thoughtseed_processing:
+                  type: boolean
+                  default: true
+                  description: Enable full ThoughtSeed consciousness processing
+                attractor_modification:
+                  type: boolean
+                  default: true
+                  description: Enable dynamic attractor basin modification
+                neural_field_evolution:
+                  type: boolean
+                  default: true
+                  description: Enable neural field dynamics tracking
+                visualization_enabled:
+                  type: boolean
+                  default: true
+                  description: Enable 3D interactive visualization updates
+      responses:
+        '202':
+          description: Batch accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchResponse'
+        '400':
+          description: Invalid request (file size/count limits exceeded)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          description: Payload too large
+        '503':
+          description: Service capacity exceeded - processing queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueResponse'
+
+  /documents/batch/{batch_id}/status:
+    get:
+      summary: Get batch processing status
+      operationId: getBatchStatus
+      parameters:
+        - name: batch_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Batch status information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchStatusResponse'
+        '404':
+          description: Batch not found
+
+  /documents/batch/{batch_id}/results:
+    get:
+      summary: Get batch processing results
+      operationId: getBatchResults
+      parameters:
+        - name: batch_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: include_consciousness
+          in: query
+          schema:
+            type: boolean
+            default: true
+          description: Include consciousness analysis in results
+        - name: include_attractors
+          in: query
+          schema:
+            type: boolean
+            default: true
+          description: Include attractor basin modifications
+        - name: include_neural_fields
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Include neural field state data
+      responses:
+        '200':
+          description: Processing results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcessingResults'
+        '202':
+          description: Processing still in progress
+        '404':
+          description: Batch not found
+
+  /thoughtseeds/{thoughtseed_id}:
+    get:
+      summary: Get ThoughtSeed details
+      operationId: getThoughtSeed
+      parameters:
+        - name: thoughtseed_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: ThoughtSeed information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThoughtSeedResponse'
+        '404':
+          description: ThoughtSeed not found
+
+  /attractors:
+    get:
+      summary: Get current attractor basin landscape
+      operationId: getAttractorBasins
+      parameters:
+        - name: basin_type
+          in: query
+          schema:
+            type: string
+            enum: [concept_extractor, semantic_analyzer, episodic_encoder, procedural_integrator]
+          description: Filter by specialized attractor type
+        - name: strength_threshold
+          in: query
+          schema:
+            type: number
+            minimum: 0.0
+            maximum: 1.0
+          description: Minimum basin strength to include
+      responses:
+        '200':
+          description: Current attractor basin state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttractorLandscapeResponse'
+
+  /neural-fields/{field_id}/state:
+    get:
+      summary: Get neural field current state
+      operationId: getNeuralFieldState
+      parameters:
+        - name: field_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: resolution
+          in: query
+          schema:
+            type: integer
+            minimum: 32
+            maximum: 512
+            default: 128
+          description: Field resolution for visualization
+      responses:
+        '200':
+          description: Neural field state data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NeuralFieldStateResponse'
+        '404':
+          description: Neural field not found
+
+  /knowledge/search:
+    post:
+      summary: Search processed knowledge
+      description: |
+        Search through processed documents using both vector similarity
+        and graph relationship traversal
+      operationId: searchKnowledge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                  description: Search query text
+                search_type:
+                  type: string
+                  enum: [vector, graph, hybrid]
+                  default: hybrid
+                  description: Type of search to perform
+                max_results:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 20
+                consciousness_threshold:
+                  type: number
+                  minimum: 0.0
+                  maximum: 1.0
+                  description: Minimum consciousness level for results
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResults'
+
+# WebSocket endpoint documentation
+  /ws/batch/{batch_id}/progress:
+    get:
+      summary: WebSocket endpoint for real-time processing updates
+      description: |
+        WebSocket connection for receiving real-time updates during batch processing.
+        Provides ThoughtSeed layer progress, consciousness detection, basin modifications,
+        and neural field evolution updates.
+      parameters:
+        - name: batch_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '101':
+          description: WebSocket connection established
+        '404':
+          description: Batch not found
+
+components:
+  schemas:
+    BatchResponse:
+      type: object
+      required:
+        - batch_id
+        - websocket_url
+        - estimated_processing_time
+      properties:
+        batch_id:
+          type: string
+          format: uuid
+        websocket_url:
+          type: string
+          format: uri
+          description: WebSocket URL for real-time updates
+        document_count:
+          type: integer
+        total_size_bytes:
+          type: integer
+        estimated_processing_time:
+          type: string
+          description: Estimated completion time (ISO 8601 duration)
+        queue_position:
+          type: integer
+          description: Position in processing queue (if queued)
+
+    BatchStatusResponse:
+      type: object
+      required:
+        - batch_id
+        - status
+        - progress_percentage
+      properties:
+        batch_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [CREATED, QUEUED, PROCESSING, COMPLETED, FAILED, CAPACITY_LIMITED]
+        progress_percentage:
+          type: number
+          minimum: 0.0
+          maximum: 100.0
+        documents_processed:
+          type: integer
+        current_document:
+          type: string
+          description: Currently processing document filename
+        current_thoughtseed_layer:
+          type: string
+          enum: [SENSORIMOTOR, PERCEPTUAL, CONCEPTUAL, ABSTRACT, METACOGNITIVE]
+        consciousness_detections:
+          type: integer
+          description: Number of consciousness states detected so far
+        attractor_modifications:
+          type: integer
+          description: Number of basin modifications made
+        estimated_completion:
+          type: string
+          format: date-time
+
+    ProcessingResults:
+      type: object
+      required:
+        - batch_id
+        - processing_summary
+      properties:
+        batch_id:
+          type: string
+          format: uuid
+        processing_summary:
+          $ref: '#/components/schemas/ProcessingSummary'
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentResult'
+        thoughtseeds:
+          type: array
+          items:
+            $ref: '#/components/schemas/ThoughtSeedResult'
+        attractor_modifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttractorModification'
+        consciousness_analysis:
+          $ref: '#/components/schemas/ConsciousnessAnalysis'
+        knowledge_graph_additions:
+          type: integer
+          description: Number of new knowledge triples added
+
+    ProcessingSummary:
+      type: object
+      properties:
+        total_documents:
+          type: integer
+        successful_documents:
+          type: integer
+        failed_documents:
+          type: integer
+        total_thoughtseeds_created:
+          type: integer
+        consciousness_emergence_rate:
+          type: number
+          description: Percentage of documents showing consciousness emergence
+        attractor_basin_count:
+          type: integer
+        neural_field_evolution_events:
+          type: integer
+        processing_duration_seconds:
+          type: number
+
+    ThoughtSeedResponse:
+      type: object
+      required:
+        - thoughtseed_id
+        - type
+        - layer
+        - activation_level
+      properties:
+        thoughtseed_id:
+          type: string
+          format: uuid
+        document_id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [SENSORIMOTOR, PERCEPTUAL, CONCEPTUAL, ABSTRACT, METACOGNITIVE]
+        layer:
+          type: integer
+          minimum: 1
+          maximum: 5
+        activation_level:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        consciousness_score:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        neuronal_packets:
+          type: array
+          items:
+            $ref: '#/components/schemas/NeuronalPacket'
+        hierarchical_relationships:
+          type: object
+          properties:
+            parent_thoughtseed_id:
+              type: string
+              format: uuid
+            child_thoughtseed_ids:
+              type: array
+              items:
+                type: string
+                format: uuid
+
+    NeuronalPacket:
+      type: object
+      required:
+        - packet_id
+        - content
+        - activation_level
+      properties:
+        packet_id:
+          type: string
+          format: uuid
+        content:
+          type: string
+        activation_level:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        prediction_error:
+          type: number
+        surprise_value:
+          type: number
+        target_thoughtseeds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    AttractorLandscapeResponse:
+      type: object
+      properties:
+        basin_count:
+          type: integer
+        basins:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttractorBasin'
+        field_coherence:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        landscape_stability:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+
+    AttractorBasin:
+      type: object
+      required:
+        - basin_id
+        - center_concept
+        - strength
+      properties:
+        basin_id:
+          type: string
+          format: uuid
+        center_concept:
+          type: string
+        center_vector:
+          type: array
+          items:
+            type: number
+          minItems: 384
+          maxItems: 384
+          description: 384-dimensional semantic vector
+        strength:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        radius:
+          type: number
+          minimum: 0.0
+        influence_type:
+          type: string
+          enum: [REINFORCEMENT, COMPETITION, SYNTHESIS, EMERGENCE]
+        thoughtseed_count:
+          type: integer
+        related_concepts:
+          type: object
+          additionalProperties:
+            type: number
+            minimum: 0.0
+            maximum: 1.0
+
+    NeuralFieldStateResponse:
+      type: object
+      required:
+        - field_id
+        - field_type
+        - coherence
+      properties:
+        field_id:
+          type: string
+          format: uuid
+        field_type:
+          type: string
+          enum: [COGNITIVE_LANDSCAPE, SEMANTIC_FIELD, CONSCIOUSNESS_FIELD, MEMORY_CONSOLIDATION_FIELD]
+        state_vectors:
+          type: array
+          items:
+            type: object
+            properties:
+              real:
+                type: number
+              imaginary:
+                type: number
+          description: Complex-valued field state
+        coherence:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        energy_level:
+          type: number
+        pullback_attractors:
+          type: array
+          items:
+            $ref: '#/components/schemas/PullbackAttractor'
+
+    PullbackAttractor:
+      type: object
+      properties:
+        attractor_id:
+          type: string
+        position:
+          type: array
+          items:
+            type: number
+        attraction_strength:
+          type: number
+        basin_boundaries:
+          type: array
+          items:
+            type: number
+
+    SearchResults:
+      type: object
+      properties:
+        query:
+          type: string
+        total_results:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResult'
+
+    SearchResult:
+      type: object
+      properties:
+        document_id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        relevance_score:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        consciousness_level:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        excerpt:
+          type: string
+        thoughtseed_matches:
+          type: array
+          items:
+            type: string
+            format: uuid
+        knowledge_graph_path:
+          type: array
+          items:
+            type: string
+          description: Path through knowledge graph to this result
+
+    AttractorModification:
+      type: object
+      properties:
+        basin_id:
+          type: string
+          format: uuid
+        modification_type:
+          type: string
+          enum: [CREATED, STRENGTHENED, WEAKENED, MERGED, SPLIT]
+        strength_delta:
+          type: number
+        concept_changes:
+          type: array
+          items:
+            type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    ConsciousnessAnalysis:
+      type: object
+      properties:
+        overall_consciousness_level:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        consciousness_distribution:
+          type: object
+          description: Distribution across ThoughtSeed layers
+        meta_awareness_indicators:
+          type: array
+          items:
+            type: string
+        emergence_events:
+          type: integer
+        free_energy_metrics:
+          $ref: '#/components/schemas/FreeEnergyMetrics'
+
+    FreeEnergyMetrics:
+      type: object
+      properties:
+        total_free_energy:
+          type: number
+        complexity_cost:
+          type: number
+        accuracy_reward:
+          type: number
+        prediction_quality:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+
+    QueueResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        queue_position:
+          type: integer
+        estimated_wait_time:
+          type: string
+          description: Estimated wait time (ISO 8601 duration)
+        batch_id:
+          type: string
+          format: uuid
+          description: Assigned batch ID for tracking
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+
+    DocumentResult:
+      type: object
+      properties:
+        document_id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        processing_status:
+          type: string
+          enum: [COMPLETED, FAILED]
+        thoughtseed_count:
+          type: integer
+        consciousness_detected:
+          type: boolean
+        extraction_quality:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        knowledge_triples_extracted:
+          type: integer
+        error_message:
+          type: string
+          description: Present only if processing_status is FAILED
+
+    ThoughtSeedResult:
+      type: object
+      properties:
+        thoughtseed_id:
+          type: string
+          format: uuid
+        document_id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [SENSORIMOTOR, PERCEPTUAL, CONCEPTUAL, ABSTRACT, METACOGNITIVE]
+        final_activation_level:
+          type: number
+        consciousness_contribution:
+          type: number
+        basin_influences:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+# WebSocket message schemas for real-time updates
+    WebSocketMessage:
+      type: object
+      required:
+        - type
+        - timestamp
+      properties:
+        type:
+          type: string
+          enum: [
+            BATCH_STARTED,
+            DOCUMENT_PROCESSING,
+            THOUGHTSEED_LAYER_COMPLETE,
+            CONSCIOUSNESS_DETECTED,
+            ATTRACTOR_MODIFIED,
+            NEURAL_FIELD_UPDATED,
+            BATCH_COMPLETE,
+            ERROR
+          ]
+        timestamp:
+          type: string
+          format: date-time
+        batch_id:
+          type: string
+          format: uuid
+        data:
+          type: object
+          description: Message-specific data payload
+
+security: []
+
+tags:
+  - name: Document Processing
+    description: Bulk document upload and ThoughtSeed processing
+  - name: ThoughtSeeds
+    description: Consciousness analysis and cognitive processing
+  - name: Attractors
+    description: Attractor basin dynamics and landscape management
+  - name: Neural Fields
+    description: Neural field evolution and dynamics
+  - name: Knowledge
+    description: Knowledge graph search and retrieval
+  - name: Real-time
+    description: WebSocket-based real-time updates

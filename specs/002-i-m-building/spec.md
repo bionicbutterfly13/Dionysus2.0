@@ -38,6 +38,7 @@ A research-focused user interacts with the Flux interface to upload a corpus of 
 ### Constitutional Infrastructure Requirements ⚠️ DO NOT CHANGE
 - **FR-000 [LOCKED]**: System MUST use NumPy 2.0+ exclusively. All NumPy 1.x dependencies have been eliminated. Binary compatibility solutions implemented for PyTorch latest version and sentence-transformers. NO NumPy 1.x anywhere in codebase.
 - **FR-001 [LOCKED]**: System MUST be completely Docker-independent for Mac desktop, iPhone, and Android deployment. Use embedded databases: SQLite + FAISS for vectors, embedded Redis alternative, no external container dependencies.
+- **FR-032 [LOCKED]**: Development MAY use Docker temporarily for immediate testing and validation, but final implementation MUST replace all Docker services with embedded alternatives before user deployment. Production version MUST run entirely from desktop without external dependencies.
 
 ### Functional Requirements
 - **FR-002**: System MUST implement a self-teaching consciousness loop driven by active inference, adjusting pattern recognition through continuous prediction error minimization.
@@ -48,6 +49,15 @@ A research-focused user interacts with the Flux interface to upload a corpus of 
 - **FR-006**: System MUST provide two exploration modalities for concept history: interactive knowledge graph visualization and ordered card/list stacks with highlights and summaries.
 - **FR-007**: System MUST enable curiosity-driven discovery by detecting knowledge gaps or high-salience topics, launching tool-based searches, and presenting reputable sources with provenance details. Reputable sources are defined as: academic publications (peer-reviewed journals, conference proceedings), established educational institutions (.edu domains), government research agencies, and sources with sustained citation standing and relevance (including foundational works from 1960+ that remain isomorphic to current ideas, particularly in psychology and hypnotherapy).
 - **FR-008**: System MUST surface visualizations that display ThoughtSeed progression, basin competition, memory conversions, and inner screen dynamics in real time or near-real time.
+- **FR-009**: Frontend MUST read and parse flux.yaml configuration file to apply correct port settings (9243), database connections, and system parameters instead of hardcoded values.
+- **FR-010**: Backend MUST read flux.yaml configuration and start on specified port (9127) with all database, inference, and system settings from the config file.
+- **FR-011**: System MUST establish data bridge between frontend and backend using configuration-driven API endpoints, replacing all mock data with real backend responses.
+- **FR-012**: Vite development server MUST serve on port 9243 as specified in flux.yaml, not hardcoded port 3000.
+- **FR-013**: Interface MUST implement animated background with floating light threads in multiple colors (cyan, magenta, yellow, green) that move in gentle, capricious patterns across a black to light gray horizontal gradient background creating horizon perspective effect, with varying opacity, blur effects, and graceful floating animations always present (fading when content comes forward) to create an immersive consciousness visualization experience.
+- **FR-014**: Backend MUST connect to Neo4j database using flux.yaml configuration (bolt://localhost:7687) for canonical knowledge graph storage and relationship mapping.
+- **FR-015**: Backend MUST connect to Qdrant vector database using flux.yaml configuration (localhost:6333) for document embeddings and semantic search capabilities.
+- **FR-016**: Backend MUST connect to Redis cache using flux.yaml configuration (localhost:6379) for real-time curiosity signals, session persistence, and document processing optimization with SQLite fallback when Redis unavailable.
+- **FR-017**: System MUST implement fallback embedding service using sentence-transformers model as specified in flux.yaml when primary embedding services are unavailable.
 - **FR-009**: System MUST allow users to generate new documents that pull relevant snippets, context, and summaries from their knowledge base tailored to the current task.
 - **FR-010**: System MUST provide evaluative feedback aligned with constitutional principles (“What’s good? What’s broken? What works but shouldn’t? What doesn’t but pretends to?”) for all learning cycles and curiosity outcomes.
 - **FR-011**: System MUST support modular feature toggling to accommodate staged integration of SurfSense-equivalent capabilities within Flux. [NEEDS CLARIFICATION: phased rollout plan]
@@ -55,6 +65,13 @@ A research-focused user interacts with the Flux interface to upload a corpus of 
 - **FR-024**: System MUST integrate Daedalus legacy components including multi-modal processing pipeline (video/audio/image), hybrid memory system (MEM1 + ThoughtSeed), NEMORI integration, and existing knowledge graph (10,808 nodes: memories + papers) with selective re-processing capabilities for ThoughtSeed 2.0 enhancement.
 - **FR-025**: System MUST maintain backward compatibility with existing Dionysus consciousness project components while providing upgrade paths from legacy ThoughtSeed 1.0 to enhanced ThoughtSeed 2.0 features on-demand.
 - **FR-026**: System MUST implement protected Daedalus integration layer with crash-proof isolation to prevent legacy code from affecting core Flux operations.
+
+#### Real-Time Dashboard Data Requirements
+- **FR-027**: Dashboard MUST fetch activeThoughtSeeds count from Redis key "flux:thoughtseeds:active" with 5-second refresh interval, falling back to SQLite table "thoughtseed_states" when Redis unavailable.
+- **FR-028**: Dashboard MUST query Neo4j for documentsProcessed count using Cypher "MATCH (d:Document) RETURN count(d)" and conceptsExtracted using "MATCH (c:Concept) RETURN count(c)".
+- **FR-029**: Dashboard MUST retrieve curiosityMissions from Redis sorted set "flux:curiosity:missions" showing active missions count, with processing status updates via WebSocket on port 9129.
+- **FR-030**: Dashboard MUST implement data fetching in React useEffect hooks with error boundaries, loading states, and automatic retry on connection failure.
+- **FR-031**: Backend MUST provide REST API endpoints at `/api/stats/dashboard` aggregating all dashboard metrics from respective databases with caching layer.
 
 #### Infrastructure Requirements (Implemented)
 - **FR-013**: System MUST implement automatic port conflict detection and resolution with unique port allocation (9127, 9243, 9129, 9131) to ensure reliable service startup.

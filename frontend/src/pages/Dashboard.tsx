@@ -26,17 +26,33 @@ export default function Dashboard() {
   })
 
   useEffect(() => {
-    // TODO: Replace with actual API call
-    // Simulate loading stats
-    setTimeout(() => {
-      setStats({
-        documentsProcessed: 42,
-        conceptsExtracted: 156,
-        curiosityMissions: 8,
-        activeThoughtSeeds: 12,
-        mockData: true
-      })
-    }, 1000)
+    // Fetch real stats from backend
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/stats/dashboard')
+        if (response.ok) {
+          const data = await response.json()
+          setStats(data)
+        } else {
+          throw new Error('Failed to fetch stats')
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error)
+        // Fallback to mock data
+        setStats({
+          documentsProcessed: 42,
+          conceptsExtracted: 156,
+          curiosityMissions: 8,
+          activeThoughtSeeds: 12,
+          mockData: true
+        })
+      }
+    }
+
+    fetchStats()
+    // Refresh every 5 seconds
+    const interval = setInterval(fetchStats, 5000)
+    return () => clearInterval(interval)
   }, [])
 
   const statCards = [

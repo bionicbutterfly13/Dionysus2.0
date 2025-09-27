@@ -1,26 +1,25 @@
-"""
-Flux Data Models
-Core entities for the Self-Teaching Consciousness Emulator.
-"""
+"""Data models for the ThoughtSeed consciousness pipeline."""
 
-from .user_profile import UserProfile
-from .autobiographical_journey import AutobiographicalJourney
-from .event_node import EventNode
-from .document_artifact import DocumentArtifact
-from .concept_node import ConceptNode
-from .thoughtseed_trace import ThoughtSeedTrace
-from .curiosity_mission import CuriosityMission
-from .evaluation_frame import EvaluationFrame
-from .visualization_state import VisualizationState
+from .document import Document
+from .processing_batch import ProcessingBatch
+from .thoughtseed import ThoughtSeed
+from .neuronal_packet import NeuronalPacket
+from .attractor_basin import AttractorBasin
+from .neural_field import NeuralField
+from .consciousness_state import ConsciousnessState
+from .memory_formation import MemoryFormation
+from .knowledge_triple import KnowledgeTriple
+from .evolutionary_prior import EvolutionaryPrior
 
 __all__ = [
-    "UserProfile",
-    "AutobiographicalJourney",
-    "EventNode",
-    "DocumentArtifact",
-    "ConceptNode",
-    "ThoughtSeedTrace",
-    "CuriosityMission",
-    "EvaluationFrame",
-    "VisualizationState",
+    'Document',
+    'ProcessingBatch',
+    'ThoughtSeed',
+    'NeuronalPacket',
+    'AttractorBasin',
+    'NeuralField',
+    'ConsciousnessState',
+    'MemoryFormation',
+    'KnowledgeTriple',
+    'EvolutionaryPrior',
 ]

@@ -1,27 +1,25 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Dionysus 2.0 ThoughtSeed Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Code-Review-First (NON-NEGOTIABLE)
+**MANDATORY**: Before writing ANY code, model, feature, or implementation, MUST thoroughly read and review ALL existing related code to understand:
+- Existing model patterns and structures
+- Current implementations that might overlap
+- Established coding conventions and standards
+- Existing functionality that can be extended vs recreated
+- Database schemas and entity relationships already defined
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+**ENFORCEMENT**: Any code submission without evidence of prior code review will be automatically rejected. Developers must document what existing code was reviewed before implementation.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### II. Test-First Development (TDD)
+TDD mandatory: Tests written → User approved → Tests fail → Then implement. Red-Green-Refactor cycle strictly enforced. All contract tests must exist and fail before implementation begins.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### III. Constitutional Document Processing
+ALL document processing must follow the mandatory delegation pipeline: Dionysus Agent → Daedalus → Specialist Agent. No direct processing allowed. All four attractors must be activated: concept_extractor, semantic_analyzer, episodic_encoder, procedural_integrator.
+
+### IV. Hybrid Database Architecture
+All data must be stored according to constitutional requirements: Redis (TTL cache), Neo4j (graph relationships), Vector DB (embeddings). Triple storage system is mandatory for memory formation compliance.
 
 ### [PRINCIPLE_5_NAME]
 <!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->

@@ -5,6 +5,20 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
 import './index.css'
 
+// Load Flux configuration
+async function loadFluxConfig() {
+  try {
+    const response = await fetch('/configs/flux.yaml')
+    const yamlText = await response.text()
+    // Parse YAML and apply settings
+    console.log('Flux config loaded:', yamlText)
+    return yamlText
+  } catch (error) {
+    console.error('Failed to load flux.yaml:', error)
+    return null
+  }
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -14,12 +28,15 @@ const queryClient = new QueryClient({
   },
 })
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </QueryClientProvider>
-  </React.StrictMode>,
-)
+// Initialize app with flux config
+loadFluxConfig().then(() => {
+  ReactDOM.createRoot(document.getElementById('root')!).render(
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </QueryClientProvider>
+    </React.StrictMode>,
+  )
+})
