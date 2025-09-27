@@ -81,6 +81,14 @@ def test_archimedes_context_enhancement():
     enhancements = archimedes.analyze_context_for_enhancements(context)
     assert enhancements.strategy_improvements != []
     assert enhancements.cognitive_tools_applicable == True
+    assert enhancements.meta_tree_of_thought_evaluation != None
+
+def test_meta_tree_of_thought_strategic_evaluation():
+    strategies = ["cognitive_tools_approach", "meta_learning_approach", "hybrid_approach"]
+    evaluation = archimedes.meta_tree_of_thought_evaluate(strategies, context)
+    assert evaluation.best_strategy != None
+    assert evaluation.reasoning_path != []
+    assert evaluation.confidence_score > 0.7
 
 def test_collaborative_strategy_combination():
     context = ProblemContext("implement document processing")
@@ -99,7 +107,8 @@ def test_synergistic_agent_pairs():
 
 **Implementation:**
 - [ ] Create Daedalus agent generation and orchestration system
-- [ ] Implement Archimedes context-aware enhancement analysis
+- [ ] Implement Archimedes context-aware enhancement analysis with Meta-Tree of Thought
+- [ ] Integrate Meta-ToT framework for strategic enhancement evaluation
 - [ ] Build collaborative strategy combination framework
 - [ ] Create synergistic agent pairs optimized for problem domains
 - [ ] Implement actor-critic validation with enhanced strategies
@@ -216,7 +225,8 @@ def test_implementation_pattern_detection():
 **Collaboration Mission**: Dynamic strategy combinations for optimal agent deployment
 **Deliverables**:
 - Daedalus agent generation system with role specialization
-- Archimedes context-aware enhancement analysis framework
+- Archimedes context-aware enhancement analysis framework with Meta-Tree of Thought
+- Meta-ToT integration for evaluating best strategic enhancements
 - Strategic collaboration engine for combining approaches
 - Synergistic agent pairs optimized for specific problem domains
 - Actor-critic validation enhanced with cognitive tools
@@ -281,6 +291,7 @@ Deployment with Continuous Learning Feedback
 
 ### Context-Aware Strategy Enhancement
 - **Problem Domain Analysis**: Archimedes evaluates context complexity, requirements, constraints
+- **Meta-Tree of Thought**: Uses Meta-ToT framework for evaluating best strategic enhancements
 - **Strategy Optimization**: Identifies cognitive tools and patterns applicable to specific context
 - **Agent Enhancement**: Augments Daedalus-generated agents with context-specific capabilities
 - **Synergy Detection**: Finds collaboration opportunities between different agent specializations
@@ -383,7 +394,9 @@ Feature Request
 - React (frontend)
 - pytest (testing framework)
 - Tree of Thought implementation
+- Meta-Tree of Thought framework (https://github.com/kyegomez/Meta-Tree-Of-Thoughts)
 - Agent coordination system
+- Cognitive Tools framework (MIT/IBM)
 
 ## Notes
 
