@@ -1,0 +1,43 @@
+# Flux Configuration
+version: "2.0"
+name: "Dionysus 2.0 - ASI-Arch ThoughtSeed Integration"
+
+# Backend Configuration
+backend:
+  host: "127.0.0.1"
+  port: 9127
+  api_version: "v1"
+
+# Frontend Configuration  
+frontend:
+  port: 9243
+  title: "Flux CE Dashboard"
+  description: "Consciousness-guided neural architecture discovery"
+
+# Database Configuration
+databases:
+  redis:
+    host: "127.0.0.1"
+    port: 6379
+    enabled: true
+  neo4j:
+    host: "127.0.0.1" 
+    port: 7687
+    enabled: false
+  qdrant:
+    host: "127.0.0.1"
+    port: 6333
+    enabled: false
+
+# ThoughtSeed Configuration
+thoughtseed:
+  consciousness_detection: true
+  active_inference: true
+  meta_awareness: true
+  hierarchical_beliefs: true
+
+# Development Settings
+development:
+  debug: true
+  hot_reload: true
+  mock_data: false

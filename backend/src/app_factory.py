@@ -4,6 +4,7 @@ FastAPI application setup with dependency injection and middleware configuration
 """
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
@@ -72,6 +73,22 @@ def create_app() -> FastAPI:
     app.include_router(curiosity.router, prefix="/api/v1", tags=["curiosity"])
     app.include_router(visualization.router, prefix="/ws/v1", tags=["visualization"])
 
+    @app.get("/")
+    async def root():
+        """Root endpoint with API information."""
+        return {
+            "name": "Flux Self-Teaching Consciousness Emulator API",
+            "version": "0.1.0",
+            "status": "healthy",
+            "documentation": "/docs",
+            "endpoints": {
+                "health": "/health",
+                "api": "/api/v1",
+                "dashboard_stats": "/api/stats/dashboard",
+                "config": "/configs/flux.yaml"
+            }
+        }
+
     @app.get("/health")
     async def health_check():
         """Basic health check endpoint."""
@@ -82,6 +99,14 @@ def create_app() -> FastAPI:
         """Database connectivity health check endpoint."""
         from services.database_health import get_database_health
         return get_database_health()
+
+    @app.get("/configs/flux.yaml")
+    async def flux_config_file():
+        """Expose the flux.yaml so the frontend can load runtime settings."""
+        config_path = Path(__file__).parent.parent.parent / "configs" / "flux.yaml"
+        if config_path.exists():
+            return FileResponse(config_path)
+        return JSONResponse({"error": "flux.yaml not found"}, status_code=404)
 
     @app.get("/api/stats/dashboard")
     async def dashboard_stats():
