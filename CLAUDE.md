@@ -4,36 +4,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **spec-driven ThoughtSeed enhancement implementation** of the ASI-Arch framework. The project implements consciousness-guided neural architecture discovery through active inference, thoughtseed framework integration, and unified database migration following formal specifications.
+This is a **spec-driven consciousness enhancement implementation** for neural processing systems. The project implements consciousness-guided neural architecture discovery through active inference, consciousness framework integration, and unified database migration following formal specifications.
 
 ## Development Approach
 
-**Spec-Driven Development**: All implementation follows formal specifications in `spec-management/ASI-Arch-Specs/`:
-- `CLEAN_ASI_ARCH_THOUGHTSEED_SPEC.md`: Core implementation specification
+**Spec-Driven Development**: All implementation follows formal specifications in `spec-management/Consciousness-Specs/`:
+- `CLEAN_CONSCIOUSNESS_SPEC.md`: Core implementation specification
 - `UNIFIED_DATABASE_MIGRATION_SPEC.md`: Database architecture migration plan
-- `THOUGHTSEED_IMPLEMENTATION_SUMMARY.md`: Implementation status and results
+- `CONSCIOUSNESS_IMPLEMENTATION_SUMMARY.md`: Implementation status and results
 
 ## Core Implementation Commands
 
-### ThoughtSeed System Testing
+### Consciousness System Testing
 ```bash
-# Test complete ThoughtSeed integration
-python test_complete_thoughtseed_implementation.py
+# Test complete consciousness integration
+python test_complete_consciousness_implementation.py
 
-# Test ThoughtSeed-ASI-Arch bridge
-python test_thoughtseed_asi_arch_integration.py
+# Test consciousness processing bridge
+python test_consciousness_integration.py
 
-# Test ASI-Arch integration
-python test_asi_arch_integration.py
+# Test consciousness pipeline integration
+python test_consciousness_pipeline_integration.py
 ```
 
-### ThoughtSeed Enhanced Pipeline
+### Consciousness Enhanced Pipeline
 ```bash
-# Start Redis service for ThoughtSeed
-docker run -d --name redis-thoughtseed -p 6379:6379 redis:7-alpine
+# Start Redis service for consciousness processing
+docker run -d --name redis-consciousness -p 6379:6379 redis:7-alpine
 
 # Run enhanced pipeline with consciousness guidance
-python extensions/context_engineering/thoughtseed_enhanced_pipeline.py
+python extensions/context_engineering/consciousness_enhanced_pipeline.py
 
 # Run demo unified system
 python extensions/context_engineering/demo_unified_system.py
@@ -60,41 +60,41 @@ docker-compose -f extensions/context_engineering/docker-compose-neo4j.yml up -d
 python extensions/context_engineering/migration_scripts.py
 ```
 
-## ThoughtSeed Architecture
+## Consciousness Processing Architecture
 
 ### Core Enhancement Layer
-The ThoughtSeed implementation **preserves** the original ASI-Arch pipeline while adding consciousness-guided enhancements:
+The consciousness processing implementation provides advanced neural pattern analysis and consciousness-guided enhancements:
 
 ```
-ASI-Arch Core (Preserved)
-├── pipeline/evolve/     ← Enhanced with ThoughtSeed guidance
+Consciousness Core Processing
+├── pipeline/evolve/     ← Enhanced with consciousness guidance
 ├── pipeline/eval/       ← Augmented with consciousness detection
 ├── pipeline/analyse/    ← Extended with meta-cognitive insights
 └── extensions/context_engineering/
-    ├── thoughtseed_active_inference.py      ← Core ThoughtSeed system
-    ├── asi_arch_thoughtseed_bridge.py       ← ASI-Arch integration bridge
-    ├── dionysus_thoughtseed_integration.py  ← Advanced active inference
-    ├── thoughtseed_enhanced_pipeline.py     ← Complete enhanced pipeline
-    └── unified_database.py                  ← Unified database system
+    ├── consciousness_active_inference.py      ← Core consciousness system
+    ├── flux_consciousness_interface.py        ← Processing interface bridge
+    ├── dionysus_consciousness_integration.py  ← Advanced active inference
+    ├── consciousness_enhanced_pipeline.py     ← Complete enhanced pipeline
+    └── unified_database.py                    ← Unified database system
 ```
 
 ### Key Components
 
-**ThoughtSeed Core** (`thoughtseed_active_inference.py`):
+**Consciousness Core** (`consciousness_active_inference.py`):
 - Active inference engine with hierarchical beliefs
 - Neuronal packet processing system
 - Consciousness detection and measurement
 - Meta-cognitive awareness monitoring
 
-**ASI-Arch Bridge** (`asi_arch_thoughtseed_bridge.py`):
-- Direct integration with ASI-Arch evolve pipeline
+**Processing Interface** (`flux_consciousness_interface.py`):
+- Direct integration with consciousness processing pipeline
 - Context enhancement with conscious guidance
-- Real-time architecture evolution feedback
+- Real-time pattern evolution feedback
 - Fallback modes for graceful degradation
 
-**Enhanced Pipeline** (`thoughtseed_enhanced_pipeline.py`):
+**Enhanced Pipeline** (`consciousness_enhanced_pipeline.py`):
 - Complete evolution → evaluation → analysis cycle
-- Consciousness-guided architecture discovery
+- Consciousness-guided pattern discovery
 - Meta-awareness tracking and optimization
 - Comprehensive performance analytics
 
@@ -103,13 +103,13 @@ ASI-Arch Core (Preserved)
 ### Database Migration Strategy
 Following `UNIFIED_DATABASE_MIGRATION_SPEC.md`, the system migrates from multiple database systems to a unified hybrid approach:
 
-- **From**: MongoDB (ASI-Arch) + OpenSearch (Cognition) + FAISS (Vector)
+- **From**: MongoDB (Legacy) + OpenSearch (Cognition) + FAISS (Vector)
 - **To**: Unified hybrid system (SQLite + JSON graph + Vector index)
 - **Benefit**: No data duplication, single relational graph database
 
 ### Migration Commands
 ```bash
-# Extend hybrid database schema for ASI-Arch data
+# Extend hybrid database schema for consciousness processing data
 python extensions/context_engineering/unified_database.py
 
 # Migrate existing data to unified system
@@ -123,7 +123,7 @@ python extensions/context_engineering/unified_query_interface.py
 
 ### Implementation Status
 ✅ **100% SUCCESS RATE** - All core components implemented and tested:
-- ThoughtSeed Core: PASS
+- Consciousness Core: PASS
 - Dionysus Integration: PASS
 - Enhanced Pipeline: PASS
 - Redis Connection: ACTIVE
@@ -143,10 +143,10 @@ python test_integration.py
 
 ## Key Features Delivered
 
-### Conscious Architecture Evolution
+### Conscious Pattern Evolution
 - **Active Inference Guidance**: Evolution guided by prediction error minimization
 - **Consciousness Detection**: Real-time emergence pattern recognition
-- **Meta-Awareness**: Self-reflective architecture development
+- **Meta-Awareness**: Self-reflective pattern development
 - **Hierarchical Beliefs**: Multi-level cognitive modeling
 
 ### Production Ready Features
@@ -160,10 +160,10 @@ python test_integration.py
 ## Development Workflow
 
 1. **Spec-First Development**: All changes must follow specifications in `spec-management/`
-2. **Enhancement Strategy**: Extend rather than replace ASI-Arch core components
+2. **Enhancement Strategy**: Extend and enhance core consciousness processing components
 3. **Testing Protocol**: Run test suite after any changes to ensure integration integrity
 4. **Database Migration**: Use unified system for all new data storage
-5. **Consciousness Tracking**: Monitor consciousness levels during architecture evolution
+5. **Consciousness Tracking**: Monitor consciousness levels during pattern evolution
 
 ## 🧮 NumPy 2.0 Frozen Environment (PERMANENT SOLUTION)
 

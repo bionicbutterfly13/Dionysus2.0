@@ -1,4 +1,4 @@
-# 🤖 ASI-Arch Agent Constitution
+# 🤖 Consciousness System Agent Constitution
 
 **Version**: 1.0.0  
 **Effective Date**: 2025-09-24  
@@ -56,26 +56,26 @@ pip install -r requirements-frozen.txt
 
 ## 📋 Article II: System Integration Standards
 
-### Section 2.1: ThoughtSeed Integration Requirements
-**MANDATORY**: All agents MUST follow ThoughtSeed integration protocols:
+### Section 2.1: Consciousness Processing Requirements
+**MANDATORY**: All agents MUST follow consciousness processing protocols:
 
 #### Consciousness Detection Standards
-- **REQUIRED**: Use ThoughtSeed service for consciousness detection
+- **REQUIRED**: Use consciousness detection services for real-time monitoring
 - **REQUIRED**: Maintain consciousness state consistency
-- **REQUIRED**: Report consciousness levels in all architecture evaluations
+- **REQUIRED**: Report consciousness levels in all evaluations
 
 #### Active Inference Requirements
 - **REQUIRED**: Implement hierarchical belief systems
 - **REQUIRED**: Use prediction error minimization
 - **REQUIRED**: Maintain belief network coherence
 
-### Section 2.2: ASI-Arch Pipeline Standards
-**MANDATORY**: All agents MUST maintain ASI-Arch compatibility:
+### Section 2.2: Processing Pipeline Standards
+**MANDATORY**: All agents MUST maintain pipeline compatibility:
 
 #### Pipeline Integration
-- **REQUIRED**: Use ThoughtSeed-enhanced context engineering
-- **REQUIRED**: Maintain river metaphor information flow
-- **REQUIRED**: Implement attractor basin dynamics
+- **REQUIRED**: Use consciousness-enhanced context engineering
+- **REQUIRED**: Maintain information flow integrity
+- **REQUIRED**: Implement dynamic pattern recognition
 
 #### Database Standards
 - **REQUIRED**: Use Redis for real-time operations
@@ -101,9 +101,9 @@ pip install -r requirements-frozen.txt
 **MANDATORY**: All agents MUST follow testing protocols:
 
 #### Integration Testing
-- **REQUIRED**: Test ThoughtSeed integration before deployment
+- **REQUIRED**: Test consciousness integration before deployment
 - **REQUIRED**: Validate consciousness detection functionality
-- **REQUIRED**: Verify ASI-Arch pipeline compatibility
+- **REQUIRED**: Verify processing pipeline compatibility
 
 #### Environment Validation
 - **REQUIRED**: Verify NumPy version compliance
@@ -202,4 +202,4 @@ def report_violation(violation_type: str, details: str):
 **Compliance**: 🟢 **MANDATORY FOR ALL AGENTS**  
 **Updates**: 📋 **Amendment procedures established**
 
-This constitution ensures system stability, prevents compatibility issues, and maintains the integrity of the ASI-Arch ThoughtSeed integration across all agent operations.
+This constitution ensures system stability, prevents compatibility issues, and maintains the integrity of the consciousness processing system across all agent operations.
