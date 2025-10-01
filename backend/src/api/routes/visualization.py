@@ -1,6 +1,6 @@
 """
 Visualization Stream API Routes - T031
-Flux Self-Teaching Consciousness Emulator
+Flux Self-Evolving Consciousness Emulator
 
 WebSocket handlers for real-time visualization updates.
 """

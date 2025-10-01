@@ -1,6 +1,6 @@
 """
 UserProfile Model - T013
-Flux Self-Teaching Consciousness Emulator
+Flux Self-Evolving Consciousness Emulator
 
 Represents user profile information for personalized consciousness modeling.
 Constitutional compliance: mock data transparency, evaluation feedback integration.

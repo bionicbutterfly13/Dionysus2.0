@@ -1,6 +1,6 @@
 """
 Curiosity Mission API Routes - T030
-Flux Self-Teaching Consciousness Emulator
+Flux Self-Evolving Consciousness Emulator
 
 Handles curiosity mission creation, management, and replay scheduling.
 """

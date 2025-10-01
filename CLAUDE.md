@@ -6,6 +6,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **spec-driven consciousness enhancement implementation** for neural processing systems. The project implements consciousness-guided neural architecture discovery through active inference, consciousness framework integration, and unified database migration following formal specifications.
 
+## Recent Completions
+
+### ✅ Spec 021: Daedalus Perceptual Information Gateway (2025-10-01)
+**Status**: COMPLETE - All tests passing (15/15)
+
+**Implementation**:
+- Simplified Daedalus class to single responsibility: receive perceptual information from uploads
+- Removed 12 non-essential methods (process_document, analyze_content, extract_features, etc.)
+- Integrated with LangGraph for agent creation
+- Updated API routes to use Daedalus gateway
+- Complete documentation and contracts
+
+**Key Files**:
+- Implementation: `backend/src/services/daedalus.py` (83 lines, single method)
+- API Integration: `backend/src/api/routes/documents.py`
+- Tests: `backend/tests/test_daedalus_spec_021.py` (11 contract tests)
+- Tests: `backend/tests/integration/test_daedalus_integration.py` (4 integration tests)
+- Documentation: `specs/021-remove-all-that/`
+- Archive: `backup/deprecated/daedalus_removed_features/`
+
+**Testing Daedalus**:
+```bash
+# Run all Daedalus tests
+pytest backend/tests/test_daedalus_spec_021.py backend/tests/integration/test_daedalus_integration.py -v
+
+# Test upload flow through Daedalus gateway
+curl -X POST http://localhost:8000/api/documents \
+  -F "files=@test.pdf" \
+  -F "tags=research,ai"
+```
+
 ## Development Approach
 
 **Spec-Driven Development**: All implementation follows formal specifications in `spec-management/Consciousness-Specs/`:

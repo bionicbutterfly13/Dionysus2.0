@@ -1,6 +1,6 @@
 """
 Request Validation Middleware - T032
-Flux Self-Teaching Consciousness Emulator
+Flux Self-Evolving Consciousness Emulator
 
 Handles request validation, error formatting, and constitutional compliance checks.
 """

@@ -1,6 +1,6 @@
 """
 EventNode Model - T015
-Flux Self-Teaching Consciousness Emulator
+Flux Self-Evolving Consciousness Emulator
 
 Represents individual events with Mosaic observation schema for consciousness tracking.
 Constitutional compliance: mock data transparency, evaluation feedback integration.

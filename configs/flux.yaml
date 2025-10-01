@@ -3,7 +3,7 @@
 
 app:
   name: "Flux Self-Teaching Consciousness Emulator"
-  version: "0.1.0"
+  version: "0.2.0"
   debug: true
   local_first: true
 

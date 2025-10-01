@@ -61,9 +61,9 @@ class CognitionPattern(BaseModel):
     last_used: datetime = Field(default_factory=datetime.utcnow, description="Last usage timestamp")
     creation_date: datetime = Field(default_factory=datetime.utcnow, description="Pattern creation date")
 
-    # ThoughtSeed hierarchy integration
-    thoughtseed_layer: str = Field(..., regex=r"^(sensory|perceptual|conceptual|abstract|metacognitive)$",
-                                   description="ThoughtSeed layer association")
+    # Processing layer integration (formerly ThoughtSeed hierarchy)
+    processing_layer: str = Field(..., pattern=r"^(sensory|perceptual|conceptual|abstract|metacognitive)$",
+                                   description="Processing layer association")
     layer_activation_strength: float = Field(..., ge=0.0, le=1.0, description="Activation strength at layer")
 
     # Context Engineering integration
@@ -79,7 +79,7 @@ class CognitionPattern(BaseModel):
                                                    description="Pattern evolution tracking")
 
     # ASI-GO-2 component associations
-    cognition_component: str = Field(..., regex=r"^(cognition_base|researcher|engineer|analyst)$",
+    cognition_component: str = Field(..., pattern=r"^(cognition_base|researcher|engineer|analyst)$",
                                     description="Primary ASI-GO-2 component")
     component_weight: float = Field(..., ge=0.0, le=1.0, description="Component association weight")
 
@@ -148,7 +148,7 @@ class CognitionBase(BaseModel):
                                                        description="Consciousness level history")
 
     # ThoughtSeed integration
-    thoughtseed_workspaces: List[str] = Field(default_factory=list,
+    processing_workspaces: List[str] = Field(default_factory=list,
                                              description="Associated ThoughtSeed workspace IDs")
     layer_distribution: Dict[str, int] = Field(default_factory=lambda: {
         "sensory": 0, "perceptual": 0, "conceptual": 0, "abstract": 0, "metacognitive": 0
@@ -225,7 +225,7 @@ class CognitionBase(BaseModel):
             self.last_updated = datetime.utcnow()
 
             # Update layer distribution
-            layer = pattern.thoughtseed_layer
+            layer = pattern.processing_layer
             if layer in self.layer_distribution:
                 self.layer_distribution[layer] += 1
 
@@ -256,7 +256,7 @@ class CognitionBase(BaseModel):
 
     def get_patterns_by_layer(self, layer: str) -> List[CognitionPattern]:
         """Get all patterns in a specific ThoughtSeed layer"""
-        return [p for p in self.patterns if p.thoughtseed_layer == layer]
+        return [p for p in self.patterns if p.processing_layer == layer]
 
     def get_patterns_by_domain(self, domain: CognitionDomain) -> List[CognitionPattern]:
         """Get all patterns in a specific domain"""

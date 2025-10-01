@@ -1,6 +1,6 @@
 """
 ConceptNode Model - T017
-Flux Self-Teaching Consciousness Emulator
+Flux Self-Evolving Consciousness Emulator
 
 Represents concepts in the consciousness system with semantic relationships,
 activation patterns, and integration with thoughtseed attractor dynamics.

@@ -1,6 +1,6 @@
 """
 VisualizationState Model - T021
-Flux Self-Teaching Consciousness Emulator
+Flux Self-Evolving Consciousness Emulator
 
 Represents visualization and UI state for consciousness system interface
 with user preferences and real-time display configurations.

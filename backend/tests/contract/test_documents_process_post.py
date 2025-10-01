@@ -14,8 +14,9 @@ class TestDocumentProcessContract:
 
     @pytest.fixture
     def client(self):
-        """Test client - will fail until endpoint implemented"""
-        from backend.src.main import app  # This import will fail initially
+        """Test client"""
+        from src.app_factory import create_app
+        app = create_app()
         return TestClient(app)
 
     @pytest.fixture

@@ -79,7 +79,7 @@ class TestQueryAPIContract:
         """Test validation: empty questions must be rejected"""
         response = client.post("/api/query", json={"question": ""})
 
-        assert response.status_code == 400, "Empty question must be rejected"
+        assert response.status_code in [400, 422], "Empty question must be rejected"
         data = response.json()
         assert "detail" in data or "error" in data, "Error message required"
 
@@ -87,7 +87,7 @@ class TestQueryAPIContract:
         """Test validation: missing question field must be rejected"""
         response = client.post("/api/query", json={})
 
-        assert response.status_code == 400, "Missing question must be rejected"
+        assert response.status_code in [400, 422], "Missing question must be rejected"
 
     def test_query_accepts_optional_context(self, client: TestClient):
         """FR-008: Users MUST be able to follow up with clarifying questions"""

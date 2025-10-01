@@ -1,6 +1,6 @@
 """
 DocumentArtifact Model - T016
-Flux Self-Teaching Consciousness Emulator
+Flux Self-Evolving Consciousness Emulator
 
 Represents documents, files, and digital artifacts with semantic analysis
 and consciousness-aware processing capabilities.

@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     """Application settings with constitutional compliance"""
     
     # Application
-    app_name: str = "Flux - Self-Teaching Consciousness Emulator"
+    app_name: str = "Flux - Self-Evolving Consciousness Emulator"
     app_version: str = "0.1.0"
     debug: bool = Field(default=False, description="Debug mode")
     mock_data: bool = Field(default=True, description="Use mock data - constitutional requirement")

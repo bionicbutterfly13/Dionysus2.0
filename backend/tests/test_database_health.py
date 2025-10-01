@@ -3,7 +3,7 @@ Test database connection health checks.
 This test ensures we can connect to and verify the health of all databases.
 """
 import pytest
-from backend.src.services.database_health import DatabaseHealthService
+from src.services.database_health import DatabaseHealthService
 
 
 class TestDatabaseHealth:

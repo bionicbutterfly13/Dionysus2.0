@@ -1,6 +1,6 @@
 """
 Local Authentication Middleware - T033
-Flux Self-Teaching Consciousness Emulator
+Flux Self-Evolving Consciousness Emulator
 
 Implements local authentication for self-hosted deployment.
 Constitutional compliance: local-first operation, no external dependencies.

@@ -156,7 +156,7 @@ class TestQueryResponseSchema:
         response = QueryResponse(
             response_id="r1",
             query_id="q1",
-            answer="test",
+            answer="test answer with sufficient length",
             sources=[],
             confidence=0.5,
             processing_time_ms=100
@@ -168,7 +168,7 @@ class TestQueryResponseSchema:
             QueryResponse(
                 response_id="r2",
                 query_id="q2",
-                answer="test",
+                answer="test answer with sufficient length",
                 sources=[],
                 confidence=1.5,  # Invalid: > 1.0
                 processing_time_ms=100
@@ -181,7 +181,7 @@ class TestQueryResponseSchema:
         response = QueryResponse(
             response_id="r1",
             query_id="q1",
-            answer="test",
+            answer="test answer with sufficient length",
             sources=[],
             confidence=0.7,
             processing_time_ms=100,

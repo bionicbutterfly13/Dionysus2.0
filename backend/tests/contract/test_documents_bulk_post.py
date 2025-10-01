@@ -14,7 +14,7 @@ class TestDocumentsBulkPost:
     @pytest.fixture
     def client(self):
         """Test client fixture - will fail until main app is created."""
-        from backend.src.main import app  # This import will fail initially
+        from src.main import app  # This import will fail initially
         return TestClient(app)
 
     @pytest.fixture

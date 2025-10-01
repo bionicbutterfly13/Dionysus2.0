@@ -100,7 +100,7 @@ class ResearchPattern(BaseModel):
     last_validated: Optional[datetime] = Field(None, description="Last validation timestamp")
 
     # ThoughtSeed hierarchy integration
-    thoughtseed_layer: str = Field(..., regex=r"^(sensory|perceptual|conceptual|abstract|metacognitive)$",
+    processing_layer: str = Field(..., pattern=r"^(sensory|perceptual|conceptual|abstract|metacognitive)$",
                                    description="Primary ThoughtSeed layer")
     layer_activation_pattern: Dict[str, float] = Field(default_factory=dict,
                                                       description="Activation across all layers")
@@ -116,7 +116,7 @@ class ResearchPattern(BaseModel):
                                           description="Known pattern weaknesses")
 
     # ASI-GO-2 component integration
-    primary_component: str = Field(..., regex=r"^(cognition_base|researcher|engineer|analyst)$",
+    primary_component: str = Field(..., pattern=r"^(cognition_base|researcher|engineer|analyst)$",
                                   description="Primary ASI-GO-2 component")
     component_affinities: Dict[str, float] = Field(default_factory=lambda: {
         "cognition_base": 0.0, "researcher": 0.0, "engineer": 0.0, "analyst": 0.0
@@ -301,9 +301,9 @@ class ResearchPattern(BaseModel):
 
         # Check ThoughtSeed layer compatibility
         layer_compatibility = (
-            self.thoughtseed_layer == other_pattern.thoughtseed_layer or
-            abs(self._get_layer_index(self.thoughtseed_layer) -
-                self._get_layer_index(other_pattern.thoughtseed_layer)) <= 1
+            self.processing_layer == other_pattern.processing_layer or
+            abs(self._get_layer_index(self.processing_layer) -
+                self._get_layer_index(other_pattern.processing_layer)) <= 1
         )
 
         return domain_overlap and not is_antagonistic and layer_compatibility

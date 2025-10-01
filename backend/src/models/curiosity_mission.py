@@ -1,6 +1,6 @@
 """
 CuriosityMission Model - T019
-Flux Self-Teaching Consciousness Emulator
+Flux Self-Evolving Consciousness Emulator
 
 Represents curiosity-driven exploration missions with active inference guidance,
 attractor dynamics, and consciousness-aware goal formation and pursuit.

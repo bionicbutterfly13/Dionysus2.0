@@ -1,125 +1,99 @@
 """
-Flux Backend - Self-Teaching Consciousness Emulator
-Main FastAPI application entry point
+Flux Complete Launcher
+Starts both backend (FastAPI) and frontend (React), then opens browser.
+Press Play/Debug and Flux opens automatically!
 """
 
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-import uvicorn
-import logging
-from contextlib import asynccontextmanager
+import os
+import sys
+import subprocess
+import webbrowser
+import time
+from pathlib import Path
+import threading
+from dotenv import load_dotenv
 
-from core import settings, db_manager
-from services import ollama_service
+# Ensure src package is importable when running as a script
+CURRENT_DIR = Path(__file__).resolve().parent
+SRC_DIR = CURRENT_DIR / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+from utils.port_manager import check_port_conflicts  # type: ignore  # noqa: E402
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Application lifespan management with constitutional compliance"""
-    logger.info("Starting Flux backend services...")
-    
-    # Initialize database connections
-    db_connected = await db_manager.connect_all()
-    if not db_connected:
-        logger.error("Failed to connect to databases")
-    
-    # Initialize Ollama/LLaMA service
-    ollama_connected = await ollama_service.connect()
-    if not ollama_connected:
-        logger.warning("Ollama service not available - using mock data")
-    
-    logger.info("Flux backend services initialized")
-    yield
-    
-    logger.info("Shutting down Flux backend services...")
-    await db_manager.disconnect_all()
-    await ollama_service.disconnect()
-    logger.info("Flux backend services shut down")
+load_dotenv()
 
-app = FastAPI(
-    title="Flux - Self-Teaching Consciousness Emulator",
-    description="Backend API for lifelong learning partner with active inference",
-    version="0.1.0",
-    lifespan=lifespan
-)
+FRONTEND_DIR = CURRENT_DIR.parent / "frontend"
+FRONTEND_URL = "http://localhost:9243"  # Flux frontend port (configured in vite.config.ts)
 
-# CORS middleware for frontend communication
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],  # React/Vite dev servers
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
-@app.get("/")
-async def root():
-    """Health check endpoint"""
-    return {
-        "service": "Flux Backend",
-        "status": "operational",
-        "version": "0.1.0",
-        "mock_data": True  # Constitutional requirement: explicit mock data disclosure
-    }
+def start_frontend():
+    """Start the frontend dev server in background."""
+    print("🎨 Starting Flux frontend...")
+    try:
+        subprocess.Popen(
+            ["npm", "run", "dev"],
+            cwd=FRONTEND_DIR,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        # Wait a moment for frontend to start
+        time.sleep(3)
+        print(f"✅ Frontend running at {FRONTEND_URL}")
+    except Exception as e:
+        print(f"⚠️  Could not start frontend: {e}")
+        print("   You can start it manually: cd frontend && npm run dev")
 
-@app.get("/api/v1/health")
-async def health_check():
-    """Detailed health check for all services with constitutional compliance"""
-    # Get database health status
-    db_health = await db_manager.health_check()
-    
-    # Get Ollama health status
-    ollama_health = await ollama_service.health_check()
-    
-    return {
-        "status": "healthy",
-        "services": {
-            "api": "operational",
-            "neo4j": db_health.get("neo4j", "not_connected"),
-            "qdrant": db_health.get("qdrant", "not_connected"),
-            "redis": db_health.get("redis", "not_connected"),
-            "sqlite": db_health.get("sqlite", "not_connected"),
-            "ollama": ollama_health.get("status", "not_connected")
-        },
-        "mock_data": settings.mock_data,
-        "constitutional_compliance": {
-            "evaluation_feedback_enabled": settings.evaluation_feedback_enabled,
-            "thoughtseed_channels_enabled": settings.thoughtseed_channels_enabled,
-            "context_engineering_enabled": settings.context_engineering_enabled
-        }
-    }
 
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    """Global exception handler with constitutional compliance"""
-    logger.error(f"Unhandled exception: {exc}", exc_info=True)
-    return JSONResponse(
-        status_code=500,
-        content={
-            "error": "Internal server error",
-            "message": "An unexpected error occurred",
-            "mock_data": True,
-            "evaluation_frame": {
-                "whats_good": "Error was logged for debugging",
-                "whats_broken": "Unhandled exception occurred",
-                "what_works_but_shouldnt": "None identified",
-                "what_doesnt_but_pretends_to": "None identified"
-            }
-        }
+def open_browser():
+    """Open Flux in the default browser."""
+    time.sleep(2)  # Give servers time to fully start
+    print(f"🌐 Opening Flux in browser at {FRONTEND_URL}")
+    webbrowser.open(FRONTEND_URL)
+
+
+def main() -> None:
+    """Start the complete Flux stack: backend + frontend + browser."""
+    port_status = check_port_conflicts()
+    allocated_ports = port_status.get("allocated_ports", {})
+    default_port = allocated_ports.get("backend_api", 9127)
+
+    port = int(os.getenv("FLUX_BACKEND_PORT", default_port))
+    host = os.getenv("HOST", "127.0.0.1")
+
+    if not port_status.get("all_ports_available", True):
+        print("⚠️ Port conflicts detected:")
+        for notification in port_status.get("notifications", []):
+            print(f"  - {notification}")
+        print(f"✅ Auto-resolved to port {port}")
+    else:
+        print(f"✅ Flux backend starting on port {port}")
+
+    # Start frontend in separate thread
+    frontend_thread = threading.Thread(target=start_frontend, daemon=True)
+    frontend_thread.start()
+
+    # Open browser in separate thread
+    browser_thread = threading.Thread(target=open_browser, daemon=True)
+    browser_thread.start()
+
+    print("🚀 Flux is launching...")
+    print(f"   Backend API: http://{host}:{port}")
+    print(f"   Frontend UI: {FRONTEND_URL}")
+    print(f"   API Docs: http://{host}:{port}/docs")
+    print("\n✨ Press CTRL+C to stop Flux\n")
+
+    # Start backend (this blocks)
+    import uvicorn
+    uvicorn.run(
+        "src.app_factory:app",
+        host=host,
+        port=port,
+        reload=True,
+        log_level="info",
+        factory=False,
     )
+
 
 if __name__ == "__main__":
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info"
-    )
+    main()

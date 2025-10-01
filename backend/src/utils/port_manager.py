@@ -59,6 +59,10 @@ class PortManager:
                 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 sock.bind((host, port))
                 return True  # Successfully bound = port is available
+        except PermissionError as e:
+            # Some sandboxed environments disallow bind checks; treat as available.
+            logger.warning(f"Permission denied checking port {port}: {e}. Assuming available.")
+            return True
         except OSError:
             return False  # Failed to bind = port is occupied
         except Exception as e:

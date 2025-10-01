@@ -14,7 +14,7 @@ class TestResearchPatternsContract:
     @pytest.fixture
     def client(self):
         """Test client - will fail until endpoint implemented"""
-        from backend.src.main import app  # This import will fail initially
+        from src.main import app  # This import will fail initially
         return TestClient(app)
 
     def test_research_patterns_get_success(self, client):

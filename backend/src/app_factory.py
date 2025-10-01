@@ -1,5 +1,5 @@
 """
-Flux Self-Teaching Consciousness Emulator - Application Factory
+Flux Self-Evolving Consciousness Emulator - Application Factory
 FastAPI application setup with dependency injection and middleware configuration.
 """
 
@@ -12,9 +12,9 @@ import os
 import yaml
 from pathlib import Path
 
-from api.routes import documents, curiosity, visualization
-from middleware.auth import LocalAuthMiddleware
-from middleware.validation import ValidationMiddleware
+from .api.routes import documents, curiosity, visualization, stats, consciousness, query
+from .middleware.auth import LocalAuthMiddleware
+from .middleware.validation import ValidationMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ def create_app() -> FastAPI:
     cors_origins = config.get('server', {}).get('cors_origins', ["http://localhost:3000"])
 
     app = FastAPI(
-        title="Flux Self-Teaching Consciousness Emulator API",
+        title="Flux Self-Evolving Consciousness Emulator API",
         description="Backend services for document ingestion, consciousness processing, and curiosity-driven learning",
         version="0.1.0",
         lifespan=lifespan
@@ -72,12 +72,15 @@ def create_app() -> FastAPI:
     app.include_router(documents.router, prefix="/api/v1", tags=["documents"])
     app.include_router(curiosity.router, prefix="/api/v1", tags=["curiosity"])
     app.include_router(visualization.router, prefix="/ws/v1", tags=["visualization"])
+    app.include_router(stats.router, tags=["stats"])
+    app.include_router(consciousness.router, tags=["consciousness"])
+    app.include_router(query.router, tags=["query"])  # Query endpoint per Spec 006
 
     @app.get("/")
     async def root():
         """Root endpoint with API information."""
         return {
-            "name": "Flux Self-Teaching Consciousness Emulator API",
+            "name": "Flux Self-Evolving Consciousness Emulator API",
             "version": "0.1.0",
             "status": "healthy",
             "documentation": "/docs",
@@ -97,7 +100,7 @@ def create_app() -> FastAPI:
     @app.get("/health/databases")
     async def database_health_check():
         """Database connectivity health check endpoint."""
-        from services.database_health import get_database_health
+        from .services.database_health import get_database_health
         return get_database_health()
 
     @app.get("/configs/flux.yaml")
@@ -108,53 +111,6 @@ def create_app() -> FastAPI:
             return FileResponse(config_path)
         return JSONResponse({"error": "flux.yaml not found"}, status_code=404)
 
-    @app.get("/api/stats/dashboard")
-    async def dashboard_stats():
-        """Get dashboard statistics from databases."""
-        import redis
-        import subprocess
-        
-        try:
-            # Connect to Redis
-            r = redis.Redis(host='localhost', port=6379, decode_responses=True)
-            active_thoughtseeds = int(r.get("flux:thoughtseeds:active") or 0)
-            curiosity_missions = r.zcard("flux:curiosity:missions")
-            
-            # Query Neo4j for documents and concepts
-            neo4j_result = subprocess.run([
-                'docker', 'exec', 'neo4j-flux', 'cypher-shell', 
-                '-u', 'neo4j', '-p', 'neo4j_password',
-                'MATCH (d:Document) WITH count(d) as docs MATCH (c:Concept) RETURN docs, count(c) as concepts'
-            ], capture_output=True, text=True)
-            
-            documents, concepts = 0, 0
-            if neo4j_result.returncode == 0:
-                lines = neo4j_result.stdout.strip().split('\n')
-                if len(lines) > 1:
-                    data_line = lines[1]
-                    # Remove commas and split
-                    clean_line = data_line.replace(',', '')
-                    parts = clean_line.split()
-                    if len(parts) >= 2:
-                        documents = int(parts[0])
-                        concepts = int(parts[1])
-            
-            return {
-                "documentsProcessed": documents,
-                "conceptsExtracted": concepts,
-                "curiosityMissions": curiosity_missions,
-                "activeThoughtSeeds": active_thoughtseeds,
-                "mockData": False
-            }
-        except Exception as e:
-            logger.error(f"Dashboard stats error: {e}")
-            return {
-                "documentsProcessed": 0,
-                "conceptsExtracted": 0,
-                "curiosityMissions": 0,
-                "activeThoughtSeeds": 0,
-                "mockData": True
-            }
 
     return app
 

@@ -1,6 +1,6 @@
 """
 EvaluationFrame Model - T020
-Flux Self-Teaching Consciousness Emulator
+Flux Self-Evolving Consciousness Emulator
 
 Represents evaluation frameworks and feedback collection for consciousness development
 with constitutional compliance and user consent management.

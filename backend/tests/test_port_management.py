@@ -4,7 +4,7 @@ This test ensures we can automatically handle port conflicts.
 """
 import pytest
 import socket
-from backend.src.utils.port_manager import PortManager
+from src.utils.port_manager import PortManager
 
 
 class TestPortManager:

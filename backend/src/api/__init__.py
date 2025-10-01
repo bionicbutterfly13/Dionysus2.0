@@ -1,4 +1,4 @@
 """
 Flux API Package
-REST API endpoints for the Self-Teaching Consciousness Emulator.
+REST API endpoints for the Self-Evolving Consciousness Emulator.
 """
