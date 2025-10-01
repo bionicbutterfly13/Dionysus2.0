@@ -42,49 +42,58 @@
 - **Mobile**: `api/src/`, `ios/src/` or `android/src/`
 - Paths shown below assume single project - adjust based on plan.md structure
 
-## Phase 3.1: Setup
-- [ ] T001 Create project structure per implementation plan
-- [ ] T002 Initialize [language] project with [framework] dependencies
-- [ ] T003 [P] Configure linting and formatting tools
+## Phase 3.1: Setup & Context Engineering Validation
+- [ ] T001 [P] Verify AttractorBasinManager integration (Context Engineering)
+- [ ] T002 [P] Verify Neural Field System integration (Context Engineering)
+- [ ] T003 [P] Validate Redis persistence for attractor basins (Context Engineering)
+- [ ] T004 Create project structure per implementation plan
+- [ ] T005 Initialize [language] project with [framework] dependencies
+- [ ] T006 [P] Configure linting and formatting tools
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
-- [ ] T004 [P] Contract test POST /api/users in tests/contract/test_users_post.py
-- [ ] T005 [P] Contract test GET /api/users/{id} in tests/contract/test_users_get.py
-- [ ] T006 [P] Integration test user registration in tests/integration/test_registration.py
-- [ ] T007 [P] Integration test auth flow in tests/integration/test_auth.py
+- [ ] T007 [P] Contract test POST /api/users in tests/contract/test_users_post.py
+- [ ] T008 [P] Contract test GET /api/users/{id} in tests/contract/test_users_get.py
+- [ ] T009 [P] Integration test user registration in tests/integration/test_registration.py
+- [ ] T010 [P] Integration test auth flow in tests/integration/test_auth.py
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
-- [ ] T008 [P] User model in src/models/user.py
-- [ ] T009 [P] UserService CRUD in src/services/user_service.py
-- [ ] T010 [P] CLI --create-user in src/cli/user_commands.py
-- [ ] T011 POST /api/users endpoint
-- [ ] T012 GET /api/users/{id} endpoint
-- [ ] T013 Input validation
-- [ ] T014 Error handling and logging
+- [ ] T011 [P] User model in src/models/user.py
+- [ ] T012 [P] UserService CRUD in src/services/user_service.py
+- [ ] T013 [P] CLI --create-user in src/cli/user_commands.py
+- [ ] T014 POST /api/users endpoint
+- [ ] T015 GET /api/users/{id} endpoint
+- [ ] T016 Input validation
+- [ ] T017 Error handling and logging
 
 ## Phase 3.4: Integration
-- [ ] T015 Connect UserService to DB
-- [ ] T016 Auth middleware
-- [ ] T017 Request/response logging
-- [ ] T018 CORS and security headers
+- [ ] T018 Connect UserService to DB
+- [ ] T019 Auth middleware
+- [ ] T020 Request/response logging
+- [ ] T021 CORS and security headers
 
 ## Phase 3.5: Polish
-- [ ] T019 [P] Unit tests for validation in tests/unit/test_validation.py
-- [ ] T020 Performance tests (<200ms)
-- [ ] T021 [P] Update docs/api.md
-- [ ] T022 Remove duplication
-- [ ] T023 Run manual-testing.md
+- [ ] T022 [P] Unit tests for validation in tests/unit/test_validation.py
+- [ ] T023 Performance tests (<200ms)
+- [ ] T024 [P] Update docs/api.md
+- [ ] T025 Remove duplication
+- [ ] T026 Run manual-testing.md
 
 ## Dependencies
-- Tests (T004-T007) before implementation (T008-T014)
-- T008 blocks T009, T015
-- T016 blocks T018
-- Implementation before polish (T019-T023)
+- Context Engineering validation (T001-T003) before everything
+- Tests (T007-T010) before implementation (T011-T017)
+- T011 blocks T012, T018
+- T019 blocks T021
+- Implementation before polish (T022-T026)
 
 ## Parallel Example
 ```
-# Launch T004-T007 together:
+# Launch Context Engineering validation first (T001-T003):
+Task: "Verify AttractorBasinManager integration"
+Task: "Verify Neural Field System integration"
+Task: "Validate Redis persistence for attractor basins"
+
+# Then launch T007-T010 together:
 Task: "Contract test POST /api/users in tests/contract/test_users_post.py"
 Task: "Contract test GET /api/users/{id} in tests/contract/test_users_get.py"
 Task: "Integration test registration in tests/integration/test_registration.py"
