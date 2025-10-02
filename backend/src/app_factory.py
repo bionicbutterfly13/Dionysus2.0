@@ -13,6 +13,7 @@ import yaml
 from pathlib import Path
 
 from .api.routes import documents, curiosity, visualization, stats, consciousness, query
+from .api.routes import clause  # Import separately to avoid circular dependency
 from .middleware.auth import LocalAuthMiddleware
 from .middleware.validation import ValidationMiddleware
 
@@ -75,6 +76,7 @@ def create_app() -> FastAPI:
     app.include_router(stats.router, tags=["stats"])
     app.include_router(consciousness.router, tags=["consciousness"])
     app.include_router(query.router, tags=["query"])  # Query endpoint per Spec 006
+    app.include_router(clause.router, tags=["clause"])  # CLAUSE endpoints per Spec 034
 
     @app.get("/")
     async def root():

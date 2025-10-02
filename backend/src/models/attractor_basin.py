@@ -130,6 +130,11 @@ class AttractorBasin(BaseModel):
     last_activated: Optional[datetime] = Field(None, description="Last activation timestamp")
     last_updated: datetime = Field(default_factory=datetime.utcnow, description="Last update timestamp")
     activation_history: List[Dict[str, Any]] = Field(default_factory=list, description="Activation history")
+
+    # CLAUSE Phase 1: Basin Strengthening (Spec 034)
+    strength: float = Field(default=1.0, ge=1.0, le=2.0, description="Basin frequency strength (1.0-2.0)")
+    activation_count: int = Field(default=0, ge=0, description="Number of times basin activated")
+    co_occurring_concepts: Dict[str, int] = Field(default_factory=dict, description="Co-occurrence counts with other concepts")
     
     # Learning and adaptation
     learning_rate: float = Field(default=0.1, ge=0.0, le=1.0, description="Basin learning rate")

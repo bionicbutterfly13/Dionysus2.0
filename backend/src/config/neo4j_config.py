@@ -64,6 +64,10 @@ class Neo4jConfig:
             "CREATE INDEX consciousness_level_index IF NOT EXISTS FOR (c:ConsciousnessState) ON (c.consciousness_level)",
             "CREATE INDEX memory_type_index IF NOT EXISTS FOR (m:MemoryFormation) ON (m.memory_type)",
             "CREATE INDEX upload_timestamp_index IF NOT EXISTS FOR (d:Document) ON (d.upload_timestamp)",
+
+            # CLAUSE Phase 1 basin strengthening indexes (Spec 034 T026)
+            "CREATE INDEX basin_strength_index IF NOT EXISTS FOR (a:AttractorBasin) ON (a.strength)",
+            "CREATE INDEX basin_activation_count_index IF NOT EXISTS FOR (a:AttractorBasin) ON (a.activation_count)",
         ]
 
         with self.driver.session() as session:
