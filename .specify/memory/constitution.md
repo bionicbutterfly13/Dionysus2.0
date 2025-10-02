@@ -49,6 +49,42 @@ pip install "numpy>=2.0" --upgrade
 pip install -r requirements-frozen.txt
 ```
 
+### Section 1.3: NO REDUNDANT CODE - CHECK BEFORE CREATING
+**CRITICAL**: NEVER write code without checking if it already exists
+
+#### 🚫 ABSOLUTELY PROHIBITED
+- **NEVER** create a new file without searching for existing implementations
+- **NEVER** create version 2, 3, 4, 5... of a file that already exists
+- **NEVER** write duplicate functions/classes without checking codebase
+- **NEVER** break working code by creating conflicting implementations
+- **NEVER** assume a feature doesn't exist - ALWAYS search first
+
+#### ✅ MANDATORY CHECKS BEFORE ANY CODE
+1. **Search for existing files**: `find . -name "*keyword*" -type f`
+2. **Grep for existing functions**: `grep -r "function_name" .`
+3. **Check for similar implementations**: Use Glob and Grep tools
+4. **Verify file doesn't exist**: `ls -la path/to/file.ext`
+5. **If exists**: EDIT existing file, DO NOT create new version
+
+#### 🔧 ENFORCEMENT
+```bash
+# BEFORE creating ANY file, run:
+find . -name "*similar_name*" -type f | head -20
+
+# BEFORE writing ANY function, run:
+grep -r "function_name" src/ | head -10
+
+# IF file exists: EDIT IT, don't create duplicate
+# IF function exists: USE IT or EXTEND IT, don't rewrite
+```
+
+#### 🛑 STOP BREAKING WORKING CODE
+- If code works: **DO NOT TOUCH IT** unless explicitly asked
+- If you're asked to "fix" something: **TEST what's broken FIRST**
+- Before modifying: **RUN TESTS to verify current state**
+- After modifying: **RUN TESTS to verify it still works**
+- **NEVER** assume code is broken just because it's old
+
 #### Binary Distribution Standards
 - **REQUIRED**: Use pre-compiled binaries when available
 - **REQUIRED**: Avoid source compilation that might upgrade NumPy

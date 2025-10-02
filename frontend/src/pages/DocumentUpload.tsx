@@ -70,18 +70,18 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
 
       try {
         const formData = new FormData()
-        formData.append('files', file)
+        formData.append('files', file)  // Backend expects 'files' array
 
         // Simulate upload progress
         const progressInterval = setInterval(() => {
-          setUploadedFiles(prev => 
-            prev.map(f => f.id === fileEntry.id ? 
+          setUploadedFiles(prev =>
+            prev.map(f => f.id === fileEntry.id ?
               { ...f, progress: Math.min((f.progress || 0) + Math.random() * 30, 95) } : f
             )
           )
         }, 200)
 
-        const response = await fetch('/api/v1/documents', {
+        const response = await fetch('/api/documents', {
           method: 'POST',
           body: formData,
         })
@@ -90,10 +90,20 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
 
         if (response.ok) {
           const result = await response.json()
-          console.log('Upload successful:', result)
+          console.log('[UPLOAD] Backend response:', result)
+          console.log('[DAEDALUS] Processing result:', result.documents?.[0])
 
-          // Extract consciousness processing results from first document
-          const docResult = result.documents && result.documents[0]
+          const doc = result.documents?.[0]
+          if (!doc) throw new Error('No document in response')
+
+          // Map backend response to UI format
+          const uploadData = {
+            extraction: doc.extraction || { concepts: [], chunks: 0 },
+            consciousness: doc.consciousness || { basins_created: 0, thoughtseeds_generated: 0 },
+            research: doc.research || { curiosity_triggers: [] },
+            quality: doc.quality || { scores: { overall: 0 } },
+            workflow: doc.workflow || { iterations: 0, messages: [] }
+          }
 
           // Complete upload progress and move to processing
           setUploadedFiles(prev =>
@@ -102,18 +112,18 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
             )
           )
 
-          // Complete processing with consciousness data
+          // Complete processing with upload data
           setTimeout(() => {
             setUploadedFiles(prev =>
               prev.map(f => f.id === fileEntry.id ?
                 {
                   ...f,
                   status: 'completed',
-                  extraction: docResult?.extraction,
-                  consciousness: docResult?.consciousness,
-                  research: docResult?.research,
-                  quality: docResult?.quality,
-                  workflow: docResult?.workflow
+                  extraction: uploadData.extraction,
+                  consciousness: uploadData.consciousness,
+                  research: uploadData.research,
+                  quality: uploadData.quality,
+                  workflow: uploadData.workflow
                 } : f
               )
             )
