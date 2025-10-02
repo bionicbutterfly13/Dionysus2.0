@@ -15,15 +15,17 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture
 def client():
-    """FastAPI test client with minimal app for contract testing"""
+    """FastAPI test client with CLAUSE routes for contract testing"""
     from fastapi import FastAPI
+    import sys
+    sys.path.insert(0, '/Volumes/Asylum/dev/Dionysus-2.0/backend/src')
 
-    # Create minimal app just for contract testing
-    # Full app will be tested in integration tests
+    # Import CLAUSE router
+    from api.routes import clause
+
+    # Create minimal app with CLAUSE routes
     app = FastAPI()
-
-    # Add CLAUSE routes when they exist
-    # For now, endpoints don't exist (TDD - tests should fail)
+    app.include_router(clause.router)
 
     return TestClient(app)
 

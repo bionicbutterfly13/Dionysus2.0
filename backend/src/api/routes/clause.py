@@ -7,6 +7,12 @@ Endpoints:
 - POST /api/clause/basins/strengthen - Strengthen basins for concepts
 - GET /api/clause/basins/{concept_id} - Get basin information
 - POST /api/clause/edges/score - Score individual edge
+
+Spec 035 Phase 2: CLAUSE Multi-Agent System (T050-T052)
+Endpoints:
+- POST /api/clause/navigate - Path navigation with ThoughtSeeds & Curiosity
+- POST /api/clause/curate - Evidence curation with provenance
+- POST /api/clause/coordinate - Multi-agent coordination
 """
 
 from fastapi import APIRouter, HTTPException, status, Depends
@@ -26,6 +32,23 @@ from ...services.clause.models import (
 from ...services.clause.graph_loader import GraphLoader
 # Note: BasinTracker, EdgeScorer, SubgraphArchitect have import issues
 # Will be fixed when their absolute imports are converted to relative
+
+# Phase 2 imports (T050-T052)
+from models.clause.path_models import (
+    PathNavigationRequest,
+    PathNavigationResponse,
+)
+from models.clause.curator_models import (
+    ContextCurationRequest,
+    ContextCurationResponse,
+)
+from models.clause.coordinator_models import (
+    CoordinationRequest,
+    CoordinationResponse,
+)
+from services.clause.path_navigator import PathNavigator
+from services.clause.context_curator import ContextCurator
+from services.clause.coordinator import LCMAPPOCoordinator
 
 logger = logging.getLogger(__name__)
 
@@ -280,4 +303,173 @@ async def score_edge(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Internal error: {str(e)}"
+        )
+
+# ==============================================================================
+# Phase 2: Multi-Agent System (T050-T052)
+# ==============================================================================
+
+# Lazy initialization for Phase 2 agents
+_path_navigator: Optional[PathNavigator] = None
+_context_curator: Optional[ContextCurator] = None
+_lc_mappo_coordinator: Optional[LCMAPPOCoordinator] = None
+
+
+def get_path_navigator() -> PathNavigator:
+    """Get or create PathNavigator instance."""
+    global _path_navigator
+    if _path_navigator is None:
+        _path_navigator = PathNavigator()
+    return _path_navigator
+
+
+def get_context_curator() -> ContextCurator:
+    """Get or create ContextCurator instance."""
+    global _context_curator
+    if _context_curator is None:
+        _context_curator = ContextCurator()
+    return _context_curator
+
+
+def get_coordinator() -> LCMAPPOCoordinator:
+    """Get or create LC-MAPPO Coordinator instance."""
+    global _lc_mappo_coordinator
+    if _lc_mappo_coordinator is None:
+        _lc_mappo_coordinator = LCMAPPOCoordinator(
+            path_navigator=get_path_navigator(),
+            context_curator=get_context_curator(),
+        )
+    return _lc_mappo_coordinator
+
+
+@router.post("/navigate", response_model=PathNavigationResponse, status_code=status.HTTP_200_OK)
+async def navigate_path(
+    request: PathNavigationRequest,
+) -> PathNavigationResponse:
+    """
+    T050: Path navigation with ThoughtSeeds, Curiosity, and Causal reasoning.
+
+    Implements Spec 035 Phase 2:
+    - Budget-aware path exploration (β_step = 1-20 steps)
+    - ThoughtSeed generation (Spec 028)
+    - Curiosity triggers (Spec 029)
+    - Causal reasoning (Spec 033)
+    - State encoding (1154-dim feature vector)
+    - Termination head (learned stopping)
+
+    Returns:
+    - 200 OK: Path navigated successfully
+    - 400 Bad Request: Invalid request parameters
+    - 500 Internal Server Error: Navigation failed
+
+    Performance target: <200ms (NFR-001)
+    """
+    start_time = time.time()
+
+    try:
+        navigator = get_path_navigator()
+        response = await navigator.navigate(request)
+
+        elapsed_ms = (time.time() - start_time) * 1000
+        logger.info(
+            f"Path navigation complete: {len(response.path['steps'])} steps, "
+            f"{response.metadata['thoughtseeds_generated']} ThoughtSeeds, "
+            f"{elapsed_ms:.0f}ms"
+        )
+
+        return response
+
+    except Exception as e:
+        logger.error(f"Path navigation failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Navigation error: {str(e)}"
+        )
+
+
+@router.post("/curate", response_model=ContextCurationResponse, status_code=status.HTTP_200_OK)
+async def curate_evidence(
+    request: ContextCurationRequest,
+) -> ContextCurationResponse:
+    """
+    T051: Evidence curation with listwise scoring and provenance tracking.
+
+    Implements Spec 035 Phase 2:
+    - Listwise evidence scoring (pairwise similarity + diversity penalty)
+    - Token budget enforcement (tiktoken, 10% safety buffer)
+    - Learned stopping (shaped utility threshold)
+    - Provenance tracking (Spec 032: 7 fields + 3 trust signals)
+
+    Returns:
+    - 200 OK: Evidence curated successfully
+    - 400 Bad Request: Invalid request parameters
+    - 500 Internal Server Error: Curation failed
+
+    Performance target: <100ms (NFR-002)
+    """
+    start_time = time.time()
+
+    try:
+        curator = get_context_curator()
+        response = await curator.curate(request)
+
+        elapsed_ms = (time.time() - start_time) * 1000
+        logger.info(
+            f"Evidence curation complete: {len(response.selected_evidence)} selected, "
+            f"{response.metadata['tokens_used']}/{response.metadata['tokens_total']} tokens, "
+            f"{elapsed_ms:.0f}ms"
+        )
+
+        return response
+
+    except Exception as e:
+        logger.error(f"Evidence curation failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Curation error: {str(e)}"
+        )
+
+
+@router.post("/coordinate", response_model=CoordinationResponse, status_code=status.HTTP_200_OK)
+async def coordinate_agents(
+    request: CoordinationRequest,
+) -> CoordinationResponse:
+    """
+    T052: Multi-agent coordination with LC-MAPPO.
+
+    Implements Spec 035 Phase 2:
+    - Sequential agent handoff (Architect → Navigator → Curator)
+    - Budget distribution (β_edge, β_step, β_tok)
+    - Conflict detection and resolution (Spec 031)
+    - Performance tracking per agent
+    - Combined result aggregation
+
+    Returns:
+    - 200 OK: Coordination successful
+    - 400 Bad Request: Invalid request parameters
+    - 500 Internal Server Error: Coordination failed
+
+    Performance target: <600ms total (NFR-003)
+    """
+    start_time = time.time()
+
+    try:
+        coordinator = get_coordinator()
+        response = await coordinator.coordinate(request)
+
+        elapsed_ms = (time.time() - start_time) * 1000
+        logger.info(
+            f"Multi-agent coordination complete: "
+            f"{len(response.agent_handoffs)} agents, "
+            f"{response.conflicts_resolved} conflicts resolved, "
+            f"{elapsed_ms:.0f}ms"
+        )
+
+        return response
+
+    except Exception as e:
+        logger.error(f"Multi-agent coordination failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Coordination error: {str(e)}"
         )
