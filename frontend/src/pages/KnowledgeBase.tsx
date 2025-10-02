@@ -29,143 +29,11 @@ interface CrawlOperation {
 
 export default function KnowledgeBase() {
   const [showAddKnowledgeModal, setShowAddKnowledgeModal] = useState(false)
-  const [crawlOperations] = useState<CrawlOperation[]>([
-    {
-      id: '1',
-      title: 'Crawling URLs 251-300 of 576 at depth 4',
-      status: 'crawling',
-      progress: 11,
-      currentRange: '251-300',
-      totalPages: 576,
-      pagesCrawled: 549,
-      url: 'https://langchain-ai.github.io/langgraph/',
-      depth: 4
-    },
-    {
-      id: '2',
-      title: 'Crawling URLs 451-500 of 609 at depth 3',
-      status: 'crawling',
-      progress: 9,
-      currentRange: '451-500',
-      totalPages: 609,
-      pagesCrawled: 458,
-      url: 'https://arxiv.org/html/2312.07547v1',
-      depth: 3
-    },
-    {
-      id: '3',
-      title: 'Crawling URLs 1-50 of 99 at depth 2',
-      status: 'crawling',
-      progress: 9,
-      currentRange: '1-50',
-      totalPages: 99,
-      pagesCrawled: 1,
-      url: 'https://www.biorxiv.org/content/10.1101/2024.08.18.608439v1.full',
-      depth: 2
-    },
-    {
-      id: '4',
-      title: 'Crawling URLs 151-170 of 170 at depth 2',
-      status: 'crawling',
-      progress: 9,
-      currentRange: '151-170',
-      totalPages: 170,
-      pagesCrawled: 151,
-      url: 'https://github.com/MODSetter/SurfSense.git',
-      depth: 2
-    }
-  ])
+  // REMOVED FAKE CRAWL OPERATIONS - will fetch real data from backend
+  const [crawlOperations, setCrawlOperations] = useState<CrawlOperation[]>([])
 
-  const [knowledgeItems] = useState<KnowledgeItem[]>([
-    {
-      id: '1',
-      title: 'Frontiersin',
-      type: 'webpage',
-      url: 'frontiersin.org',
-      tags: [],
-      updated: '9/25/2025',
-      pageCount: 100,
-      views: 0,
-      category: 'Technical'
-    },
-    {
-      id: '2',
-      title: 'Blog Futuresmart - Langgraph-Tutorial-For-Beginners',
-      type: 'webpage',
-      url: 'blog.futuresmart.ai',
-      tags: [],
-      updated: '9/25/2025',
-      pageCount: 86,
-      views: 0,
-      category: 'Technical'
-    },
-    {
-      id: '3',
-      title: 'Recurrent_motifs_as_resonant_attractor_s.pdf',
-      type: 'document',
-      filename: 'Recurrent_motifs_as_resonant_attractor_s.pdf',
-      tags: [],
-      updated: '9/25/2025',
-      pageCount: 21,
-      views: 0,
-      category: 'Technical'
-    },
-    {
-      id: '4',
-      title: 'Recurrent_motifs_as_resonant_attractor_s.pdf',
-      type: 'document',
-      filename: 'Recurrent_motifs_as_resonant_attractor_s.pdf',
-      tags: [],
-      updated: '9/25/2025',
-      pageCount: 0,
-      views: 0,
-      category: 'Technical'
-    },
-    {
-      id: '5',
-      title: 'Sciencedirect',
-      type: 'webpage',
-      url: 'sciencedirect.com',
-      tags: [],
-      updated: '9/25/2025',
-      pageCount: 1,
-      views: 0,
-      category: 'Technical'
-    },
-    {
-      id: '6',
-      title: '2401.08438v2.pdf',
-      type: 'document',
-      filename: '2401.08438v2.pdf',
-      tags: [],
-      updated: '9/25/2025',
-      pageCount: 9,
-      views: 0,
-      category: 'Technical'
-    },
-    {
-      id: '7',
-      title: 'Inpsy Fss Muni Cz',
-      type: 'webpage',
-      url: 'inpsy.fss.muni.cz',
-      tags: [],
-      updated: '9/25/2025',
-      pageCount: 113,
-      views: 0,
-      category: 'Technical'
-    },
-    {
-      id: '8',
-      title: 'roots.pdf',
-      type: 'document',
-      filename: 'roots.pdf',
-      tags: [],
-      updated: '9/25/2025',
-      pageCount: 300,
-      views: 0,
-      category: 'Technical'
-    }
-  ])
+  // REMOVED FAKE FILES - will fetch real uploads from backend
+  const [knowledgeItems, setKnowledgeItems] = useState<KnowledgeItem[]>([])
 
   return (
     <div className="min-h-screen bg-black text-white p-6">
@@ -177,7 +45,7 @@ export default function KnowledgeBase() {
               <span className="text-white text-sm">📚</span>
             </div>
             <h1 className="text-xl font-medium text-white">Knowledge Base</h1>
-            <span className="bg-gray-700 text-gray-300 px-2 py-1 rounded text-sm">23 items</span>
+            <span className="bg-gray-700 text-gray-300 px-2 py-1 rounded text-sm">{knowledgeItems.length} items</span>
           </div>
         </div>
 
@@ -217,7 +85,7 @@ export default function KnowledgeBase() {
       {/* Active Operations */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-medium text-white">Active Operations (8)</h2>
+          <h2 className="text-lg font-medium text-white">Active Operations ({crawlOperations.length})</h2>
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-green-400 rounded-full"></div>
             <span className="text-sm text-gray-400">Live Updates</span>

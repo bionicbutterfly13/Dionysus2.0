@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, FileText, Link, AlertCircle, CheckCircle, Globe, Brain } from 'lucide-react'
+import { Upload, FileText, Link, AlertCircle, CheckCircle, Globe, Brain, XCircle } from 'lucide-react'
 
 interface UploadedFile {
   id: string
@@ -49,6 +49,9 @@ interface DocumentUploadProps {
 export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [selectedMode, setSelectedMode] = useState<'crawl' | 'upload'>('crawl')
+  const [crawlUrl, setCrawlUrl] = useState('')
+  const [isCrawling, setIsCrawling] = useState(false)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     // Create file entries with uploading status
