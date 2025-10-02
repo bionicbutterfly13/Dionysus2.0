@@ -8,34 +8,114 @@ This is a **spec-driven consciousness enhancement implementation** for neural pr
 
 ## Recent Completions
 
-### ✅ Spec 021: Daedalus Perceptual Information Gateway (2025-10-01)
-**Status**: COMPLETE - All tests passing (15/15)
+### ✅ Document Processing System - LangGraph Synthesis (2025-10-01)
+**Status**: COMPLETE - Clean implementation with full source attribution
 
-**Implementation**:
-- Simplified Daedalus class to single responsibility: receive perceptual information from uploads
-- Removed 12 non-essential methods (process_document, analyze_content, extract_features, etc.)
-- Integrated with LangGraph for agent creation
-- Updated API routes to use Daedalus gateway
-- Complete documentation and contracts
+**Implementation**: Clean synthesis of 6 external sources into unified LangGraph workflow
+- **Daedalus Gateway**: Single responsibility - receive perceptual information (118 lines)
+- **LangGraph Workflow**: 6-node consciousness-enhanced processing pipeline (400 lines)
+- **ASI-GO-2 Components**: Cognition Base, Researcher, Analyst (860 lines)
+- **SurfSense Patterns**: Content hash, markdown, chunking, summaries
+- **R-Zero Integration**: Curiosity-driven question generation, co-evolution
+- **Active Inference**: Prediction errors trigger exploration, hierarchical belief updating
 
 **Key Files**:
-- Implementation: `backend/src/services/daedalus.py` (83 lines, single method)
-- API Integration: `backend/src/api/routes/documents.py`
-- Tests: `backend/tests/test_daedalus_spec_021.py` (11 contract tests)
-- Tests: `backend/tests/integration/test_daedalus_integration.py` (4 integration tests)
-- Documentation: `specs/021-remove-all-that/`
-- Archive: `backup/deprecated/daedalus_removed_features/`
+- Gateway: `backend/src/services/daedalus.py` (118 lines)
+- Workflow: `backend/src/services/document_processing_graph.py` (400 lines)
+- Cognition Base: `backend/src/services/document_cognition_base.py` (250 lines)
+- Researcher: `backend/src/services/document_researcher.py` (280 lines)
+- Analyst: `backend/src/services/document_analyst.py` (330 lines)
+- Processor: `backend/src/services/consciousness_document_processor.py` (397 lines)
+- **Protected Archive**: `backup/clean_implementations/daedalus_langgraph_synthesis/`
+- **Source Attribution**: `SOURCES_AND_ATTRIBUTIONS.md`
+- **Implementation Summary**: `CLEAN_IMPLEMENTATION_SUMMARY.md`
+- **Architecture Diagram**: `ARCHITECTURE_DIAGRAM.md`
 
-**Testing Daedalus**:
+**LangGraph Workflow** (6 nodes):
+1. Extract & Process (SurfSense patterns)
+2. Generate Research Plan (ASI-GO-2 + R-Zero)
+3. Consciousness Processing (Basins + ThoughtSeeds)
+4. Analyze Results (Quality + Insights + Meta-cognitive)
+5. Refine Processing (Iterative improvement)
+6. Finalize Output (Package results)
+
+**Testing**:
 ```bash
 # Run all Daedalus tests
 pytest backend/tests/test_daedalus_spec_021.py backend/tests/integration/test_daedalus_integration.py -v
 
-# Test upload flow through Daedalus gateway
-curl -X POST http://localhost:8000/api/documents \
-  -F "files=@test.pdf" \
-  -F "tags=research,ai"
+# Test document upload through LangGraph workflow
+python -c "
+from backend.src.services.daedalus import Daedalus
+daedalus = Daedalus()
+with open('test.pdf', 'rb') as f:
+    result = daedalus.receive_perceptual_information(f, tags=['test'])
+    print(f\"Quality: {result['quality']['scores']['overall']:.2f}\")
+    print(f\"Curiosity triggers: {len(result['research']['curiosity_triggers'])}\")
+"
+
+# Get learning summary
+python -c "
+from backend.src.services.daedalus import Daedalus
+daedalus = Daedalus()
+summary = daedalus.get_cognition_summary()
+print(summary)
+"
 ```
+
+**External Sources Integrated**:
+- SurfSense (MIT) - Document extraction patterns
+- ASI-GO-2 (MIT) - 4-component learning architecture
+- R-Zero (Apache 2.0) - Curiosity-driven co-evolution
+- David Kimai's Context Engineering (MIT) - Token efficiency (12x reduction)
+- OpenNotebook (MIT) - LangGraph workflow patterns
+- Perplexica (MIT) - Text splitting validation
+
+### ✅ Unified Database Architecture - Neo4j Only (2025-10-01)
+**Status**: COMPLETE - Removed Qdrant, using Neo4j unified search
+
+**Decision**: Neo4j + AutoSchemaKG provides complete solution for consciousness-enhanced document processing.
+
+**Why Neo4j Only**:
+- ✅ **AutoSchemaKG Integration**: Automatic concept extraction and knowledge graph construction
+- ✅ **Native Vector Search**: 512-dimensional embeddings with cosine similarity
+- ✅ **Graph Relationships**: Critical for attractor basins, thoughtseeds, consciousness tracking
+- ✅ **Full-Text Search**: Built-in indexing for content search
+- ✅ **Hybrid Queries**: Graph + vector + full-text in single Cypher query
+- ✅ **Sufficient Performance**: <100ms for <100k documents
+- ✅ **Simpler Architecture**: One database instead of two
+
+**What Was Removed**:
+- ❌ Qdrant vector database (archived in `backup/deprecated/qdrant_vector_searcher/`)
+- ❌ `VectorSearcher` class
+- ❌ Parallel search to Qdrant in query engine
+- ❌ `QDRANT_URL` configuration setting
+
+**Storage Architecture**:
+```
+Document Upload
+    ↓
+DocumentProcessingGraph (concepts, basins, thoughtseeds)
+    ↓
+AutoSchemaKG (automatic concept + relationship extraction)
+    ↓
+Neo4j Unified Schema
+    ├─→ Graph: Relationships (ATTRACTED_TO, RESONATES_WITH, etc.)
+    ├─→ Vector: 512-dim embeddings (cosine similarity)
+    ├─→ Full-Text: Content indexes
+    └─→ Nodes: Document, Concept, Basin, ThoughtSeed, Episode
+```
+
+**When to Reconsider Qdrant**:
+- Only if exceeding 50k+ documents with consistent >100ms latency
+- Can be re-added as performance cache layer (Neo4j remains source of truth)
+
+**Key Files**:
+- Analysis: `HYBRID_STORAGE_ANALYSIS.md`
+- Schema: `extensions/context_engineering/neo4j_unified_schema.py`
+- Query Engine: `backend/src/services/query_engine.py` (Neo4j only)
+- Searcher: `backend/src/services/neo4j_searcher.py`
+- Archive: `backup/deprecated/qdrant_vector_searcher/`
 
 ## Development Approach
 
