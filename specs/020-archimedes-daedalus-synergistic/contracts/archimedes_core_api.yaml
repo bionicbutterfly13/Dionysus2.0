@@ -1,0 +1,234 @@
+openapi: 3.0.3
+info:
+  title: Archimedes Core API
+  description: Pattern recognition and evolution system
+  version: 1.0.0
+
+paths:
+  /api/archimedes/solve_novel_problem:
+    post:
+      summary: Solve a novel problem using pattern evolution
+      description: Primary entry point for Archimedes problem-solving
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                problem_description:
+                  type: string
+                  description: Natural language description of the problem
+                domain:
+                  type: string
+                  description: Problem domain context
+                complexity_level:
+                  type: string
+                  enum: [simple, medium, complex]
+                time_constraints:
+                  type: object
+                  properties:
+                    deadline:
+                      type: string
+                      format: date-time
+                    urgency:
+                      type: string
+                      enum: [low, medium, high, critical]
+              required:
+                - problem_description
+      responses:
+        '200':
+          description: Problem analysis and solution approach
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  novelty_detected:
+                    type: boolean
+                  pattern_matches:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PatternMatch'
+                  solution_approach:
+                    $ref: '#/components/schemas/SolutionApproach'
+                  confidence_score:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                  processing_time_ms:
+                    type: integer
+        '400':
+          description: Invalid problem format
+        '500':
+          description: Pattern evolution failed
+
+  /api/archimedes/patterns:
+    get:
+      summary: Retrieve pattern library
+      parameters:
+        - name: domain
+          in: query
+          schema:
+            type: string
+        - name: min_success_rate
+          in: query
+          schema:
+            type: number
+            minimum: 0
+            maximum: 1
+      responses:
+        '200':
+          description: List of patterns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EvolutionaryPattern'
+
+    post:
+      summary: Create new pattern
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatternCreate'
+      responses:
+        '201':
+          description: Pattern created
+        '400':
+          description: Invalid pattern data
+
+  /api/archimedes/patterns/{pattern_id}:
+    get:
+      summary: Get specific pattern
+      parameters:
+        - name: pattern_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pattern details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvolutionaryPattern'
+        '404':
+          description: Pattern not found
+
+    put:
+      summary: Update pattern based on feedback
+      parameters:
+        - name: pattern_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success_feedback:
+                  type: boolean
+                performance_data:
+                  $ref: '#/components/schemas/PerformanceMetrics'
+      responses:
+        '200':
+          description: Pattern updated
+        '404':
+          description: Pattern not found
+
+components:
+  schemas:
+    EvolutionaryPattern:
+      type: object
+      properties:
+        pattern_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        success_rate:
+          type: number
+          minimum: 0
+          maximum: 1
+        confidence_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        generation:
+          type: integer
+        last_accessed:
+          type: string
+          format: date-time
+        basin_activation_count:
+          type: integer
+
+    PatternMatch:
+      type: object
+      properties:
+        pattern_id:
+          type: string
+        similarity_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        applicability:
+          type: number
+          minimum: 0
+          maximum: 1
+
+    SolutionApproach:
+      type: object
+      properties:
+        strategy:
+          type: string
+        steps:
+          type: array
+          items:
+            type: string
+        required_expertise:
+          type: array
+          items:
+            type: string
+        estimated_success_rate:
+          type: number
+          minimum: 0
+          maximum: 1
+
+    PatternCreate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        domain:
+          type: string
+      required:
+        - name
+        - description
+
+    PerformanceMetrics:
+      type: object
+      properties:
+        accuracy:
+          type: number
+          minimum: 0
+          maximum: 1
+        speed_ms:
+          type: number
+        resource_usage:
+          type: number
+        user_satisfaction:
+          type: number
+          minimum: 0
+          maximum: 1

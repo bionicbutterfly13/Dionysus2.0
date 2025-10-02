@@ -248,7 +248,9 @@ class Daedalus:
         ...
 ```
 
-### Pydantic Models (Future Enhancement)
+### Pydantic Models (Aspirational - Not Planned)
+**Note**: Current implementation uses Dict[str, Any] for flexibility. Pydantic models shown here for reference only - not scheduled for implementation unless stricter typing is needed.
+
 ```python
 from pydantic import BaseModel, Field
 from datetime import datetime

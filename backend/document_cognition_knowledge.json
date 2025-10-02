@@ -1,0 +1,177 @@
+{
+  "extraction_strategies": [
+    {
+      "name": "Content Hash Deduplication",
+      "source": "SurfSense",
+      "description": "Generate SHA-256 hash to detect duplicate documents",
+      "applicable_to": [
+        "pdf",
+        "text",
+        "markdown"
+      ],
+      "success_rate": 1.0,
+      "use_case": "Prevent re-processing identical content"
+    },
+    {
+      "name": "Markdown Conversion",
+      "source": "SurfSense",
+      "description": "Convert documents to markdown for structured parsing",
+      "applicable_to": [
+        "pdf",
+        "html",
+        "docx"
+      ],
+      "success_rate": 0.95,
+      "use_case": "Preserve document hierarchy and structure"
+    },
+    {
+      "name": "Semantic Chunking",
+      "source": "SurfSense + Perplexica",
+      "description": "Split text at semantic boundaries with overlap",
+      "applicable_to": [
+        "all_text"
+      ],
+      "success_rate": 0.9,
+      "use_case": "Maintain context across chunk boundaries"
+    }
+  ],
+  "concept_extraction_strategies": [
+    {
+      "name": "NLP Keyword Extraction",
+      "source": "Dionysus Original",
+      "description": "Extract key concepts using NLP techniques",
+      "applicable_to": [
+        "all_text"
+      ],
+      "success_rate": 0.85,
+      "use_case": "Identify primary document concepts"
+    },
+    {
+      "name": "Entity Recognition",
+      "source": "OpenNotebook",
+      "description": "Extract named entities and technical terms",
+      "applicable_to": [
+        "academic",
+        "technical"
+      ],
+      "success_rate": 0.8,
+      "use_case": "Identify specific entities and terminology"
+    }
+  ],
+  "consciousness_strategies": [
+    {
+      "name": "Attractor Basin Integration",
+      "source": "Dionysus Consciousness System",
+      "description": "Create basins for concept relationships",
+      "applicable_to": [
+        "concept_processing"
+      ],
+      "success_rate": 0.9,
+      "use_case": "Enable pattern learning and emergence"
+    },
+    {
+      "name": "Active Inference Belief Update",
+      "source": "Dionysus Active Inference",
+      "description": "Update hierarchical beliefs based on prediction errors",
+      "applicable_to": [
+        "learning"
+      ],
+      "success_rate": 0.95,
+      "use_case": "Minimize free energy and trigger curiosity"
+    },
+    {
+      "name": "ThoughtSeed Generation",
+      "source": "Dionysus ThoughtSeed System",
+      "description": "Generate thoughtseeds from concepts for propagation",
+      "applicable_to": [
+        "concept_processing"
+      ],
+      "success_rate": 0.88,
+      "use_case": "Enable concept evolution and cross-pollination"
+    }
+  ],
+  "curiosity_strategies": [
+    {
+      "name": "Prediction Error Analysis",
+      "source": "Active Inference + R-Zero",
+      "description": "Identify high prediction error concepts for exploration",
+      "applicable_to": [
+        "learning"
+      ],
+      "success_rate": 0.92,
+      "use_case": "Trigger curiosity-driven information seeking"
+    },
+    {
+      "name": "Knowledge Gap Detection",
+      "source": "Dionysus Curiosity Learning",
+      "description": "Identify gaps in knowledge tree",
+      "applicable_to": [
+        "knowledge_graph"
+      ],
+      "success_rate": 0.87,
+      "use_case": "Plan exploration paths for missing knowledge"
+    }
+  ],
+  "pattern_learning_strategies": [
+    {
+      "name": "Co-Evolution Learning",
+      "source": "R-Zero",
+      "description": "Challenger-Solver iterative improvement",
+      "applicable_to": [
+        "understanding"
+      ],
+      "success_rate": 0.85,
+      "use_case": "Progressively deepen document comprehension"
+    },
+    {
+      "name": "Iterative Refinement",
+      "source": "ASI-GO-2",
+      "description": "Refine understanding through multiple passes",
+      "applicable_to": [
+        "complex_documents"
+      ],
+      "success_rate": 0.9,
+      "use_case": "Handle difficult or ambiguous content"
+    }
+  ],
+  "common_issues": [
+    {
+      "type": "PDF Extraction Errors",
+      "description": "Corrupted or image-based PDFs fail text extraction",
+      "prevention": "Use OCR fallback for image-based PDFs",
+      "recovery": "Log error and mark for manual review"
+    },
+    {
+      "type": "Duplicate Concepts",
+      "description": "Same concept extracted multiple times with variations",
+      "prevention": "Normalize concepts using embeddings similarity",
+      "recovery": "Merge similar concepts above similarity threshold"
+    }
+  ],
+  "learned_patterns": [
+    {
+      "name": "Unnamed Insight",
+      "source": "Session Learning",
+      "description": "High basin creation rate (1.00) indicates strong pattern recognition",
+      "applicable_to": [],
+      "success_rate": 0.5,
+      "use_case": ""
+    },
+    {
+      "name": "Unnamed Insight",
+      "source": "Session Learning",
+      "description": "High basin creation rate (1.00) indicates strong pattern recognition",
+      "applicable_to": [],
+      "success_rate": 0.5,
+      "use_case": ""
+    },
+    {
+      "name": "Unnamed Insight",
+      "source": "Session Learning",
+      "description": "High basin creation rate (1.00) indicates strong pattern recognition",
+      "applicable_to": [],
+      "success_rate": 0.5,
+      "use_case": ""
+    }
+  ]
+}

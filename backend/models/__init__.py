@@ -11,7 +11,8 @@ from .user_profile import UserProfile, UserSession, UserAnalytics, UserPreferenc
 from .autobiographical_journey import AutobiographicalJourney, AutobiographicalEvent, EpisodeBoundary, JourneyInsight
 from .event_node import EventNode, MosaicObservation, ConsciousnessEvent, AttentionFocus
 from .concept_node import ConceptNode, ConceptRelationship, ConceptActivation, ConceptCluster, ConceptInsight
-from .thoughtseed_trace import ThoughtSeedTrace, HierarchicalBelief, NeuronalPacket, ConsciousnessMetrics, DreamReplaySession, ConsciousnessEmergenceEvent
+# ThoughtSeed models removed per Spec 021 cleanup
+# from .thoughtseed_trace import ThoughtSeedTrace, HierarchicalBelief, NeuronalPacket, ConsciousnessMetrics, DreamReplaySession, ConsciousnessEmergenceEvent
 
 __all__ = [
     # Original models

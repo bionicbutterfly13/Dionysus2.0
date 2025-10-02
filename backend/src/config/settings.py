@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     NEO4J_URI: str = "bolt://localhost:7687"
     NEO4J_USER: str = "neo4j"
     NEO4J_PASSWORD: str = "password"
-    QDRANT_URL: str = "http://localhost:6333"
+    # QDRANT_URL removed 2025-10-01: Using Neo4j unified search only
 
     # API Keys
     OPENAI_API_KEY: Optional[str] = None
@@ -75,7 +75,6 @@ def get_database_url(db_type: str) -> str:
     urls = {
         "redis": settings.REDIS_URL,
         "neo4j": settings.NEO4J_URI,
-        "qdrant": settings.QDRANT_URL,
     }
     return urls.get(db_type, "")
 

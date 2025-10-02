@@ -1,4 +1,4 @@
-#!/Volumes/Asylum/devb/ASI-Arch-Thoughtseeds/backend/flux-backend-env/bin/python
+#!/Volumes/Asylum/dev/Dionysus-2.0/backend/flux-backend-env/bin/python3.11
 # -*- coding: utf-8 -*-
 import re
 import sys

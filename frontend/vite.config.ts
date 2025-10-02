@@ -11,15 +11,20 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
+    port: 9243,
+    open: true, // Automatically open browser when dev server starts
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://127.0.0.1:9127',
         changeOrigin: true,
       },
       '/ws': {
-        target: 'ws://localhost:8000',
+        target: 'ws://127.0.0.1:9127',
         ws: true,
+      },
+      '/configs': {
+        target: 'http://127.0.0.1:9127',
+        changeOrigin: true,
       },
     },
   },

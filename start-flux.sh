@@ -76,8 +76,8 @@ if ! kill -0 $BACKEND_PID 2>/dev/null; then
 fi
 
 echo "✅ Backend started (PID: $BACKEND_PID)"
-echo "   Backend URL: http://localhost:8000"
-echo "   API Docs: http://localhost:8000/docs"
+echo "   Backend URL: http://localhost:9127"
+echo "   API Docs: http://localhost:9127/docs"
 echo ""
 
 # Start frontend
@@ -99,18 +99,35 @@ if ! kill -0 $FRONTEND_PID 2>/dev/null; then
 fi
 
 echo "✅ Frontend started (PID: $FRONTEND_PID)"
-echo "   Frontend URL: http://localhost:3000"
+echo "   Frontend URL: http://localhost:9243"
 echo ""
 
 echo "🎉 Flux is now running!"
 echo "======================"
 echo ""
-echo "📱 Access Flux at: http://localhost:3000"
-echo "🔧 Backend API: http://localhost:8000"
-echo "📚 API Documentation: http://localhost:8000/docs"
+echo "📱 Access Flux at: http://localhost:9243"
+echo "🔧 Backend API: http://localhost:9127"
+echo "📚 API Documentation: http://localhost:9127/docs"
 echo ""
 echo "⚠️  Development Mode: Using mock data"
 echo "   Real data validation required before production readiness"
+echo ""
+
+# Automatically open Flux in browser
+echo "🌐 Opening Flux interface in browser..."
+if command_exists open; then
+    # macOS
+    open http://localhost:9243
+elif command_exists xdg-open; then
+    # Linux
+    xdg-open http://localhost:9243
+elif command_exists start; then
+    # Windows
+    start http://localhost:9243
+else
+    echo "⚠️  Could not automatically open browser. Please navigate to http://localhost:9243"
+fi
+
 echo ""
 echo "Press Ctrl+C to stop all services"
 

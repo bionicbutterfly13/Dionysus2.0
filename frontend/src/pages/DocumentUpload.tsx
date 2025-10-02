@@ -8,6 +8,38 @@ interface UploadedFile {
   size: number
   status: 'uploading' | 'processing' | 'completed' | 'error'
   mockData: boolean
+  progress?: number
+  // Consciousness processing results
+  extraction?: {
+    concepts: string[]
+    chunks: number
+    summary?: any
+  }
+  consciousness?: {
+    basins_created: number
+    thoughtseeds_generated: number
+    active_inference?: any
+  }
+  research?: {
+    curiosity_triggers: Array<{
+      concept: string
+      prediction_error: number
+      priority: string
+    }>
+    exploration_plan?: any
+  }
+  quality?: {
+    scores: {
+      overall: number
+      concept_extraction?: number
+      consciousness_integration?: number
+    }
+    insights?: any[]
+  }
+  workflow?: {
+    iterations: number
+    messages: string[]
+  }
 }
 
 interface DocumentUploadProps {
@@ -18,32 +50,86 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [selectedMode, setSelectedMode] = useState<'crawl' | 'upload'>('crawl')
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    // Simulate file upload and processing
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    // Create file entries with uploading status
     const newFiles: UploadedFile[] = acceptedFiles.map((file) => ({
       id: Math.random().toString(36).substr(2, 9),
       name: file.name,
       size: file.size,
       status: 'uploading',
-      mockData: true
+      mockData: false,
+      progress: 0
     }))
 
     setUploadedFiles(prev => [...prev, ...newFiles])
 
-    // Simulate processing stages
-    newFiles.forEach((file, index) => {
-      setTimeout(() => {
-        setUploadedFiles(prev => 
-          prev.map(f => f.id === file.id ? { ...f, status: 'processing' } : f)
-        )
-      }, 1000 + index * 500)
+    // Upload files individually to show individual progress
+    for (const file of acceptedFiles) {
+      const fileEntry = newFiles.find(f => f.name === file.name)
+      if (!fileEntry) continue
 
-      setTimeout(() => {
+      try {
+        const formData = new FormData()
+        formData.append('files', file)
+
+        // Simulate upload progress
+        const progressInterval = setInterval(() => {
+          setUploadedFiles(prev => 
+            prev.map(f => f.id === fileEntry.id ? 
+              { ...f, progress: Math.min((f.progress || 0) + Math.random() * 30, 95) } : f
+            )
+          )
+        }, 200)
+
+        const response = await fetch('/api/v1/documents', {
+          method: 'POST',
+          body: formData,
+        })
+
+        clearInterval(progressInterval)
+
+        if (response.ok) {
+          const result = await response.json()
+          console.log('Upload successful:', result)
+
+          // Extract consciousness processing results from first document
+          const docResult = result.documents && result.documents[0]
+
+          // Complete upload progress and move to processing
+          setUploadedFiles(prev =>
+            prev.map(f => f.id === fileEntry.id ?
+              { ...f, progress: 100, status: 'processing' } : f
+            )
+          )
+
+          // Complete processing with consciousness data
+          setTimeout(() => {
+            setUploadedFiles(prev =>
+              prev.map(f => f.id === fileEntry.id ?
+                {
+                  ...f,
+                  status: 'completed',
+                  extraction: docResult?.extraction,
+                  consciousness: docResult?.consciousness,
+                  research: docResult?.research,
+                  quality: docResult?.quality,
+                  workflow: docResult?.workflow
+                } : f
+              )
+            )
+          }, 1500)
+        } else {
+          throw new Error(`Upload failed: ${response.statusText}`)
+        }
+      } catch (error) {
+        console.error('Upload error:', error)
         setUploadedFiles(prev => 
-          prev.map(f => f.id === file.id ? { ...f, status: 'completed' } : f)
+          prev.map(f => f.id === fileEntry.id ? 
+            { ...f, status: 'error', progress: 0 } : f
+          )
         )
-      }, 3000 + index * 500)
-    })
+      }
+    }
   }, [])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -128,7 +214,7 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
             >
               <div className="flex items-center mb-2">
                 <Globe className={`h-5 w-5 mr-2 ${selectedMode === 'crawl' ? 'text-blue-400' : 'text-gray-400'}`} />
-                <span className="text-white font-medium">Crawl Website</span>
+                <span className="text-white font-medium">Crawl Websites</span>
               </div>
               <p className="text-gray-400 text-sm">Scan web pages</p>
             </button>
@@ -144,7 +230,7 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
             >
               <div className="flex items-center mb-2">
                 <Upload className={`h-5 w-5 mr-2 ${selectedMode === 'upload' ? 'text-blue-400' : 'text-gray-400'}`} />
-                <span className="text-white font-medium">Upload Document</span>
+                <span className="text-white font-medium">Upload Documents</span>
               </div>
               <p className="text-gray-400 text-sm">Add local files</p>
             </button>
@@ -240,29 +326,169 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
             <>
               {/* Upload Document Interface */}
               <div className="mb-8">
-                <div
-                  {...getRootProps()}
-                  className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
-                    isDragActive
-                      ? 'border-blue-400 bg-blue-400/10'
-                      : 'border-gray-600 hover:border-blue-400'
-                  }`}
-                >
-                  <input {...getInputProps()} />
-                  <Upload className={`mx-auto h-16 w-16 mb-6 ${isDragActive ? 'text-blue-400' : 'text-gray-400'}`} />
-                  <h2 className="text-xl font-medium text-white mb-4">
-                    {isDragActive ? 'Drop files here' : 'Drag files here or click to browse'}
-                  </h2>
-                  <p className="text-gray-400 mb-6">
-                    Supports PDF, DOC, TXT, MD files
-                  </p>
-                </div>
+                {uploadedFiles.length === 0 ? (
+                  <div
+                    {...getRootProps()}
+                    className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
+                      isDragActive
+                        ? 'border-blue-400 bg-blue-400/10'
+                        : 'border-gray-600 hover:border-blue-400'
+                    }`}
+                  >
+                    <input {...getInputProps()} />
+                    <Upload className={`mx-auto h-16 w-16 mb-6 ${isDragActive ? 'text-blue-400' : 'text-gray-400'}`} />
+                    <h2 className="text-xl font-medium text-white mb-4">
+                      {isDragActive ? 'Drop files here' : 'Drag files here or click to browse'}
+                    </h2>
+                    <p className="text-gray-400 mb-6">
+                      Supports multiple files: PDF, DOC, DOCX, TXT, MD files
+                    </p>
+                    <div className="text-gray-500 text-sm">
+                      <span className="inline-block bg-gray-700 px-2 py-1 rounded mr-2 mb-2">.pdf</span>
+                      <span className="inline-block bg-gray-700 px-2 py-1 rounded mr-2 mb-2">.doc</span>
+                      <span className="inline-block bg-gray-700 px-2 py-1 rounded mr-2 mb-2">.docx</span>
+                      <span className="inline-block bg-gray-700 px-2 py-1 rounded mr-2 mb-2">.txt</span>
+                      <span className="inline-block bg-gray-700 px-2 py-1 rounded mr-2 mb-2">.md</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-gray-600 rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-medium text-white">Upload Documents</h3>
+                      <div
+                        {...getRootProps()}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg cursor-pointer transition-colors"
+                      >
+                        <input {...getInputProps()} />
+                        + Add More Files
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      {uploadedFiles.map((file) => (
+                        <div key={file.id} className="bg-gray-800 rounded-lg p-3">
+                          {/* File header */}
+                          <div className="flex items-center mb-2">
+                            <FileText className="h-4 w-4 text-blue-400 mr-2 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white text-sm truncate">{file.name}</p>
+                              {file.status === 'uploading' && file.progress !== undefined && (
+                                <div className="w-full bg-gray-700 rounded-full h-1 mt-1">
+                                  <div
+                                    className="bg-blue-600 h-1 rounded-full transition-all duration-300"
+                                    style={{ width: `${file.progress}%` }}
+                                  ></div>
+                                </div>
+                              )}
+                            </div>
+                            <div className="ml-2 flex items-center">
+                              {file.status === 'completed' ? (
+                                <CheckCircle className="h-4 w-4 text-green-400" />
+                              ) : file.status === 'error' ? (
+                                <AlertCircle className="h-4 w-4 text-red-400" />
+                              ) : (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
+                              )}
+                              <button
+                                onClick={() => setUploadedFiles(prev => prev.filter(f => f.id !== file.id))}
+                                className="ml-1 text-red-400 hover:text-red-300"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Consciousness processing results (only show when completed) */}
+                          {file.status === 'completed' && file.extraction && (
+                            <div className="mt-3 pt-3 border-t border-gray-700 space-y-2">
+                              {/* Concepts */}
+                              <div className="flex items-start text-xs">
+                                <span className="text-gray-400 w-32 flex-shrink-0">Concepts:</span>
+                                <div className="flex-1">
+                                  <span className="text-blue-400 font-medium">{file.extraction.concepts?.length || 0}</span>
+                                  {file.extraction.concepts && file.extraction.concepts.length > 0 && (
+                                    <p className="text-gray-500 mt-1">
+                                      {file.extraction.concepts.slice(0, 5).join(', ')}
+                                      {file.extraction.concepts.length > 5 && '...'}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Consciousness */}
+                              {file.consciousness && (
+                                <div className="flex items-center text-xs">
+                                  <span className="text-gray-400 w-32 flex-shrink-0">Consciousness:</span>
+                                  <div className="flex items-center flex-1">
+                                    <Brain className="h-3 w-3 text-purple-400 mr-1" />
+                                    <span className="text-purple-400">
+                                      {file.consciousness.basins_created} basins
+                                    </span>
+                                    <span className="mx-1 text-gray-600">•</span>
+                                    <span className="text-purple-400">
+                                      {file.consciousness.thoughtseeds_generated} seeds
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Quality */}
+                              {file.quality?.scores && (
+                                <div className="flex items-center text-xs">
+                                  <span className="text-gray-400 w-32 flex-shrink-0">Quality:</span>
+                                  <span className={`font-medium ${
+                                    file.quality.scores.overall >= 0.8 ? 'text-green-400' :
+                                    file.quality.scores.overall >= 0.6 ? 'text-yellow-400' :
+                                    'text-red-400'
+                                  }`}>
+                                    {(file.quality.scores.overall * 100).toFixed(0)}%
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Curiosity triggers */}
+                              {file.research?.curiosity_triggers && file.research.curiosity_triggers.length > 0 && (
+                                <div className="flex items-start text-xs">
+                                  <span className="text-gray-400 w-32 flex-shrink-0">Curiosity:</span>
+                                  <div className="flex-1">
+                                    <span className="text-orange-400">
+                                      {file.research.curiosity_triggers.length} trigger{file.research.curiosity_triggers.length !== 1 ? 's' : ''}
+                                    </span>
+                                    <p className="text-gray-500 mt-1">
+                                      {file.research.curiosity_triggers.slice(0, 2).map(t => t.concept).join(', ')}
+                                      {file.research.curiosity_triggers.length > 2 && '...'}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Workflow info */}
+                              {file.workflow?.messages && (
+                                <div className="text-xs text-gray-500 mt-2 italic">
+                                  {file.workflow.messages[file.workflow.messages.length - 1]}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
+
               {/* Upload Button */}
-              <button className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+              <button 
+                onClick={() => {
+                  const hasUploading = uploadedFiles.some(f => f.status === 'uploading' || f.status === 'processing')
+                  if (!hasUploading && onClose) {
+                    onClose()
+                  }
+                }}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+              >
                 <Upload className="inline h-4 w-4 mr-2" />
-                Upload Documents
+                {uploadedFiles.some(f => f.status === 'uploading' || f.status === 'processing') ? 'Uploading...' : 'Close'}
               </button>
             </>
           )}

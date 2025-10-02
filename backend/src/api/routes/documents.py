@@ -58,8 +58,15 @@ async def ingest_documents(
             file_obj = io.BytesIO(content)
             file_obj.name = file.filename
 
-            # Pass through Daedalus gateway (Spec 021: Single responsibility - receive perceptual information)
-            daedalus_response = daedalus.receive_perceptual_information(file_obj)
+            # Pass through Daedalus gateway with LangGraph workflow
+            # Updated 2025-10-01: Now uses full consciousness processing pipeline
+            tag_list = tags.split(",") if tags else []
+            daedalus_response = daedalus.receive_perceptual_information(
+                data=file_obj,
+                tags=tag_list,
+                max_iterations=3,
+                quality_threshold=0.7
+            )
 
             # Handle Daedalus response
             if daedalus_response.get('status') == 'error':
@@ -75,26 +82,39 @@ async def ingest_documents(
             with open(file_path, "wb") as buffer:
                 buffer.write(content)
 
-            # Store document metadata with Daedalus integration info
+            # Store document metadata with full consciousness processing results
             result = {
+                # Basic metadata
                 "filename": file.filename,
                 "size": file.size,
                 "content_type": file.content_type,
                 "status": "completed",
                 "document_id": document_id,
                 "mockData": False,
-                "tags": tags.split(",") if tags else [],
+                "tags": tag_list,
                 "uploaded_at": datetime.now().isoformat(),
                 "file_path": str(file_path),
-                "daedalus_reception": daedalus_response.get('status'),
-                "agents_created": daedalus_response.get('agents_created', [])
+
+                # Consciousness processing results (NEW)
+                "extraction": daedalus_response.get('extraction', {}),
+                "consciousness": daedalus_response.get('consciousness', {}),
+                "research": daedalus_response.get('research', {}),
+                "quality": daedalus_response.get('quality', {}),
+                "meta_cognitive": daedalus_response.get('meta_cognitive', {}),
+                "workflow": daedalus_response.get('workflow', {}),
+
+                # Gateway info
+                "daedalus_status": daedalus_response.get('status'),
+                "daedalus_source": daedalus_response.get('source')
             }
             results.append(result)
             uploaded_documents.append(result)
 
             logger.info(
-                f"Document processed via Daedalus: {file.filename} ({file.size} bytes) "
-                f"| Agents: {len(daedalus_response.get('agents_created', []))}"
+                f"Document processed via Daedalus LangGraph: {file.filename} ({file.size} bytes) "
+                f"| Concepts: {len(daedalus_response.get('extraction', {}).get('concepts', []))} "
+                f"| Basins: {daedalus_response.get('consciousness', {}).get('basins_created', 0)} "
+                f"| Quality: {daedalus_response.get('quality', {}).get('scores', {}).get('overall', 0):.2f}"
             )
 
         return {

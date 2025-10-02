@@ -1,0 +1,301 @@
+openapi: 3.0.3
+info:
+  title: Daedalus Agent Orchestrator API
+  description: Specialized agent development and coordination system
+  version: 1.0.0
+
+paths:
+  /api/daedalus/create_specialized_agent:
+    post:
+      summary: Create specialized agent for domain
+      description: Primary entry point for dynamic agent creation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                domain_specification:
+                  $ref: '#/components/schemas/DomainSpecification'
+                required_tools:
+                  type: array
+                  items:
+                    type: string
+                context_requirements:
+                  type: object
+                  properties:
+                    expertise_level:
+                      type: string
+                      enum: [novice, intermediate, expert]
+                    specialization_focus:
+                      type: string
+                problem_context:
+                  $ref: '#/components/schemas/ProblemContext'
+              required:
+                - domain_specification
+                - required_tools
+      responses:
+        '201':
+          description: Agent created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecializedAgent'
+        '400':
+          description: Invalid domain specification
+        '500':
+          description: Agent creation failed
+
+  /api/daedalus/agents:
+    get:
+      summary: List available agents
+      parameters:
+        - name: domain
+          in: query
+          schema:
+            type: string
+        - name: available_only
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: List of agents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpecializedAgent'
+
+  /api/daedalus/agents/{agent_id}:
+    get:
+      summary: Get agent details
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Agent details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecializedAgent'
+        '404':
+          description: Agent not found
+
+    delete:
+      summary: Retire agent
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Agent retired
+        '404':
+          description: Agent not found
+
+  /api/daedalus/agents/{agent_id}/performance:
+    post:
+      summary: Update agent performance metrics
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                task_outcome:
+                  type: string
+                  enum: [success, partial_success, failure]
+                performance_data:
+                  $ref: '#/components/schemas/PerformanceMetrics'
+                feedback:
+                  type: string
+      responses:
+        '200':
+          description: Performance updated
+        '404':
+          description: Agent not found
+
+  /api/daedalus/optimize_population:
+    post:
+      summary: Optimize agent population through evolution
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                evolution_strategy:
+                  type: string
+                  enum: [genetic_algorithm, performance_based, diversity_maintenance]
+                selection_criteria:
+                  type: object
+                  properties:
+                    domain_accuracy:
+                      type: number
+                      minimum: 0
+                      maximum: 1
+                    resource_efficiency:
+                      type: number
+                      minimum: 0
+                      maximum: 1
+      responses:
+        '200':
+          description: Population optimization completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agents_created:
+                    type: integer
+                  agents_retired:
+                    type: integer
+                  population_diversity:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+
+components:
+  schemas:
+    SpecializedAgent:
+      type: object
+      properties:
+        agent_id:
+          type: string
+        name:
+          type: string
+        subspecialty_domain:
+          type: string
+        capability_profile:
+          $ref: '#/components/schemas/CapabilityProfile'
+        available_tools:
+          type: array
+          items:
+            type: string
+        performance_history:
+          $ref: '#/components/schemas/PerformanceHistory'
+        usage_frequency:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        last_accessed:
+          type: string
+          format: date-time
+
+    DomainSpecification:
+      type: object
+      properties:
+        domain_name:
+          type: string
+        expertise_areas:
+          type: array
+          items:
+            type: string
+        complexity_level:
+          type: string
+          enum: [simple, medium, complex]
+        required_capabilities:
+          type: array
+          items:
+            type: string
+      required:
+        - domain_name
+        - expertise_areas
+
+    CapabilityProfile:
+      type: object
+      properties:
+        available_tools:
+          type: array
+          items:
+            type: string
+        skill_levels:
+          type: object
+          additionalProperties:
+            type: number
+            minimum: 0
+            maximum: 1
+        domain_knowledge:
+          type: array
+          items:
+            type: string
+        processing_limits:
+          $ref: '#/components/schemas/ProcessingLimits'
+
+    PerformanceHistory:
+      type: object
+      properties:
+        total_tasks:
+          type: integer
+        success_rate:
+          type: number
+          minimum: 0
+          maximum: 1
+        average_completion_time:
+          type: number
+        user_satisfaction_scores:
+          type: array
+          items:
+            type: number
+            minimum: 0
+            maximum: 1
+
+    ProblemContext:
+      type: object
+      properties:
+        problem_description:
+          type: string
+        domain:
+          type: string
+        complexity_level:
+          type: string
+          enum: [simple, medium, complex]
+        required_expertise:
+          type: array
+          items:
+            type: string
+
+    ProcessingLimits:
+      type: object
+      properties:
+        max_concurrent_tasks:
+          type: integer
+        memory_limit_mb:
+          type: number
+        timeout_seconds:
+          type: number
+
+    PerformanceMetrics:
+      type: object
+      properties:
+        accuracy:
+          type: number
+          minimum: 0
+          maximum: 1
+        speed_ms:
+          type: number
+        resource_usage:
+          type: number
+        user_satisfaction:
+          type: number
+          minimum: 0
+          maximum: 1

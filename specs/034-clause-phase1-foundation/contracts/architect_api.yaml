@@ -1,0 +1,505 @@
+openapi: 3.0.3
+info:
+  title: CLAUSE Subgraph Architect API
+  version: 1.0.0
+  description: Budget-aware query-specific subgraph construction with basin strengthening
+
+paths:
+  /api/clause/subgraph:
+    post:
+      summary: Build query-specific subgraph
+      description: |
+        Constructs a compact subgraph using CLAUSE 5-signal edge scoring with shaped gain rule.
+        Respects edge budget (β_edge) and stops when shaped_gain ≤ 0.
+      operationId: buildSubgraph
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubgraphRequest'
+            example:
+              query: "What is neural architecture search?"
+              edge_budget: 50
+              lambda_edge: 0.01
+              hop_distance: 2
+              min_edge_score: 0.3
+      responses:
+        '200':
+          description: Subgraph successfully constructed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubgraphResponse'
+              example:
+                selected_edges:
+                  - ["neural_architecture", "RELATED_TO", "search_algorithms"]
+                  - ["neural_architecture", "USES", "reinforcement_learning"]
+                edge_scores:
+                  neural_architecture-RELATED_TO-search_algorithms: 0.87
+                  neural_architecture-USES-reinforcement_learning: 0.82
+                shaped_gains:
+                  neural_architecture-RELATED_TO-search_algorithms: 0.86
+                  neural_architecture-USES-reinforcement_learning: 0.81
+                budget_used: 48
+                stopped_reason: "BUDGET_EXHAUSTED"
+                construction_time_ms: 245.3
+                basins_strengthened:
+                  - "basin_neural_arch"
+                  - "basin_search_algo"
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "INVALID_BUDGET"
+                message: "edge_budget must be positive integer"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/clause/basins/strengthen:
+    post:
+      summary: Strengthen basins from document concepts
+      description: |
+        Updates basin strengths (+0.2 per concept appearance) and co-occurrence counts.
+        Creates new basins for unseen concepts (initial strength 1.0).
+      operationId: strengthenBasins
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BasinStrengtheningRequest'
+            example:
+              concepts:
+                - "neural_architecture"
+                - "search_algorithms"
+                - "reinforcement_learning"
+              document_id: "doc_arxiv_2509_21035"
+              increment: 0.2
+      responses:
+        '200':
+          description: Basins successfully strengthened
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BasinStrengtheningResponse'
+              example:
+                updated_basins:
+                  - basin_id: "basin_neural_arch"
+                    basin_name: "neural_architecture"
+                    strength: 1.4
+                    activation_count: 2
+                new_basins:
+                  - basin_id: "basin_search_algo"
+                    basin_name: "search_algorithms"
+                    strength: 1.0
+                    activation_count: 1
+                cooccurrence_updates:
+                  neural_architecture-search_algorithms: 1
+                  neural_architecture-reinforcement_learning: 1
+                  search_algorithms-reinforcement_learning: 1
+                total_strengthening_time_ms: 12.5
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/clause/basins/{basin_id}:
+    get:
+      summary: Get basin details
+      description: Retrieves full basin state including strength, activation history, co-occurrences
+      operationId: getBasin
+      parameters:
+        - name: basin_id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "basin_neural_arch"
+      responses:
+        '200':
+          description: Basin found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttractorBasin'
+              example:
+                basin_id: "basin_neural_arch"
+                basin_name: "neural_architecture"
+                basin_type: "CONCEPTUAL"
+                strength: 1.6
+                activation_count: 3
+                activation_history:
+                  - "2025-10-01T10:00:00Z"
+                  - "2025-10-01T15:30:00Z"
+                  - "2025-10-01T18:45:00Z"
+                co_occurring_concepts:
+                  search_algorithms: 3
+                  reinforcement_learning: 2
+                  differentiable_nas: 1
+                stability: 0.85
+                depth: 1.5
+        '404':
+          description: Basin not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/clause/edges/score:
+    post:
+      summary: Score edges using 5-signal CLAUSE algorithm
+      description: |
+        Computes entity match, relation match, neighborhood, degree, and basin strength
+        signals for batch of edges. Returns sorted by total score descending.
+      operationId: scoreEdges
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EdgeScoringRequest'
+      responses:
+        '200':
+          description: Edges successfully scored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EdgeScoringResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    SubgraphRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: User query text for subgraph construction
+          example: "What is neural architecture search?"
+        edge_budget:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          default: 50
+          description: Maximum edges in subgraph (β_edge)
+        lambda_edge:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          default: 0.01
+          description: Dual variable for shaped gain (from LC-MAPPO)
+        hop_distance:
+          type: integer
+          minimum: 1
+          maximum: 5
+          default: 2
+          description: k-hop neighborhood distance
+        min_edge_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          default: 0.3
+          description: Minimum edge quality threshold
+
+    SubgraphResponse:
+      type: object
+      required:
+        - selected_edges
+        - edge_scores
+        - shaped_gains
+        - budget_used
+        - stopped_reason
+        - construction_time_ms
+        - basins_strengthened
+      properties:
+        selected_edges:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+            minItems: 3
+            maxItems: 3
+          description: List of [subject, relation, object] triplets
+        edge_scores:
+          type: object
+          additionalProperties:
+            type: number
+            format: float
+          description: "Map of edge_key → total_score"
+        shaped_gains:
+          type: object
+          additionalProperties:
+            type: number
+            format: float
+          description: "Map of edge_key → shaped_gain (score - λ×cost)"
+        budget_used:
+          type: integer
+          description: Number of edges actually added
+        stopped_reason:
+          type: string
+          enum:
+            - BUDGET_EXHAUSTED
+            - GAIN_NEGATIVE
+            - COMPLETE
+          description: Why edge selection stopped
+        construction_time_ms:
+          type: number
+          format: float
+          description: Total construction duration in milliseconds
+        basins_strengthened:
+          type: array
+          items:
+            type: string
+          description: Basin IDs that were strengthened during construction
+
+    BasinStrengtheningRequest:
+      type: object
+      required:
+        - concepts
+        - document_id
+      properties:
+        concepts:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          description: List of concept names from document
+        document_id:
+          type: string
+          description: Source document identifier
+        increment:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          default: 0.2
+          description: Strength increment per appearance
+
+    BasinStrengtheningResponse:
+      type: object
+      required:
+        - updated_basins
+        - new_basins
+        - cooccurrence_updates
+        - total_strengthening_time_ms
+      properties:
+        updated_basins:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttractorBasin'
+          description: Basins that had strength increased
+        new_basins:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttractorBasin'
+          description: Newly created basins (first appearance)
+        cooccurrence_updates:
+          type: object
+          additionalProperties:
+            type: integer
+          description: "Map of concept_pair → count_delta"
+        total_strengthening_time_ms:
+          type: number
+          format: float
+          description: Total operation duration
+
+    AttractorBasin:
+      type: object
+      required:
+        - basin_id
+        - basin_name
+        - basin_type
+        - strength
+        - activation_count
+      properties:
+        basin_id:
+          type: string
+          format: uuid
+          description: Unique basin identifier
+        basin_name:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Human-readable concept name
+        basin_type:
+          type: string
+          enum:
+            - CONCEPTUAL
+            - EMOTIONAL
+            - SEMANTIC
+            - PATTERN
+            - MEMORY
+            - ATTENTION
+            - CONSCIOUSNESS
+            - HYBRID
+        strength:
+          type: number
+          format: float
+          minimum: 1.0
+          maximum: 2.0
+          description: Frequency-based strength
+        activation_count:
+          type: integer
+          minimum: 0
+          description: Total number of activations
+        activation_history:
+          type: array
+          items:
+            type: string
+            format: date-time
+          description: Timestamps of each activation
+        co_occurring_concepts:
+          type: object
+          additionalProperties:
+            type: integer
+          description: "Map of concept_id → co-occurrence_count"
+        stability:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        depth:
+          type: number
+          format: float
+          minimum: 0
+
+    EdgeScoringRequest:
+      type: object
+      required:
+        - edges
+        - query
+      properties:
+        edges:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+            minItems: 3
+            maxItems: 3
+          description: List of [subject, relation, object] edges to score
+        query:
+          type: string
+          description: Query text for relevance scoring
+
+    EdgeScoringResponse:
+      type: object
+      required:
+        - scores
+        - top_k_edges
+        - scoring_time_ms
+      properties:
+        scores:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/EdgeScore'
+          description: "Map of edge_key → full score breakdown"
+        top_k_edges:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+            minItems: 3
+            maxItems: 3
+          description: Edges sorted by score descending
+        scoring_time_ms:
+          type: number
+          format: float
+          description: Total scoring duration
+
+    EdgeScore:
+      type: object
+      required:
+        - edge
+        - phi_ent
+        - phi_rel
+        - phi_nbr
+        - phi_deg
+        - phi_basin
+        - total_score
+        - shaped_gain
+      properties:
+        edge:
+          type: array
+          items:
+            type: string
+          minItems: 3
+          maxItems: 3
+          description: [subject, relation, object]
+        phi_ent:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Entity-question match signal
+        phi_rel:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Relation-text match signal
+        phi_nbr:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Neighborhood score signal
+        phi_deg:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Degree prior signal
+        phi_basin:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Basin strength normalized signal
+        total_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Weighted sum of all signals
+        shaped_gain:
+          type: number
+          format: float
+          description: total_score - λ_edge × cost
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error context

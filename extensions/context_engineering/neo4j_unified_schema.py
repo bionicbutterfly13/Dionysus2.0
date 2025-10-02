@@ -107,13 +107,16 @@ class Neo4jUnifiedSchema:
         self.logger = logging.getLogger(__name__)
     
     def connect(self):
-        """Connect to Neo4j database"""
+        """Connect to Neo4j database and verify connectivity"""
         try:
             self.driver = GraphDatabase.driver(self.uri, auth=(self.user, self.password))
+            # Verify the connection actually works
+            self.driver.verify_connectivity()
             self.logger.info(f"Connected to Neo4j at {self.uri}")
             return True
         except Exception as e:
             self.logger.error(f"Failed to connect to Neo4j: {e}")
+            self.driver = None
             return False
     
     def close(self):

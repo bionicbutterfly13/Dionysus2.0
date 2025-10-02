@@ -1,29 +1,52 @@
 import React, { useState, useEffect } from 'react'
-import { Brain, Play, Pause, RotateCcw, Target } from 'lucide-react'
+import { Brain, Play, Pause, RotateCcw, Target, Eye, Cpu, Zap, Activity } from 'lucide-react'
 
 interface ThoughtSeed {
   id: string
   content: string
-  type: 'goal' | 'action' | 'belief' | 'perception'
+  type: 'analytical' | 'creative' | 'synthetic' | 'critical' | 'integrative' | 'metacognitive'
   energy: number
   confidence: number
   dominance_score: number
   parent_ids: string[]
 }
 
+interface MACAnalysis {
+  type: string
+  q_value: number
+  metacognitive_error: number
+  can_detect_suboptimal: boolean
+  error_magnitude: number
+}
+
+interface IWMTMetrics {
+  spatial_coherence: number
+  temporal_coherence: number
+  causal_coherence: number
+  embodied_selfhood: number
+  counterfactual_capacity: number
+  overall_consciousness: number
+}
+
+interface ConsciousnessState {
+  success: boolean
+  consciousness_level: string
+  iwmt_consciousness: boolean
+  thoughtseed_winner: string | null
+  mac_analysis: MACAnalysis[]
+  processing_time: number
+  iwmt_metrics: IWMTMetrics
+  pipeline_summary: any
+  error?: string
+}
+
 interface CompetitionCycle {
   cycle: number
   timestamp: string
-  pre_update: {
-    thoughts: Record<string, ThoughtSeed>
-    dominant_thought_id: string
-    consciousness_level: number
-  }
-  post_update: {
-    thoughts: Record<string, ThoughtSeed>
-    dominant_thought_id: string
-    consciousness_level: number
-  }
+  consciousness_state: ConsciousnessState | null
+  thoughts: Record<string, ThoughtSeed>
+  dominant_thought_id: string
+  consciousness_level: number
 }
 
 export default function ThoughtSeedMonitor() {
@@ -31,88 +54,172 @@ export default function ThoughtSeedMonitor() {
   const [currentCycle, setCurrentCycle] = useState<CompetitionCycle | null>(null)
   const [cycles, setCycles] = useState<CompetitionCycle[]>([])
   const [selectedThought, setSelectedThought] = useState<string | null>(null)
+  const [consciousnessStatus, setConsciousnessStatus] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  // Mock data generation
-  const generateMockThought = (id: string, content: string, type: ThoughtSeed['type']): ThoughtSeed => ({
-    id,
-    content,
-    type,
-    energy: Math.random() * 0.8 + 0.2,
-    confidence: Math.random() * 0.6 + 0.4,
-    dominance_score: Math.random(),
-    parent_ids: []
-  })
+  // API endpoints (using proxy through Vite dev server)
+  const API_BASE = '/api/consciousness'
 
-  const generateMockCycle = (): CompetitionCycle => {
-    const timestamp = new Date().toISOString()
-    const thoughts = {
-      'thought_1': generateMockThought('thought_1', 'Analyze data systematically', 'action'),
-      'thought_2': generateMockThought('thought_2', 'Use creative approaches', 'action'),
-      'thought_3': generateMockThought('thought_3', 'Apply proven methods', 'action'),
-      'thought_4': generateMockThought('thought_4', 'Focus on core objectives', 'goal'),
-      'thought_5': generateMockThought('thought_5', 'Trust in established patterns', 'belief'),
-    }
-
-    const thoughtIds = Object.keys(thoughts)
-    const dominantId = thoughtIds[Math.floor(Math.random() * thoughtIds.length)]
-    thoughts[dominantId].energy = Math.max(thoughts[dominantId].energy, 0.8)
-
-    const pre_update = {
-      thoughts,
-      dominant_thought_id: dominantId,
-      consciousness_level: Math.random() * 0.8 + 0.2
-    }
-
-    // Simulate post-update changes
-    const post_thoughts = { ...thoughts }
-    Object.values(post_thoughts).forEach(thought => {
-      thought.energy += (Math.random() - 0.5) * 0.2
-      thought.energy = Math.max(0.1, Math.min(1.0, thought.energy))
-    })
-
-    const post_update = {
-      thoughts: post_thoughts,
-      dominant_thought_id: dominantId,
-      consciousness_level: Math.random() * 0.8 + 0.2
-    }
-
-    return {
-      cycle: cycles.length + 1,
-      timestamp,
-      pre_update,
-      post_update
+  // Fetch consciousness status
+  const fetchConsciousnessStatus = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/status`)
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error('Error fetching consciousness status:', error)
+      return null
     }
   }
 
-  const runCycle = () => {
-    const newCycle = generateMockCycle()
-    setCycles(prev => [...prev.slice(-9), newCycle])
-    setCurrentCycle(newCycle)
+  // Process consciousness with sample content
+  const processConsciousness = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/process`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: "Research on consciousness, active inference, and thoughtseed competition dynamics reveals emergent patterns in neural architecture discovery. The integration of MAC theory with IWMT provides comprehensive understanding of consciousness levels through spatial, temporal, and causal coherence analysis.",
+          filename: "consciousness_research.md",
+          agents_requested: ["analytical_agent", "creative_agent", "pattern_agent", "synthesis_agent", "metacognitive_agent"]
+        })
+      })
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error('Error processing consciousness:', error)
+      return null
+    }
+  }
+
+  // Generate thoughts from consciousness response
+  const generateThoughtsFromConsciousness = (consciousnessData: any): Record<string, ThoughtSeed> => {
+    const thoughts: Record<string, ThoughtSeed> = {}
+    
+    if (consciousnessData?.mac_analysis) {
+      consciousnessData.mac_analysis.forEach((analysis: MACAnalysis, index: number) => {
+        const id = `thought_${index + 1}`
+        thoughts[id] = {
+          id,
+          content: `${analysis.type}: Q-value ${analysis.q_value.toFixed(3)}, Error detection: ${analysis.can_detect_suboptimal ? 'Yes' : 'No'}`,
+          type: analysis.type as ThoughtSeed['type'],
+          energy: Math.min(1.0, analysis.q_value),
+          confidence: 1.0 - analysis.metacognitive_error,
+          dominance_score: analysis.q_value * (1.0 - analysis.metacognitive_error),
+          parent_ids: []
+        }
+      })
+    }
+
+    // Fallback thoughts if no MAC analysis
+    if (Object.keys(thoughts).length === 0) {
+      thoughts['fallback_1'] = {
+        id: 'fallback_1',
+        content: 'Processing consciousness pipeline...',
+        type: 'analytical',
+        energy: 0.5,
+        confidence: 0.6,
+        dominance_score: 0.3,
+        parent_ids: []
+      }
+    }
+
+    return thoughts
+  }
+
+  const generateRealCycle = async (): Promise<CompetitionCycle | null> => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      const consciousnessData = await processConsciousness()
+      
+      if (!consciousnessData || !consciousnessData.success) {
+        throw new Error(consciousnessData?.error || 'Failed to process consciousness')
+      }
+
+      const timestamp = new Date().toISOString()
+      const thoughts = generateThoughtsFromConsciousness(consciousnessData)
+      const thoughtIds = Object.keys(thoughts)
+      const dominantId = consciousnessData.thoughtseed_winner || thoughtIds[0]
+      
+      // Calculate consciousness level from IWMT metrics
+      const iwmtMetrics = consciousnessData.iwmt_metrics || {}
+      const consciousness_level = iwmtMetrics.overall_consciousness || 0.5
+
+      const consciousness_state: ConsciousnessState = {
+        success: consciousnessData.success,
+        consciousness_level: consciousnessData.consciousness_level,
+        iwmt_consciousness: consciousnessData.iwmt_consciousness,
+        thoughtseed_winner: consciousnessData.thoughtseed_winner,
+        mac_analysis: consciousnessData.mac_analysis,
+        processing_time: consciousnessData.processing_time,
+        iwmt_metrics: consciousnessData.iwmt_metrics,
+        pipeline_summary: consciousnessData.pipeline_summary
+      }
+
+      return {
+        cycle: cycles.length + 1,
+        timestamp,
+        consciousness_state,
+        thoughts,
+        dominant_thought_id: dominantId,
+        consciousness_level
+      }
+    } catch (error) {
+      console.error('Error generating real cycle:', error)
+      setError(error instanceof Error ? error.message : 'Unknown error')
+      return null
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const runCycle = async () => {
+    const newCycle = await generateRealCycle()
+    if (newCycle) {
+      setCycles(prev => [...prev.slice(-9), newCycle])
+      setCurrentCycle(newCycle)
+    }
   }
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
     if (isRunning) {
-      interval = setInterval(runCycle, 3000)
+      interval = setInterval(() => {
+        runCycle()
+      }, 5000) // Slightly longer interval for real processing
     }
     return () => {
       if (interval) clearInterval(interval)
     }
   }, [isRunning, cycles.length])
 
+  // Fetch consciousness status on component mount
+  useEffect(() => {
+    const loadConsciousnessStatus = async () => {
+      const status = await fetchConsciousnessStatus()
+      setConsciousnessStatus(status)
+    }
+    loadConsciousnessStatus()
+  }, [])
+
   const getThoughtTypeColor = (type: ThoughtSeed['type']) => {
     switch (type) {
-      case 'goal': return 'text-blue-400 bg-blue-900/30 border-blue-500/30'
-      case 'action': return 'text-green-400 bg-green-900/30 border-green-500/30'
-      case 'belief': return 'text-purple-400 bg-purple-900/30 border-purple-500/30'
-      case 'perception': return 'text-yellow-400 bg-yellow-900/30 border-yellow-500/30'
+      case 'analytical': return 'text-blue-400 bg-blue-900/30 border-blue-500/30'
+      case 'creative': return 'text-green-400 bg-green-900/30 border-green-500/30'
+      case 'synthetic': return 'text-purple-400 bg-purple-900/30 border-purple-500/30'
+      case 'critical': return 'text-red-400 bg-red-900/30 border-red-500/30'
+      case 'integrative': return 'text-yellow-400 bg-yellow-900/30 border-yellow-500/30'
+      case 'metacognitive': return 'text-indigo-400 bg-indigo-900/30 border-indigo-500/30'
       default: return 'text-gray-400 bg-gray-900/30 border-gray-500/30'
     }
   }
 
-  const renderThoughtCard = (thought: ThoughtSeed, isDominant: boolean, phase: 'pre' | 'post') => (
+  const renderThoughtCard = (thought: ThoughtSeed, isDominant: boolean) => (
     <div
-      key={`${thought.id}-${phase}`}
+      key={thought.id}
       onClick={() => setSelectedThought(thought.id)}
       className={`p-4 rounded-lg border cursor-pointer transition-all ${
         isDominant
@@ -174,6 +281,28 @@ export default function ThoughtSeedMonitor() {
         </div>
 
         <div className="flex items-center space-x-4">
+          {/* Consciousness Status */}
+          {consciousnessStatus && (
+            <div className="text-sm">
+              <span className={`px-2 py-1 rounded text-xs font-medium ${
+                consciousnessStatus.available 
+                  ? 'bg-green-900/30 text-green-400 border border-green-500/30'
+                  : 'bg-red-900/30 text-red-400 border border-red-500/30'
+              }`}>
+                {consciousnessStatus.available ? 'Consciousness Online' : 'Consciousness Offline'}
+              </span>
+            </div>
+          )}
+
+          <button
+            onClick={runCycle}
+            disabled={isLoading}
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white rounded-lg font-medium flex items-center space-x-2"
+          >
+            <Brain className="h-4 w-4" />
+            <span>{isLoading ? 'Processing...' : 'Run Cycle'}</span>
+          </button>
+
           <button
             onClick={() => setIsRunning(!isRunning)}
             className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center space-x-2 ${
@@ -183,7 +312,7 @@ export default function ThoughtSeedMonitor() {
             }`}
           >
             {isRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            <span>{isRunning ? 'Pause' : 'Start'} Competition</span>
+            <span>{isRunning ? 'Pause' : 'Start'} Auto</span>
           </button>
 
           <button
@@ -226,14 +355,17 @@ export default function ThoughtSeedMonitor() {
                 <div className="text-right">
                   <div className="text-sm text-gray-400">Consciousness Level</div>
                   <div className={`font-bold text-lg ${
-                    currentCycle.post_update.consciousness_level > 0.7
+                    currentCycle.consciousness_level > 0.7
                       ? 'text-green-400'
-                      : currentCycle.post_update.consciousness_level > 0.4
+                      : currentCycle.consciousness_level > 0.4
                         ? 'text-yellow-400'
                         : 'text-red-400'
                   }`}>
-                    {(currentCycle.post_update.consciousness_level * 100).toFixed(1)}%
+                    {(currentCycle.consciousness_level * 100).toFixed(1)}%
                   </div>
+                  {currentCycle.consciousness_state?.iwmt_consciousness && (
+                    <div className="text-xs text-green-300">IWMT Conscious</div>
+                  )}
                 </div>
               </div>
 
@@ -243,9 +375,14 @@ export default function ThoughtSeedMonitor() {
                   <Target className="h-5 w-5 text-yellow-400" />
                   <h3 className="font-semibold text-yellow-400">Dominant ThoughtSeed</h3>
                 </div>
-                {currentCycle.post_update.thoughts[currentCycle.post_update.dominant_thought_id] && (
+                {currentCycle.thoughts[currentCycle.dominant_thought_id] && (
                   <div className="text-white">
-                    {currentCycle.post_update.thoughts[currentCycle.post_update.dominant_thought_id].content}
+                    {currentCycle.thoughts[currentCycle.dominant_thought_id].content}
+                  </div>
+                )}
+                {currentCycle.consciousness_state?.consciousness_level && (
+                  <div className="text-xs text-gray-300 mt-2">
+                    Level: {currentCycle.consciousness_state.consciousness_level}
                   </div>
                 )}
               </div>
@@ -254,45 +391,135 @@ export default function ThoughtSeedMonitor() {
         </div>
       </div>
 
-      {/* Competition States */}
+      {/* Current ThoughtSeed Competition */}
       {currentCycle && (
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-white mb-6">ThoughtSeed Competition</h2>
+          <h2 className="text-xl font-semibold text-white mb-6 flex items-center space-x-3">
+            <Cpu className="h-6 w-6 text-blue-400" />
+            <span>ThoughtSeed Competition</span>
+            {error && (
+              <span className="text-red-400 text-sm font-normal">Error: {error}</span>
+            )}
+          </h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Pre-Update State */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-300 mb-4 flex items-center space-x-2">
-                <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
-                <span>Pre-Update State</span>
-              </h3>
-              <div className="space-y-3">
-                {Object.values(currentCycle.pre_update.thoughts).map(thought =>
-                  renderThoughtCard(
-                    thought,
-                    thought.id === currentCycle.pre_update.dominant_thought_id,
-                    'pre'
-                  )
-                )}
-              </div>
+          <div className="space-y-4">
+            {/* ThoughtSeeds Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Object.values(currentCycle.thoughts).map(thought =>
+                renderThoughtCard(
+                  thought,
+                  thought.id === currentCycle.dominant_thought_id
+                )
+              )}
             </div>
 
-            {/* Post-Update State */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-300 mb-4 flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                <span>Post-Update State</span>
-              </h3>
-              <div className="space-y-3">
-                {Object.values(currentCycle.post_update.thoughts).map(thought =>
-                  renderThoughtCard(
-                    thought,
-                    thought.id === currentCycle.post_update.dominant_thought_id,
-                    'post'
-                  )
-                )}
+            {/* IWMT Metrics */}
+            {currentCycle.consciousness_state?.iwmt_metrics && (
+              <div className="p-4 bg-gray-800/50 rounded-lg">
+                <h4 className="font-medium text-gray-300 mb-3 flex items-center space-x-2">
+                  <Activity className="h-4 w-4" />
+                  <span>IWMT Consciousness Metrics</span>
+                </h4>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-gray-400">Spatial Coherence</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="flex-1 bg-gray-700 rounded-full h-1.5">
+                        <div
+                          className="bg-blue-400 h-1.5 rounded-full transition-all"
+                          style={{ width: `${(currentCycle.consciousness_state.iwmt_metrics.spatial_coherence || 0) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-gray-300 w-10">
+                        {((currentCycle.consciousness_state.iwmt_metrics.spatial_coherence || 0) * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Temporal Coherence</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="flex-1 bg-gray-700 rounded-full h-1.5">
+                        <div
+                          className="bg-green-400 h-1.5 rounded-full transition-all"
+                          style={{ width: `${(currentCycle.consciousness_state.iwmt_metrics.temporal_coherence || 0) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-gray-300 w-10">
+                        {((currentCycle.consciousness_state.iwmt_metrics.temporal_coherence || 0) * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Causal Coherence</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="flex-1 bg-gray-700 rounded-full h-1.5">
+                        <div
+                          className="bg-purple-400 h-1.5 rounded-full transition-all"
+                          style={{ width: `${(currentCycle.consciousness_state.iwmt_metrics.causal_coherence || 0) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-gray-300 w-10">
+                        {((currentCycle.consciousness_state.iwmt_metrics.causal_coherence || 0) * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Embodied Selfhood</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="flex-1 bg-gray-700 rounded-full h-1.5">
+                        <div
+                          className="bg-yellow-400 h-1.5 rounded-full transition-all"
+                          style={{ width: `${(currentCycle.consciousness_state.iwmt_metrics.embodied_selfhood || 0) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-gray-300 w-10">
+                        {((currentCycle.consciousness_state.iwmt_metrics.embodied_selfhood || 0) * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* MAC Analysis Display */}
+            {currentCycle.consciousness_state?.mac_analysis && (
+              <div className="mb-8">
+                <h3 className="text-lg font-medium text-gray-300 mb-4 flex items-center space-x-2">
+                  <Zap className="h-5 w-5 text-yellow-400" />
+                  <span>Metacognitive Actor-Critic Analysis</span>
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {currentCycle.consciousness_state.mac_analysis.map((analysis, index) => (
+                    <div key={index} className="p-3 bg-gray-800/50 rounded border border-gray-600">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className={`text-sm px-2 py-1 rounded ${getThoughtTypeColor(analysis.type as ThoughtSeed['type'])}`}>
+                          {analysis.type}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          Q: {analysis.q_value.toFixed(3)}
+                        </span>
+                      </div>
+                      <div className="text-xs space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Error:</span>
+                          <span className="text-gray-300">{analysis.metacognitive_error.toFixed(3)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Detection:</span>
+                          <span className={analysis.can_detect_suboptimal ? 'text-green-400' : 'text-red-400'}>
+                            {analysis.can_detect_suboptimal ? 'Yes' : 'No'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Magnitude:</span>
+                          <span className="text-gray-300">{analysis.error_magnitude.toFixed(3)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

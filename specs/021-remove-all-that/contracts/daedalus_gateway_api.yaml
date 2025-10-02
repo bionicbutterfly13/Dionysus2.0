@@ -1,0 +1,224 @@
+openapi: 3.0.3
+info:
+  title: Daedalus Perceptual Information Gateway API
+  version: 1.0.0
+  description: |
+    API contract for the simplified Daedalus class per Spec 021.
+
+    **Single Responsibility**: Receive perceptual information from uploads
+
+    **Design Principle**: Daedalus serves exclusively as a gateway, receiving
+    external data and interfacing with LangGraph for agent creation.
+
+paths:
+  /api/documents:
+    post:
+      summary: Upload documents through Daedalus gateway
+      description: |
+        Upload one or more documents. Daedalus receives the perceptual information,
+        creates LangGraph agents, and returns reception status.
+
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Files to upload
+                tags:
+                  type: string
+                  description: Comma-separated tags (optional)
+
+      responses:
+        '200':
+          description: Documents successfully received via Daedalus gateway
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Successfully ingested 1 documents via Daedalus gateway"
+                  documents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DocumentResult'
+                  gateway_info:
+                    $ref: '#/components/schemas/GatewayInfo'
+                  constitutional_compliance:
+                    type: object
+                    properties:
+                      mock_data_transparency:
+                        type: boolean
+                      evaluation_framework:
+                        type: string
+
+        '400':
+          description: Bad request (empty file, invalid format)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '500':
+          description: Server error (Daedalus gateway error, processing failure)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    DocumentResult:
+      type: object
+      properties:
+        filename:
+          type: string
+          example: "document.pdf"
+        size:
+          type: integer
+          example: 1024000
+        content_type:
+          type: string
+          example: "application/pdf"
+        status:
+          type: string
+          enum: [completed, error]
+        document_id:
+          type: string
+          example: "doc_a1b2c3d4e5f6"
+        mockData:
+          type: boolean
+          example: false
+        tags:
+          type: array
+          items:
+            type: string
+        uploaded_at:
+          type: string
+          format: date-time
+        file_path:
+          type: string
+          example: "uploads/doc_a1b2c3d4e5f6_document.pdf"
+        daedalus_reception:
+          type: string
+          enum: [received, error]
+          description: Status from Daedalus gateway
+        agents_created:
+          type: array
+          items:
+            type: string
+          example: ["agent_1727740800_1", "agent_1727740800_2"]
+          description: LangGraph agents created by Daedalus
+
+    GatewayInfo:
+      type: object
+      properties:
+        gateway_used:
+          type: string
+          enum: [daedalus]
+          example: "daedalus"
+        spec_version:
+          type: string
+          example: "021-remove-all-that"
+        gateway_responsibility:
+          type: string
+          example: "perceptual_information_reception"
+
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+          example: "File document.pdf is empty"
+
+  examples:
+    SuccessfulUpload:
+      value:
+        message: "Successfully ingested 1 documents via Daedalus gateway"
+        documents:
+          - filename: "research.pdf"
+            size: 1024000
+            content_type: "application/pdf"
+            status: "completed"
+            document_id: "doc_f8d7e6c5b4a3"
+            mockData: false
+            tags: ["research", "ai"]
+            uploaded_at: "2025-09-30T14:30:00Z"
+            file_path: "uploads/doc_f8d7e6c5b4a3_research.pdf"
+            daedalus_reception: "received"
+            agents_created: ["agent_1727705400_1", "agent_1727705400_2"]
+        gateway_info:
+          gateway_used: "daedalus"
+          spec_version: "021-remove-all-that"
+          gateway_responsibility: "perceptual_information_reception"
+        constitutional_compliance:
+          mock_data_transparency: false
+          evaluation_framework: "active"
+
+# Daedalus Internal Contract
+x-daedalus-class:
+  class_name: Daedalus
+  location: backend/src/services/daedalus.py
+
+  public_interface:
+    methods:
+      - name: receive_perceptual_information
+        parameters:
+          - name: data
+            type: Optional[BinaryIO]
+            description: File-like binary stream
+        returns:
+          type: Dict[str, Any]
+          description: Reception response with status and metadata
+
+        response_structure:
+          success:
+            status: "received"
+            received_data:
+              filename: str
+              size: int
+              type: str
+              content_preview: bytes
+            agents_created: List[str]
+            source: "upload_trigger"
+            timestamp: float
+
+          error:
+            status: "error"
+            error_message: str
+            timestamp: float
+
+    attributes:
+      - name: _is_gateway
+        type: bool
+        visibility: private
+        description: Gateway identification flag
+
+  constraints:
+    - MUST have exactly ONE public method
+    - MUST NOT perform processing beyond reception
+    - MUST NOT persist data directly
+    - MUST remain stateless
+    - Performance: <50ms reception time
+
+  removed_methods:
+    - process_document
+    - analyze_content
+    - extract_features
+    - save_to_database
+    - send_notification
+    - log_activity
+    - validate_input
+    - transform_data
+    - generate_report
+    - update_metrics
+    - check_health
+    - configure_settings

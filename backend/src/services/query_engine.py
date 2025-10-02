@@ -1,6 +1,9 @@
 """
 Query Engine - Orchestrates complete query processing pipeline
 Per Spec 006: Natural language query → Search → Synthesis → Response
+
+Updated 2025-10-01: Removed Qdrant, using Neo4j unified search only
+Neo4j provides: graph relationships + vector similarity + full-text search
 """
 
 from typing import Optional, Dict, Any
@@ -9,11 +12,10 @@ import time
 import logging
 from datetime import datetime
 
-from src.models.query import Query
-from src.models.response import QueryResponse
-from src.services.neo4j_searcher import Neo4jSearcher
-from src.services.vector_searcher import VectorSearcher
-from src.services.response_synthesizer import ResponseSynthesizer
+from ...models.query import Query
+from ...models.response import QueryResponse
+from .neo4j_searcher import Neo4jSearcher
+from .response_synthesizer import ResponseSynthesizer
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +24,8 @@ class QueryEngine:
     """
     Main query processing engine.
 
-    Orchestrates parallel search across Neo4j and Qdrant,
-    then synthesizes results into coherent response.
+    Uses Neo4j unified search: graph + vector + full-text in one database.
+    AutoSchemaKG integration for automatic knowledge graph construction.
 
     Performance target: <2s per query (per Spec 006)
     """
@@ -31,12 +33,10 @@ class QueryEngine:
     def __init__(
         self,
         neo4j_searcher: Optional[Neo4jSearcher] = None,
-        vector_searcher: Optional[VectorSearcher] = None,
         response_synthesizer: Optional[ResponseSynthesizer] = None
     ):
-        """Initialize query engine with searchers."""
+        """Initialize query engine with Neo4j searcher."""
         self.neo4j_searcher = neo4j_searcher or Neo4jSearcher()
-        self.vector_searcher = vector_searcher or VectorSearcher()
         self.response_synthesizer = response_synthesizer or ResponseSynthesizer()
         self.default_result_limit = 10
 
@@ -73,10 +73,10 @@ class QueryEngine:
 
             logger.info(f"Processing query {query.query_id}: {question[:50]}...")
 
-            # Parallel search across both databases
-            neo4j_results, qdrant_results = await self._parallel_search(query.question)
+            # Neo4j unified search (graph + vector + full-text)
+            neo4j_results = await self.neo4j_searcher.search(query.question, self.default_result_limit)
 
-            logger.info(f"Search complete: {len(neo4j_results)} Neo4j, {len(qdrant_results)} Qdrant")
+            logger.info(f"Search complete: {len(neo4j_results)} results from Neo4j")
 
             # Calculate processing time
             processing_time_ms = int((time.time() - start_time) * 1000)
@@ -85,7 +85,7 @@ class QueryEngine:
             response = await self.response_synthesizer.synthesize(
                 query=query,
                 neo4j_results=neo4j_results,
-                qdrant_results=qdrant_results,
+                qdrant_results=[],  # No longer using Qdrant
                 processing_time_ms=processing_time_ms
             )
 
@@ -108,39 +108,6 @@ class QueryEngine:
                 confidence=0.0,
                 processing_time_ms=processing_time_ms
             )
-
-    async def _parallel_search(self, question: str):
-        """
-        Execute Neo4j and Qdrant searches in parallel.
-
-        This is critical for meeting <2s performance target.
-        """
-        try:
-            # Run both searches concurrently
-            neo4j_task = self.neo4j_searcher.search(question, self.default_result_limit)
-            qdrant_task = self.vector_searcher.search(question, self.default_result_limit)
-
-            # Wait for both to complete
-            neo4j_results, qdrant_results = await asyncio.gather(
-                neo4j_task,
-                qdrant_task,
-                return_exceptions=True
-            )
-
-            # Handle exceptions from either search
-            if isinstance(neo4j_results, Exception):
-                logger.error(f"Neo4j search failed: {neo4j_results}")
-                neo4j_results = []
-
-            if isinstance(qdrant_results, Exception):
-                logger.error(f"Qdrant search failed: {qdrant_results}")
-                qdrant_results = []
-
-            return neo4j_results, qdrant_results
-
-        except Exception as e:
-            logger.error(f"Parallel search failed: {e}")
-            return [], []
 
     async def process_batch_queries(self, questions: list[str]) -> list[QueryResponse]:
         """
@@ -174,14 +141,13 @@ class QueryEngine:
 
     async def health_check(self) -> Dict[str, bool]:
         """
-        Check health of all query engine components.
+        Check health of query engine components.
 
         Returns:
-            Status of Neo4j, Qdrant, and overall system
+            Status of Neo4j and overall system
         """
         health = {
             "neo4j": False,
-            "qdrant": False,
             "overall": False
         }
 
@@ -192,13 +158,6 @@ class QueryEngine:
         except Exception as e:
             logger.warning(f"Neo4j health check failed: {e}")
 
-        try:
-            # Test Qdrant connection
-            qdrant_exists = await self.vector_searcher.collection_exists()
-            health["qdrant"] = qdrant_exists
-        except Exception as e:
-            logger.warning(f"Qdrant health check failed: {e}")
-
-        health["overall"] = health["neo4j"] or health["qdrant"]
+        health["overall"] = health["neo4j"]
 
         return health

@@ -11,9 +11,13 @@ qdrant-client
 # Scientific computing (NumPy 2.0+)
 numpy>=2.0.0
 
+# Graph processing (CLAUSE Phase 1)
+networkx>=3.0
+
 # Machine Learning and AI
 openai
 scikit-learn
+# sentence-transformers  # Optional: NumPy 2.0 incompatibility, use hash-based embeddings for Phase 1
 
 # Data processing
 pandas

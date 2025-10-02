@@ -1,0 +1,299 @@
+openapi: 3.0.3
+info:
+  title: Semantic Affordance Engine API
+  description: Problem-agent matching and affordance mapping system
+  version: 1.0.0
+
+paths:
+  /api/semantic/match_problem_to_agents:
+    post:
+      summary: Find best agents for solving a problem
+      description: Primary entry point for semantic problem-agent matching
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                problem:
+                  $ref: '#/components/schemas/Problem'
+                matching_criteria:
+                  type: object
+                  properties:
+                    max_agents:
+                      type: integer
+                      default: 5
+                    min_similarity_threshold:
+                      type: number
+                      minimum: 0
+                      maximum: 1
+                      default: 0.7
+                    include_reasoning:
+                      type: boolean
+                      default: true
+              required:
+                - problem
+      responses:
+        '200':
+          description: Agent matches found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  matches:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AgentMatch'
+                  processing_time_ms:
+                    type: integer
+                  total_agents_considered:
+                    type: integer
+        '400':
+          description: Invalid problem format
+        '500':
+          description: Matching failed
+
+  /api/semantic/affordance_compatibility:
+    post:
+      summary: Calculate affordance compatibility
+      description: Determine how well problem affordances match agent capabilities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                problem_affordances:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Affordance'
+                agent_capabilities:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Capability'
+              required:
+                - problem_affordances
+                - agent_capabilities
+      responses:
+        '200':
+          description: Compatibility calculated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  compatibility_score:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                  matching_details:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AffordanceMatch'
+
+  /api/semantic/embeddings:
+    post:
+      summary: Generate semantic embeddings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  oneOf:
+                    - type: string
+                    - type: object
+                content_type:
+                  type: string
+                  enum: [text, code, diagram, multimodal]
+              required:
+                - content
+                - content_type
+      responses:
+        '200':
+          description: Embedding generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SemanticSignature'
+
+  /api/semantic/similarity:
+    post:
+      summary: Calculate semantic similarity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                signature1:
+                  $ref: '#/components/schemas/SemanticSignature'
+                signature2:
+                  $ref: '#/components/schemas/SemanticSignature'
+                similarity_metric:
+                  type: string
+                  enum: [cosine, euclidean, manhattan]
+                  default: cosine
+              required:
+                - signature1
+                - signature2
+      responses:
+        '200':
+          description: Similarity calculated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  similarity_score:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+
+components:
+  schemas:
+    Problem:
+      type: object
+      properties:
+        problem_id:
+          type: string
+        description:
+          type: string
+        domain:
+          type: string
+        complexity_level:
+          type: string
+          enum: [simple, medium, complex]
+        affordances:
+          type: array
+          items:
+            $ref: '#/components/schemas/Affordance'
+        content_type:
+          type: string
+          enum: [text, code, diagram, multimodal]
+        content:
+          oneOf:
+            - type: string
+            - type: object
+      required:
+        - description
+        - domain
+
+    AgentMatch:
+      type: object
+      properties:
+        agent_id:
+          type: string
+        agent_name:
+          type: string
+        similarity_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        affordance_compatibility:
+          type: number
+          minimum: 0
+          maximum: 1
+        confidence_level:
+          type: number
+          minimum: 0
+          maximum: 1
+        expected_performance:
+          type: number
+          minimum: 0
+          maximum: 1
+        reasoning_explanation:
+          type: string
+        contextual_factors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextualFactor'
+
+    Affordance:
+      type: object
+      properties:
+        affordance_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        affordance_type:
+          type: string
+          enum: [cognitive, computational, data_access, domain_knowledge]
+        requirements:
+          type: array
+          items:
+            type: string
+        constraints:
+          type: array
+          items:
+            type: string
+
+    Capability:
+      type: object
+      properties:
+        capability_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        capability_type:
+          type: string
+          enum: [cognitive, computational, data_access, domain_knowledge]
+        proficiency_level:
+          type: number
+          minimum: 0
+          maximum: 1
+        available_tools:
+          type: array
+          items:
+            type: string
+
+    AffordanceMatch:
+      type: object
+      properties:
+        affordance_id:
+          type: string
+        capability_id:
+          type: string
+        match_strength:
+          type: number
+          minimum: 0
+          maximum: 1
+        gap_analysis:
+          type: string
+
+    SemanticSignature:
+      type: object
+      properties:
+        vector:
+          type: array
+          items:
+            type: number
+        dimensionality:
+          type: integer
+        encoding_method:
+          type: string
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+
+    ContextualFactor:
+      type: object
+      properties:
+        factor_type:
+          type: string
+        description:
+          type: string
+        impact_level:
+          type: string
+          enum: [low, medium, high]

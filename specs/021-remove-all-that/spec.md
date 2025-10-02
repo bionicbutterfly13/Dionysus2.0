@@ -1,9 +1,11 @@
 # Feature Specification: Clean Up Daedalus Class for Perceptual Information Gateway
 
-**Feature Branch**: `021-remove-all-that`  
-**Created**: 2025-09-28  
-**Status**: Draft  
+**Feature Branch**: `021-remove-all-that`
+**Created**: 2025-09-28
+**Status**: Draft
 **Input**: User description: "Remove all that crap from the Daedalus class.It has one function: that function is to receive information from the outside. Perceptual information is the gateway. The data is received, the information. Right now, it's supposed to receive the information that's getting uploaded. When something gets uploaded, Daedalus gets it, and Daedalus has the ability to use the LangGraph architecture to create agents that can work within that graph structure. Whole piece right now, we're going to step through that. So right now, all I want from this run is to get all that crap out of DataList. I don't care where you put it. Most of that I don't know what that crap is, give me a simple, clean DataList class with nothing in it but that one functionality. Any other stuff that breaks, let me know. I'll just rip it out because it's not helpful."
+
+**Note**: The original user request referenced "DataList" but this was understood to mean the "Daedalus" class. All implementation uses "Daedalus" consistently.
 
 ## Execution Flow (main)
 ```
@@ -55,9 +57,17 @@ When data is uploaded to the system, the Daedalus class should receive that perc
 3. **Given** the Daedalus class exists, **When** examined, **Then** it contains only the essential functionality for receiving perceptual information
 
 ### Edge Cases
-- What happens when uploads contain invalid or corrupted data?
-- How does the system handle multiple simultaneous uploads?
-- What occurs if LangGraph architecture is unavailable?
+1. **Invalid or corrupted data**:
+   - **Given** an upload contains corrupted/unreadable data, **When** Daedalus receives it, **Then** it returns error response with descriptive message and does not create agents
+   - Covered by: T013 (error handling test)
+
+2. **Multiple simultaneous uploads**:
+   - **Given** 100+ concurrent upload requests, **When** all are processed, **Then** each completes in <50ms without data corruption or race conditions
+   - Covered by: T030 (performance profiling test)
+
+3. **LangGraph architecture unavailable**:
+   - **Given** LangGraph cannot create agents, **When** Daedalus receives data, **Then** it logs a warning and returns success with empty agents_created list
+   - Status: ⚠️ Currently uses placeholder implementation - future enhancement
 
 ## Requirements *(mandatory)*
 
@@ -89,11 +99,11 @@ When data is uploaded to the system, the Daedalus class should receive that perc
 - [x] All mandatory sections completed
 
 ### Requirement Completeness
-- [ ] No [NEEDS CLARIFICATION] markers remain
-- [ ] Requirements are testable and unambiguous  
+- [x] No [NEEDS CLARIFICATION] markers remain (resolved via clarification session 2025-09-28)
+- [x] Requirements are testable and unambiguous (all 8 FRs have clear tests)
 - [x] Success criteria are measurable
 - [x] Scope is clearly bounded
-- [ ] Dependencies and assumptions identified
+- [x] Dependencies and assumptions identified (see plan.md Technical Context)
 
 ---
 

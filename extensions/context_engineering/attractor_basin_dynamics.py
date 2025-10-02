@@ -392,6 +392,39 @@ class AttractorBasinManager:
 
         print(f"✅ Basin landscape evolution complete - {len(modified_basins)} basins modified")
 
+    def integrate_thoughtseed(self, concept_description: str, thoughtseed_id: str,
+                             thoughtseed_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Synchronous wrapper for integrating thoughtseeds.
+
+        Used by Daedalus gateway for document upload processing.
+        Creates basins for concepts, generates thoughtseeds, learns patterns.
+
+        Returns:
+            Dict with integration results (basin_id, thoughtseed_id, influence_type)
+        """
+        if thoughtseed_data is None:
+            thoughtseed_data = {}
+
+        # Run async method synchronously
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            event = loop.run_until_complete(
+                self.integrate_new_thoughtseed(thoughtseed_id, concept_description, thoughtseed_data)
+            )
+
+            return {
+                'basin_id': event.target_basin_id,
+                'thoughtseed_id': event.thoughtseed_id,
+                'influence_type': event.influence_type.value,
+                'influence_strength': event.influence_strength,
+                'basin_count_before': event.pre_integration_state.get('basin_count', 0),
+                'basin_count_after': event.post_integration_state.get('basin_count', 0)
+            }
+        finally:
+            loop.close()
+
 def main():
     """Demo of attractor basin dynamics"""
     import asyncio

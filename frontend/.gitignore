@@ -1,0 +1,17 @@
+# Backend virtual environment
+backend/flux-backend-env/
+backend/.env
+backend/__pycache__/
+
+# Frontend node modules  
+frontend/node_modules/
+frontend/.vite/
+frontend/dist/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
