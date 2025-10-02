@@ -398,12 +398,16 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
                               ) : (
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
                               )}
-                              <button
-                                onClick={() => setUploadedFiles(prev => prev.filter(f => f.id !== file.id))}
-                                className="ml-1 text-red-400 hover:text-red-300"
-                              >
-                                ✕
-                              </button>
+                              {/* Only show delete button when file is done (completed or error) */}
+                              {(file.status === 'completed' || file.status === 'error') && (
+                                <button
+                                  onClick={() => setUploadedFiles(prev => prev.filter(f => f.id !== file.id))}
+                                  className="ml-1 text-red-400 hover:text-red-300"
+                                  title="Remove from list"
+                                >
+                                  ✕
+                                </button>
+                              )}
                             </div>
                           </div>
 
