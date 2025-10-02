@@ -343,12 +343,11 @@ class PathNavigator:
         Returns:
             True if should stop, False otherwise
         """
-        # Convert state to numpy
-        features = state.to_numpy()  # 1154 features
-        features_with_budget = np.concatenate([features, [state.budget_remaining]])
+        # Convert state to numpy (already includes budget_remaining)
+        features = state.to_numpy()  # 1155 features (384+384+1+1+384+1)
 
         # Linear layer + sigmoid
-        logit = np.dot(self.termination_head_weights, features_with_budget) + self.termination_head_bias
+        logit = np.dot(self.termination_head_weights, features) + self.termination_head_bias
         stop_prob = 1.0 / (1.0 + np.exp(-logit))
 
         return stop_prob > 0.5
