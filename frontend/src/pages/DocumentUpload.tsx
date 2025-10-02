@@ -411,25 +411,25 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
                             </div>
                           </div>
 
-                          {/* Consciousness processing results (only show when completed) */}
-                          {file.status === 'completed' && file.extraction && (
+                          {/* Processing results - ONLY show when we have REAL data */}
+                          {file.status === 'completed' && (
                             <div className="mt-3 pt-3 border-t border-gray-700 space-y-2">
-                              {/* Concepts */}
-                              <div className="flex items-start text-xs">
-                                <span className="text-gray-400 w-32 flex-shrink-0">Concepts:</span>
-                                <div className="flex-1">
-                                  <span className="text-blue-400 font-medium">{file.extraction.concepts?.length || 0}</span>
-                                  {file.extraction.concepts && file.extraction.concepts.length > 0 && (
+                              {/* Only show concepts if we actually extracted some */}
+                              {file.extraction?.concepts && file.extraction.concepts.length > 0 && (
+                                <div className="flex items-start text-xs">
+                                  <span className="text-gray-400 w-32 flex-shrink-0">Concepts:</span>
+                                  <div className="flex-1">
+                                    <span className="text-blue-400 font-medium">{file.extraction.concepts.length}</span>
                                     <p className="text-gray-500 mt-1">
                                       {file.extraction.concepts.slice(0, 5).join(', ')}
                                       {file.extraction.concepts.length > 5 && '...'}
                                     </p>
-                                  )}
+                                  </div>
                                 </div>
-                              </div>
+                              )}
 
-                              {/* Consciousness */}
-                              {file.consciousness && (
+                              {/* Only show basins/seeds if they exist */}
+                              {file.consciousness && (file.consciousness.basins_created > 0 || file.consciousness.thoughtseeds_generated > 0) && (
                                 <div className="flex items-center text-xs">
                                   <span className="text-gray-400 w-32 flex-shrink-0">Consciousness:</span>
                                   <div className="flex items-center flex-1">
@@ -445,8 +445,8 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
                                 </div>
                               )}
 
-                              {/* Quality */}
-                              {file.quality?.scores && (
+                              {/* Only show quality if > 0 */}
+                              {file.quality?.scores?.overall && file.quality.scores.overall > 0 && (
                                 <div className="flex items-center text-xs">
                                   <span className="text-gray-400 w-32 flex-shrink-0">Quality:</span>
                                   <span className={`font-medium ${
@@ -459,7 +459,7 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
                                 </div>
                               )}
 
-                              {/* Curiosity triggers */}
+                              {/* Only show curiosity if triggers exist */}
                               {file.research?.curiosity_triggers && file.research.curiosity_triggers.length > 0 && (
                                 <div className="flex items-start text-xs">
                                   <span className="text-gray-400 w-32 flex-shrink-0">Curiosity:</span>
@@ -475,10 +475,10 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
                                 </div>
                               )}
 
-                              {/* Workflow info */}
-                              {file.workflow?.messages && (
-                                <div className="text-xs text-gray-500 mt-2 italic">
-                                  {file.workflow.messages[file.workflow.messages.length - 1]}
+                              {/* Simple success message if no data yet */}
+                              {(!file.extraction?.concepts || file.extraction.concepts.length === 0) && (
+                                <div className="text-xs text-gray-400 italic">
+                                  ✓ File uploaded successfully
                                 </div>
                               )}
                             </div>

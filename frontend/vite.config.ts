@@ -15,15 +15,15 @@ export default defineConfig({
     open: true, // Automatically open browser when dev server starts
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:9127',
+        target: 'http://127.0.0.1:9127',  // Backend is on 9127
         changeOrigin: true,
       },
       '/ws': {
-        target: 'ws://127.0.0.1:9127',
+        target: 'ws://127.0.0.1:9127',  // Backend is on 9127
         ws: true,
       },
       '/configs': {
-        target: 'http://127.0.0.1:9127',
+        target: 'http://127.0.0.1:9127',  // Backend is on 9127
         changeOrigin: true,
       },
     },
