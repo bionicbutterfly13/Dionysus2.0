@@ -12,10 +12,13 @@ Key Features:
 """
 
 import logging
+import asyncio
 from typing import List, Dict, Any, Optional
 from datetime import datetime
+from fastapi import HTTPException
 
 from models.clause.coordinator_models import AgentHandoff
+from services.clause.conflict_monitor import ConflictMonitor
 
 logger = logging.getLogger(__name__)
 
@@ -60,21 +63,27 @@ class ConflictResolver:
     - Resolution latency: <50ms per conflict
     """
 
-    def __init__(self, neo4j_client=None):
+    def __init__(self, neo4j_client=None, conflict_monitor: Optional[ConflictMonitor] = None):
         """
         Initialize conflict resolver.
 
         Args:
             neo4j_client: Neo4j client for conflict detection
+            conflict_monitor: ConflictMonitor for tracking conflict rate (T049a)
         """
         self.neo4j = neo4j_client
+
+        # T049a: Initialize ConflictMonitor with 5% threshold
+        self.conflict_monitor = conflict_monitor or ConflictMonitor(
+            window_seconds=60, threshold=0.05
+        )
 
         # Conflict statistics
         self.total_detected = 0
         self.total_resolved = 0
         self.resolution_failures = 0
 
-        logger.info("Conflict resolver initialized with MERGE strategy")
+        logger.info("Conflict resolver initialized with MERGE strategy and 5% conflict threshold")
 
     async def detect_conflicts(
         self, agent_handoffs: List[AgentHandoff]
@@ -285,8 +294,145 @@ class ConflictResolver:
         Returns:
             Dict with detected, resolved, failures
         """
+        # T049b: Include ConflictMonitor stats
+        conflict_rate, total_attempts, conflicts, window = self.conflict_monitor.get_stats()
+
         return {
             "total_detected": self.total_detected,
             "total_resolved": self.total_resolved,
             "resolution_failures": self.resolution_failures,
+            "conflict_rate": conflict_rate,
+            "conflict_rate_window_attempts": total_attempts,
+            "conflict_rate_window_conflicts": conflicts,
         }
+
+    async def write_with_conflict_detection(
+        self,
+        node_id: str,
+        updates: Dict[str, Any],
+        max_retries: int = 3,
+    ) -> Dict[str, Any]:
+        """
+        T049, T049b: Write with conflict detection, exponential backoff, and 5% threshold monitoring.
+
+        Implements:
+        - Optimistic locking with version checking
+        - Exponential backoff retry [100ms, 200ms, 400ms]
+        - ConflictMonitor integration with 5% threshold
+        - Read-only mode trigger (HTTPException 503)
+
+        Args:
+            node_id: Neo4j node ID to update
+            updates: Dict of field updates
+            max_retries: Maximum retry attempts (default 3)
+
+        Returns:
+            Dict with write result
+
+        Raises:
+            HTTPException(503): If conflict rate exceeds 5% threshold
+        """
+        backoff_delays = [0.1, 0.2, 0.4]  # 100ms, 200ms, 400ms
+
+        for attempt in range(max_retries):
+            try:
+                # Attempt write with version check
+                result = await self._write_with_version_check(node_id, updates)
+
+                # T049b: Record successful transaction
+                self.conflict_monitor.record_transaction(success=True)
+
+                return {
+                    "status": "success",
+                    "node_id": node_id,
+                    "version": result.get("version"),
+                    "attempts": attempt + 1,
+                }
+
+            except Exception as e:
+                # T049b: Record failed transaction (conflict)
+                self.conflict_monitor.record_transaction(success=False)
+
+                # Check if conflict rate exceeds threshold
+                if self.conflict_monitor.should_switch_to_readonly():
+                    conflict_rate, _, _, _ = self.conflict_monitor.get_stats()
+                    logger.error(
+                        f"Conflict rate {conflict_rate:.1%} exceeds 5% threshold - "
+                        f"switching to read-only mode"
+                    )
+                    raise HTTPException(
+                        status_code=503,
+                        detail=f"High conflict rate ({conflict_rate:.1%}) - system in read-only mode",
+                    )
+
+                # T049: Exponential backoff retry
+                if attempt < max_retries - 1:
+                    delay = backoff_delays[attempt]
+                    logger.warning(
+                        f"Write conflict on {node_id}, retrying in {delay*1000}ms "
+                        f"(attempt {attempt + 1}/{max_retries})"
+                    )
+                    await asyncio.sleep(delay)
+                    continue
+
+                # Max retries exceeded
+                self.resolution_failures += 1
+                raise Exception(
+                    f"Write conflict resolution failed after {max_retries} retries: {e}"
+                )
+
+    async def _write_with_version_check(
+        self, node_id: str, updates: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Write with optimistic locking (version check).
+
+        Args:
+            node_id: Node ID to update
+            updates: Field updates
+
+        Returns:
+            Dict with new version
+
+        Raises:
+            Exception: If version mismatch (conflict detected)
+        """
+        if not self.neo4j:
+            raise Exception("Neo4j client not configured")
+
+        # Read current version
+        read_query = """
+        MATCH (n {id: $node_id})
+        RETURN n._version AS version, n.strength AS strength
+        """
+        read_result = await self.neo4j.execute(read_query, parameters={"node_id": node_id})
+
+        if not read_result:
+            raise Exception(f"Node {node_id} not found")
+
+        current_version = read_result[0].get("version", 0)
+
+        # Write with version check
+        write_query = """
+        MATCH (n {id: $node_id, _version: $expected_version})
+        SET n += $updates,
+            n._version = $expected_version + 1,
+            n._write_timestamp = datetime(),
+            n._write_agent = 'ConflictResolver'
+        RETURN n._version AS new_version
+        """
+
+        write_result = await self.neo4j.execute(
+            write_query,
+            parameters={
+                "node_id": node_id,
+                "expected_version": current_version,
+                "updates": updates,
+            },
+        )
+
+        if not write_result:
+            # Version mismatch - conflict detected
+            raise Exception(f"Version conflict on node {node_id}")
+
+        return {"version": write_result[0].get("new_version")}

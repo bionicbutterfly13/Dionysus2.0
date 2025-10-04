@@ -585,26 +585,26 @@ Based on updated research.md (Research Tasks 13-16 from /plan clarifications):
   - **Reference**: spec.md FR-008 test case, research.md decision 10
   - **Dependencies**: T047
 
-- [ ] **T049** Implement exponential backoff retry
+- [X] **T049** ✅ Implement exponential backoff retry
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/services/clause/conflict_resolver.py`
-  - **Method**: Update `resolve_conflict()` with exponential backoff [100ms, 200ms, 400ms]
+  - **Method**: `write_with_conflict_detection(node_id, updates, max_retries=3)` (lines 309-382)
   - **Logic**:
-    - Retry up to 3 times with exponential delays
+    - Retry up to 3 times with exponential delays [100ms, 200ms, 400ms]
     - Raise exception after 3 failed retries
   - **Reference**: spec.md FR-008 acceptance criteria
   - **Dependencies**: T048
 
-- [ ] **T049a** Implement ConflictMonitor with 5% threshold (Research Task 15)
+- [X] **T049a** ✅ Implement ConflictMonitor with 5% threshold (Research Task 15)
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/services/clause/conflict_monitor.py`
-  - **Class**: `ConflictMonitor`
+  - **Class**: `ConflictMonitor` (lines 20-139)
   - **Fields**:
     - `window_seconds: int = 60` - sliding window
     - `threshold: float = 0.05` - 5% conflict rate threshold
     - `attempts: deque()` - (timestamp, success: bool)
   - **Methods**:
-    - `record_transaction(success: bool)` - add to sliding window
-    - `get_conflict_rate() -> float` - calculate rate over window
-    - `should_switch_to_readonly() -> bool` - check if exceeds 5%
+    - `record_transaction(success: bool)` - add to sliding window (lines 48-63)
+    - `get_conflict_rate() -> float` - calculate rate over window (lines 65-78)
+    - `should_switch_to_readonly() -> bool` - check if exceeds 5% (lines 80-93)
   - **Logic** (from research.md decision 15):
     - Track all transaction attempts in 60-second window
     - Prune old attempts outside window
@@ -613,13 +613,13 @@ Based on updated research.md (Research Tasks 13-16 from /plan clarifications):
   - **Reference**: research.md decision 15 (5% threshold over 1-minute window)
   - **Dependencies**: None (independent monitoring class)
 
-- [ ] **T049b** Integrate ConflictMonitor with ConflictResolver
+- [X] **T049b** ✅ Integrate ConflictMonitor with ConflictResolver
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/services/clause/conflict_resolver.py`
-  - **Method**: Update `write_with_conflict_detection()` to use ConflictMonitor
+  - **Method**: `write_with_conflict_detection()` with ConflictMonitor integration (lines 309-438)
   - **Logic**:
-    - Call `conflict_monitor.record_transaction(success)` after each attempt
-    - Call `conflict_monitor.should_switch_to_readonly()` on conflict
-    - Raise HTTPException(503) if threshold exceeded
+    - Call `conflict_monitor.record_transaction(success)` after each attempt (lines 343, 354)
+    - Call `conflict_monitor.should_switch_to_readonly()` on conflict (line 357)
+    - Raise HTTPException(503) if threshold exceeded (lines 363-366)
   - **Reference**: research.md decision 15 implementation pattern
   - **Dependencies**: T049, T049a
 
