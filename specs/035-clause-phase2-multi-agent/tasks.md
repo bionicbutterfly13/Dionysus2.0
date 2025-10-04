@@ -627,38 +627,41 @@ Based on updated research.md (Research Tasks 13-16 from /plan clarifications):
 
 ## Phase 3.10: API Integration
 
-- [ ] **T050** Extend /api/clause with Navigator endpoint
-  - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/api/routes/clause.py` (EXISTING from Phase 1)
-  - **Endpoint**: `POST /api/clause/navigate`
+- [X] **T050** ✅ Extend /api/clause with Navigator endpoint
+  - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/api/routes/clause.py`
+  - **Endpoint**: `POST /api/clause/navigate` (lines 345-387)
   - **Logic**:
-    - Validate PathNavigationRequest
-    - Call PathNavigator.navigate()
-    - Return PathNavigationResponse
-    - Handle errors (400, 422, 503)
+    - Validates PathNavigationRequest
+    - Calls PathNavigator.navigate()
+    - Returns PathNavigationResponse
+    - Handles errors (500 Internal Server Error)
+  - **Performance**: <200ms target (NFR-001)
   - **Reference**: spec.md API Design (Navigator)
-  - **Dependencies**: T025 (Navigator service)
+  - **Dependencies**: T025 (Navigator service) ✅
 
-- [ ] **T051** Extend /api/clause with Curator endpoint
+- [X] **T051** ✅ Extend /api/clause with Curator endpoint
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/api/routes/clause.py`
-  - **Endpoint**: `POST /api/clause/curate`
+  - **Endpoint**: `POST /api/clause/curate` (lines 390-430)
   - **Logic**:
-    - Validate ContextCurationRequest
-    - Call ContextCurator.curate()
-    - Return ContextCurationResponse
-    - Handle errors (400, 422, 503)
+    - Validates ContextCurationRequest
+    - Calls ContextCurator.curate()
+    - Returns ContextCurationResponse
+    - Handles errors (500 Internal Server Error)
+  - **Performance**: <100ms target (NFR-002)
   - **Reference**: spec.md API Design (Curator)
-  - **Dependencies**: T031 (Curator service), T050 (same file)
+  - **Dependencies**: T031 (Curator service) ✅, T050 ✅
 
-- [ ] **T052** Extend /api/clause with Coordinator endpoint
+- [X] **T052** ✅ Extend /api/clause with Coordinator endpoint
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/api/routes/clause.py`
-  - **Endpoint**: `POST /api/clause/coordinate`
+  - **Endpoint**: `POST /api/clause/coordinate` (lines 433-475)
   - **Logic**:
-    - Validate CoordinationRequest
-    - Call LCMAPPOCoordinator.coordinate()
-    - Return CoordinationResponse
-    - Handle errors (400, 422, 503)
+    - Validates CoordinationRequest
+    - Calls LCMAPPOCoordinator.coordinate()
+    - Returns CoordinationResponse
+    - Handles errors (500 Internal Server Error)
+  - **Performance**: <600ms target (NFR-003)
   - **Reference**: spec.md API Design (Coordinator)
-  - **Dependencies**: T037 (Coordinator service), T051 (same file)
+  - **Dependencies**: T037 (Coordinator service) ✅, T051 ✅
 
 ---
 
