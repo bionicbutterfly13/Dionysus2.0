@@ -13,7 +13,7 @@ import time
 from typing import List, Dict
 from datetime import datetime
 
-from ...models.attractor_basin import AttractorBasin
+from models.attractor_basin import AttractorBasin
 from .models import (
     BasinStrengtheningRequest,
     BasinStrengtheningResponse,

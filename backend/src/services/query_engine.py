@@ -4,6 +4,9 @@ Per Spec 006: Natural language query → Search → Synthesis → Response
 
 Updated 2025-10-01: Removed Qdrant, using Neo4j unified search only
 Neo4j provides: graph relationships + vector similarity + full-text search
+
+Per Constitution Article I, Section 1.4:
+- Use direct imports (not imports with 'src.' prefix)
 """
 
 from typing import Optional, Dict, Any
@@ -12,10 +15,10 @@ import time
 import logging
 from datetime import datetime
 
-from ...models.query import Query
-from ...models.response import QueryResponse
-from .neo4j_searcher import Neo4jSearcher
-from .response_synthesizer import ResponseSynthesizer
+from models.query import Query
+from models.response import QueryResponse
+from services.neo4j_searcher import Neo4jSearcher
+from services.response_synthesizer import ResponseSynthesizer
 
 logger = logging.getLogger(__name__)
 

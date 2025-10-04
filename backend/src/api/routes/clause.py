@@ -20,7 +20,7 @@ from typing import Optional
 import logging
 import time
 
-from ...services.clause.models import (
+from services.clause.models import (
     SubgraphRequest,
     SubgraphResponse,
     BasinStrengtheningRequest,
@@ -29,7 +29,7 @@ from ...services.clause.models import (
     EdgeScoringRequest,
     EdgeScoringResponse,
 )
-from ...services.clause.graph_loader import GraphLoader
+from services.clause.graph_loader import GraphLoader
 # Note: BasinTracker, EdgeScorer, SubgraphArchitect have import issues
 # Will be fixed when their absolute imports are converted to relative
 

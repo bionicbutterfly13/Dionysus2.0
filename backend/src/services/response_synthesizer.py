@@ -7,8 +7,8 @@ from typing import List, Dict, Any, Optional
 import logging
 from datetime import datetime
 
-from ...models.response import SearchResult, QueryResponse
-from ...models.query import Query
+from models.response import SearchResult, QueryResponse
+from models.query import Query
 
 logger = logging.getLogger(__name__)
 

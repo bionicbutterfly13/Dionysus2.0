@@ -16,7 +16,7 @@ from datetime import datetime
 import io
 
 # Daedalus Gateway Integration (Spec 021)
-from src.services.daedalus import Daedalus
+from services.daedalus import Daedalus
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +27,90 @@ uploaded_documents = []
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
+# Load existing documents from disk on startup
+def load_existing_documents():
+    """Load documents from disk into memory on startup."""
+    global uploaded_documents
+    try:
+        for file_path in UPLOAD_DIR.glob("doc_*"):
+            # Parse filename: doc_{hash}_{filename}
+            parts = file_path.name.split("_", 2)
+            if len(parts) >= 3:
+                doc_id = f"doc_{parts[1]}"
+                filename = parts[2]
+
+                # Check if already loaded
+                if any(d.get("document_id") == doc_id for d in uploaded_documents):
+                    continue
+
+                # Add basic metadata
+                uploaded_documents.append({
+                    "document_id": doc_id,
+                    "filename": filename,
+                    "size": file_path.stat().st_size,
+                    "content_type": "application/pdf" if filename.endswith(".pdf") else "text/plain",
+                    "uploaded_at": datetime.fromtimestamp(file_path.stat().st_mtime).isoformat(),
+                    "file_path": str(file_path),
+                    "extraction": {"concepts": []},  # Will be populated on re-processing
+                    "status": "completed"
+                })
+        logger.info(f"Loaded {len(uploaded_documents)} existing documents from disk")
+    except Exception as e:
+        logger.error(f"Failed to load existing documents: {str(e)}")
+
+# Load documents on module import
+load_existing_documents()
+
 # Initialize Daedalus gateway
 daedalus = Daedalus()
+
+@router.get("/documents")
+async def list_documents(topic: Optional[str] = None):
+    """
+    List all uploaded documents with metadata.
+    Returns documents sorted by upload time (newest first).
+
+    Args:
+        topic: Optional topic/concept to filter by
+    """
+    try:
+        docs_to_return = uploaded_documents
+
+        # Filter by topic if provided
+        if topic:
+            docs_to_return = [
+                doc for doc in uploaded_documents
+                if topic.lower() in [
+                    c.lower() for c in doc.get("extraction", {}).get("concepts", [])
+                ]
+            ]
+
+        # Sort by upload time
+        sorted_docs = sorted(
+            docs_to_return,
+            key=lambda d: d.get('uploaded_at', ''),
+            reverse=True
+        )
+
+        return {
+            "documents": [
+                {
+                    "id": doc.get("document_id"),
+                    "title": doc.get("filename"),
+                    "type": "file" if doc.get("content_type", "").startswith("application") or doc.get("content_type", "").startswith("text") else "web",
+                    "uploaded_at": doc.get("uploaded_at"),
+                    "extraction": doc.get("extraction", {}),
+                    "quality": doc.get("quality", {}),
+                    "consciousness": doc.get("consciousness", {}),
+                }
+                for doc in sorted_docs
+            ],
+            "total": len(sorted_docs),
+            "filter": {"topic": topic} if topic else None
+        }
+    except Exception as e:
+        logger.error(f"Failed to list documents: {str(e)}")
+        return {"documents": [], "total": 0}
 
 @router.post("/documents")
 async def ingest_documents(
@@ -142,17 +224,80 @@ async def ingest_documents(
 
 @router.get("/documents/{document_id}")
 async def get_document(document_id: str):
-    """Get document by ID."""
-    return {
-        "document_id": document_id,
-        "status": "placeholder"
-    }
+    """Get full document details by ID."""
+    try:
+        # Find document in memory
+        doc = next((d for d in uploaded_documents if d.get("document_id") == document_id), None)
 
-@router.get("/documents")
-async def list_documents():
-    """List all documents."""
-    return {
-        "documents": uploaded_documents,
-        "total": len(uploaded_documents),
-        "status": "active"
-    }
+        if not doc:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Document {document_id} not found"
+            )
+
+        # Return full document details
+        return {
+            "id": doc.get("document_id"),
+            "title": doc.get("filename"),
+            "type": "file" if doc.get("content_type", "").startswith("application") or doc.get("content_type", "").startswith("text") else "web",
+            "uploaded_at": doc.get("uploaded_at"),
+            "size": doc.get("size"),
+            "content_type": doc.get("content_type"),
+            "extraction": doc.get("extraction", {}),
+            "quality": doc.get("quality", {}),
+            "research": doc.get("research", {}),
+            "consciousness": doc.get("consciousness", {}),
+            "meta_cognitive": doc.get("meta_cognitive", {}),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get document {document_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve document: {str(e)}"
+        )
+
+@router.delete("/documents/{document_id}")
+async def delete_document(document_id: str):
+    """Delete document by ID, removing from memory and disk."""
+    global uploaded_documents
+    try:
+        # Find document in memory
+        doc = next((d for d in uploaded_documents if d.get("document_id") == document_id), None)
+
+        if not doc:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Document {document_id} not found"
+            )
+
+        # Delete file from disk
+        file_path = doc.get("file_path")
+        if file_path and os.path.exists(file_path):
+            os.remove(file_path)
+            logger.info(f"Deleted file from disk: {file_path}")
+
+        # Remove from memory
+        uploaded_documents = [d for d in uploaded_documents if d.get("document_id") != document_id]
+
+        logger.info(f"Document deleted: {doc.get('filename')} ({document_id})")
+
+        return {
+            "success": True,
+            "message": f"Document {document_id} deleted successfully",
+            "deleted": {
+                "id": document_id,
+                "title": doc.get("filename")
+            }
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to delete document {document_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete document: {str(e)}"
+        )

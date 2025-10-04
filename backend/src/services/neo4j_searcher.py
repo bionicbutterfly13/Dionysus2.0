@@ -8,8 +8,8 @@ from neo4j import Driver
 import logging
 from datetime import datetime
 
-from ...models.response import SearchResult, SearchSource
-from ...config.neo4j_config import get_neo4j_driver
+from models.response import SearchResult, SearchSource
+from config.neo4j_config import get_neo4j_driver
 
 logger = logging.getLogger(__name__)
 
