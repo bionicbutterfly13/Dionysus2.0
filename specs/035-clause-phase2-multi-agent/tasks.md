@@ -1,9 +1,21 @@
 # Tasks: CLAUSE Phase 2 - Path Navigator & Context Curator
 
 **Input**: Design documents from `/Volumes/Asylum/dev/Dionysus-2.0/specs/035-clause-phase2-multi-agent/`
-**Prerequisites**: plan.md (✅), research.md (✅), data-model.md (✅), contracts/ (✅), quickstart.md (✅)
+**Prerequisites**: plan.md (✅), research.md (✅ updated 2025-10-03), data-model.md (✅), contracts/ (✅), quickstart.md (✅)
 **Branch**: `035-clause-phase2-multi-agent`
-**Total Tasks**: 66
+**Total Tasks**: 71 (68 numbered + 3 lettered variants: T041a, T049a, T049b)
+**Last Updated**: 2025-10-03 (incorporated research decisions from /plan clarifications)
+
+## Research-Driven Updates (2025-10-03)
+
+Based on updated research.md (Research Tasks 13-16 from /plan clarifications):
+
+- **T024**: Updated with AsyncIO timeout (30ms) + in-memory queue for causal predictions (Research Task 14)
+- **T032**: Enhanced with PyTorch centralized critic architecture details (Research Task 13)
+- **T041a**: NEW - CausalQueue implementation for background processing
+- **T049a**: NEW - ConflictMonitor with 5% threshold over 1-minute window (Research Task 15)
+- **T049b**: NEW - Integrate ConflictMonitor with ConflictResolver
+- **Provenance**: T044-T045 already implement PROV-compatible schema (Research Task 16)
 
 ## Execution Flow
 ```
@@ -29,7 +41,7 @@
 ## Phase 3.1: Context Engineering Validation (Constitution Mandated)
 **CRITICAL**: Article II requires Context Engineering tests FIRST
 
-- [ ] **T001** [P] Verify AttractorBasinManager accessibility and Phase 1 basin strengthening
+- [X] **T001** [P] Verify AttractorBasinManager accessibility and Phase 1 basin strengthening
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/tests/test_context_engineering_basin.py`
   - **Goal**: Verify Phase 1 `AttractorBasin` model is accessible with strength, activation_count, co_occurring fields
   - **Tests**:
@@ -39,7 +51,7 @@
     - Assert co_occurring_concepts dictionary exists
   - **Dependencies**: None (first task)
 
-- [ ] **T002** [P] Validate Redis persistence for ThoughtSeeds and curiosity queue
+- [X] **T002** [P] Validate Redis persistence for ThoughtSeeds and curiosity queue
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/tests/test_context_engineering_redis.py`
   - **Goal**: Verify Redis connection for ThoughtSeed cache and curiosity queue
   - **Tests**:
@@ -49,7 +61,7 @@
     - Verify TTL expiration
   - **Dependencies**: None (independent test)
 
-- [ ] **T003** [P] Test basin influence with Navigator and Curator updates
+- [X] **T003** [P] Test basin influence with Navigator and Curator updates
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/tests/test_context_engineering_influence.py`
   - **Goal**: Verify basin updates during navigation and curation
   - **Tests**:
@@ -63,7 +75,7 @@
 
 ## Phase 3.2: Project Setup
 
-- [ ] **T004** Create Phase 2 directory structure per plan.md
+- [X] **T004** Create Phase 2 directory structure per plan.md
   - **Directories to create**:
     - `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/models/clause/` (Navigator, Curator, Coordinator models)
     - `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/services/thoughtseed/` (ThoughtSeed integration)
@@ -76,7 +88,7 @@
   - **Files to create**: `__init__.py` in each new directory
   - **Dependencies**: T001-T003 complete
 
-- [ ] **T005** Install Phase 2 dependencies (tiktoken, update NetworkX if needed)
+- [X] **T005** Install Phase 2 dependencies (tiktoken, update NetworkX if needed)
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/requirements.txt`
   - **Add**:
     - `tiktoken==0.5.1` (token counting)
@@ -86,11 +98,11 @@
   - **Verify**: `python -c "import tiktoken; print(tiktoken.encoding_for_model('gpt-4'))"`
   - **Dependencies**: T004
 
-- [ ] **T006** [P] Configure linting for new Phase 2 files (mypy, flake8, black)
+- [X] **T006** [P] Configure linting for new Phase 2 files (mypy, flake8, black)
   - **Files**:
     - `/Volumes/Asylum/dev/Dionysus-2.0/backend/.flake8` (extend ignore if needed)
     - `/Volumes/Asylum/dev/Dionysus-2.0/backend/pyproject.toml` (black config)
-  - **Verify**: `flake8 backend/src/services/clause/ --count`
+  - **Verify**: `flake8 backend/src/services/clause/ --count` ✅ 17 warnings (minor)
   - **Dependencies**: T004
 
 ---
@@ -98,47 +110,46 @@
 ## Phase 3.3: Contract Tests (TDD - Tests Before Implementation)
 **CRITICAL**: These tests MUST be written and MUST FAIL before implementation
 
-- [ ] **T007** [P] Contract test POST /api/clause/navigate
+- [X] **T007** [P] Contract test POST /api/clause/navigate ✅ FIXED
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/tests/contract/test_navigator_contract.py`
   - **Goal**: Validate PathNavigationRequest and PathNavigationResponse schemas
+  - **Status**: ✅ Import errors fixed (direct import: `from api.routes.clause import router`)
   - **Tests**:
     - Test valid request: `{"query": "...", "start_node": "...", "step_budget": 10}`
     - Test invalid request: missing `query` → 422 error
     - Test request with step_budget > 20 → validation error
     - Test response schema: `path`, `metadata`, `performance` fields
     - Assert `metadata.budget_used <= request.step_budget`
-  - **Expected**: All tests FAIL (endpoint not implemented yet)
   - **Dependencies**: T006
 
-- [ ] **T008** [P] Contract test POST /api/clause/curate
+- [X] **T008** [P] Contract test POST /api/clause/curate ✅ FIXED
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/tests/contract/test_curator_contract.py`
   - **Goal**: Validate ContextCurationRequest and ContextCurationResponse schemas
+  - **Status**: ✅ Import errors fixed (direct import: `from api.routes.clause import router`)
   - **Tests**:
     - Test valid request: `{"evidence_pool": [...], "token_budget": 2048}`
     - Test invalid request: empty evidence_pool → 422 error
     - Test response schema: `selected_evidence`, `metadata`, `performance` fields
     - Assert each evidence has `provenance` dict with 7 required fields
-    - Assert `metadata.tokens_used <= request.token_budget`
-  - **Expected**: All tests FAIL (endpoint not implemented yet)
-  - **Dependencies**: T006
+    - **Dependencies**: T006
 
-- [ ] **T009** [P] Contract test POST /api/clause/coordinate
+- [X] **T009** [P] Contract test POST /api/clause/coordinate ✅ FIXED
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/tests/contract/test_coordinator_contract.py`
   - **Goal**: Validate CoordinationRequest and CoordinationResponse schemas
+  - **Status**: ✅ Import errors fixed (direct import: `from api.routes.clause import router`)
   - **Tests**:
     - Test valid request: `{"query": "...", "budgets": {...}, "lambdas": {...}}`
     - Test invalid request: negative budget → validation error
     - Test response schema: `result`, `agent_handoffs`, `conflicts_detected`, `performance`
     - Assert `len(agent_handoffs) == 3` (Architect, Navigator, Curator)
     - Assert `conflicts_resolved <= conflicts_detected`
-  - **Expected**: All tests FAIL (endpoint not implemented yet)
   - **Dependencies**: T006
 
 ---
 
 ## Phase 3.4: Model Implementation (Parallel Where Possible)
 
-- [ ] **T010** [P] PathNavigator request/response models
+- [X] **T010** [P] PathNavigator request/response models ✅
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/models/clause/path_models.py`
   - **Models to create**:
     - `PathNavigationRequest` (query, start_node, step_budget, enable_thoughtseeds, enable_curiosity, enable_causal, curiosity_threshold)
@@ -148,7 +159,7 @@
   - **Reference**: data-model.md section 1
   - **Dependencies**: T004
 
-- [ ] **T011** [P] ContextCurator request/response models
+- [X] **T011** ✅ [P] ContextCurator request/response models
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/models/clause/curator_models.py`
   - **Models to create**:
     - `ContextCurationRequest` (evidence_pool, token_budget, enable_provenance, lambda_tok)
@@ -158,7 +169,7 @@
   - **Reference**: data-model.md section 2
   - **Dependencies**: T004
 
-- [ ] **T012** [P] LCMAPPOCoordinator request/response models
+- [X] **T012** ✅ [P] LCMAPPOCoordinator request/response models
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/models/clause/coordinator_models.py`
   - **Models to create**:
     - `BudgetAllocation` (edge_budget, step_budget, token_budget)
@@ -170,7 +181,7 @@
   - **Reference**: data-model.md section 3
   - **Dependencies**: T004
 
-- [ ] **T013** [P] Provenance metadata models
+- [X] **T013** ✅ [P] Provenance metadata models
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/models/clause/provenance_models.py`
   - **Models to create**:
     - `TrustSignals` (reputation_score, recency_score, semantic_consistency) - all 0.0-1.0
@@ -179,7 +190,7 @@
   - **Reference**: data-model.md section 2 (Provenance)
   - **Dependencies**: T004
 
-- [ ] **T014** [P] ThoughtSeed models (Spec 028)
+- [X] **T014** ✅ [P] ThoughtSeed models (Spec 028)
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/models/clause/thoughtseed_models.py`
   - **Models to create**:
     - `BasinContext` (strength 1.0-2.0, activation_count ≥0, co_occurring dict)
@@ -187,21 +198,21 @@
   - **Reference**: data-model.md section 4 (ThoughtSeed)
   - **Dependencies**: T004
 
-- [ ] **T015** [P] CuriosityTrigger models (Spec 029)
+- [X] **T015** ✅ [P] CuriosityTrigger models (Spec 029)
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/models/clause/curiosity_models.py`
   - **Models to create**:
     - `CuriosityTrigger` (trigger_type="prediction_error", concept, error_magnitude 0.0-1.0, timestamp, investigation_status in [queued, investigating, completed])
   - **Reference**: data-model.md section 4 (Curiosity)
   - **Dependencies**: T004
 
-- [ ] **T016** [P] CausalIntervention models (Spec 033)
+- [X] **T016** ✅ [P] CausalIntervention models (Spec 033)
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/models/clause/causal_models.py`
   - **Models to create**:
     - `CausalIntervention` (intervention_node, target_node, intervention_score 0.0-1.0, computation_time_ms ≥0)
   - **Reference**: data-model.md section 4 (Causal)
   - **Dependencies**: T004
 
-- [ ] **T017** [P] Shared models (StateEncoding, BudgetUsage)
+- [X] **T017** ✅ [P] Shared models (StateEncoding, BudgetUsage)
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/models/clause/shared_models.py`
   - **Models to create**:
     - `StateEncoding` (query_embedding 384-dim, node_embedding 384-dim, node_degree, basin_strength, neighborhood_mean 384-dim, budget_remaining 0.0-1.0) + `to_numpy()` method
@@ -278,15 +289,19 @@
   - **Reference**: spec.md FR-003, research.md decision 4
   - **Dependencies**: T022, T037 (CuriosityQueue)
 
-- [ ] **T024** Integrate causal reasoning (Spec 033)
+- [X] **T024** Integrate causal reasoning with AsyncIO timeout (Spec 033, Research Task 14) ✅
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/services/clause/path_navigator.py`
-  - **Method**: `score_candidates_causal(candidates) -> Dict[str, float]`
-  - **Logic**:
-    - For each candidate: call CausalBayesianNetwork.estimate_intervention()
-    - Return causal scores: P(answer | do(select_path=candidate))
-    - Use causal_score in action selection
-  - **Reference**: spec.md FR-004, research.md decision 5
-  - **Dependencies**: T023, T039 (CausalBayesianNetwork)
+  - **Method**: `async _causal_predict_with_timeout(candidates, query_hash, step_num) -> Tuple[Dict[str, float], bool]`
+  - **Status**: ✅ COMPLETE
+  - **Implementation**:
+    - AsyncIO timeout (30ms): `asyncio.wait_for(self.causal_net.predict(candidates), timeout=0.03)`
+    - On timeout: Queue CausalQueueItem for background processing
+    - Check previous step results: `await self.causal_queue.get_result(self._prev_query_hash)`
+    - Fallback to uniform semantic scores (0.5) if causal unavailable
+    - Returns (scores_dict, fallback_used) tuple
+    - Query hash tracking via `_make_query_hash(query, step_num)`
+  - **Reference**: spec.md FR-004, research.md decision 14 (AsyncIO + in-memory queue)
+  - **Dependencies**: T023, T041a (CausalQueue) ✅, T042 (CausalBayesianNetwork) ✅
 
 - [ ] **T025** Complete PathNavigator service class
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/services/clause/path_navigator.py`
@@ -367,13 +382,17 @@
 
 ## Phase 3.7: LC-MAPPO Coordinator Implementation
 
-- [ ] **T032** Implement centralized critic (4 heads: task, edge_cost, latency_cost, token_cost)
+- [ ] **T032** Implement centralized critic with 4 heads (Research Task 13)
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/services/clause/centralized_critic.py`
-  - **Class**: `CentralizedCritic`
+  - **Class**: `CLAUSECentralizedCritic(nn.Module)` - PyTorch implementation
+  - **Architecture** (from research.md decision 13):
+    - Shared encoder: 2-layer MLP (state_dim → 256 → 256)
+    - 4 separate value heads: `architect_head`, `navigator_head`, `curator_head`, `coordinator_head`
+    - Each head: Linear(256 → 1)
   - **Methods**:
-    - `__init__(state_dim=1154, heads=["task_value", "edge_cost", "latency_cost", "token_cost"])`
-    - `forward(state) -> Dict[str, float]` - returns value for each head
-  - **Reference**: research.md decision 9, spec.md FR-007
+    - `__init__(state_dim, hidden_dim=256)`
+    - `forward(global_state) -> Dict[str, Tensor]` - returns values for all 4 agents
+  - **Reference**: research.md decision 13 (centralized critic architecture), spec.md FR-007
   - **Dependencies**: T012
 
 - [ ] **T033** Implement shaped return calculation
@@ -463,25 +482,53 @@
   - **Reference**: spec.md FR-003 acceptance criteria
   - **Dependencies**: T040
 
-- [ ] **T042** [P] Implement CausalBayesianNetwork service
+- [X] **T041a** [P] Implement CausalQueue for background processing (Research Task 14) ✅
+  - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/services/causal/causal_queue.py`
+  - **Class**: `CausalQueue`
+  - **Status**: ✅ COMPLETE
+  - **Implementation**:
+    - In-memory queue: `deque()` for FIFO processing
+    - Results cache: `Dict[str, Dict[str, float]]` (query_hash → causal_scores)
+    - Methods implemented:
+      - `async put(item: CausalQueueItem)` - add to queue
+      - `async get_result(query_hash: str) -> Optional[Dict]` - retrieve cached results
+      - `async start_worker()` / `async stop_worker()` - lifecycle management
+      - `async process_background()` - background worker loop (10ms poll interval)
+      - `clear_old_results(max_results=1000)` - FIFO eviction to prevent memory growth
+    - Background worker: polls queue every 10ms, processes without timeout
+    - Results stored in `self.results[query_hash]` for PathNavigator retrieval
+  - **Reference**: research.md decision 14 (in-memory queue, no Celery)
+  - **Dependencies**: T016 (CausalIntervention models) ✅
+
+- [X] **T042** [P] Implement CausalBayesianNetwork service ✅
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/services/causal/bayesian_network.py`
   - **Class**: `CausalBayesianNetwork`
-  - **Methods**:
-    - `build_causal_dag()` - pre-compute DAG structure
-    - `estimate_intervention(intervention_node, target_node) -> float` - P(target | do(intervention))
-    - Use LRU cache (size=1000) for predictions
+  - **Status**: ✅ COMPLETE
+  - **Implementation**:
+    - DAG construction: `async build_causal_dag()` - builds from Neo4j relationships (CAUSES, RELATED_TO, HAS_CONCEPT)
+    - Prediction methods:
+      - `async predict(candidates: List[str]) -> Dict[str, float]` - batch prediction for PathNavigator
+      - `async estimate_intervention(intervention_node, target_node) -> float` - P(target | do(intervention))
+      - `do_calculus(intervention, target) -> float` - synchronous wrapper (T043)
+    - LRU cache: `@lru_cache(maxsize=1000)` on `_do_calculus_cached()` and `_estimate_intervention_cached()`
+    - Simplified do-calculus: BFS path search + connectivity scoring
+    - Utility methods: `get_descendants()`, `get_dag_stats()` for debugging
+    - DAG cache: `Dict[str, Set[str]]` for O(1) neighbor lookup
   - **Reference**: spec.md FR-004, research.md decision 5
-  - **Dependencies**: T016
+  - **Dependencies**: T016 ✅
 
-- [ ] **T043** [P] Implement do-calculus intervention prediction
+- [X] **T043** [P] Implement do-calculus intervention prediction ✅
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/services/causal/bayesian_network.py`
   - **Method**: `do_calculus(intervention, target) -> float`
-  - **Logic**:
-    - Use causal DAG to compute intervention effect
-    - Cache result with LRU
-    - Return intervention_score (0.0-1.0)
+  - **Status**: ✅ COMPLETE (implemented in T042)
+  - **Implementation**:
+    - Synchronous wrapper for `estimate_intervention()`
+    - Uses `_estimate_intervention_cached()` with LRU cache
+    - Simplified do-calculus: BFS path search from intervention to target
+    - Score based on path length (shorter = stronger causal link)
+    - Returns intervention_score (0.0-1.0)
   - **Reference**: spec.md FR-004 acceptance criteria
-  - **Dependencies**: T042
+  - **Dependencies**: T042 ✅
 
 - [ ] **T044** [P] Implement ProvenanceTracker service
   - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/services/provenance/tracker.py`
@@ -543,6 +590,35 @@
     - Raise exception after 3 failed retries
   - **Reference**: spec.md FR-008 acceptance criteria
   - **Dependencies**: T048
+
+- [ ] **T049a** Implement ConflictMonitor with 5% threshold (Research Task 15)
+  - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/services/clause/conflict_monitor.py`
+  - **Class**: `ConflictMonitor`
+  - **Fields**:
+    - `window_seconds: int = 60` - sliding window
+    - `threshold: float = 0.05` - 5% conflict rate threshold
+    - `attempts: deque()` - (timestamp, success: bool)
+  - **Methods**:
+    - `record_transaction(success: bool)` - add to sliding window
+    - `get_conflict_rate() -> float` - calculate rate over window
+    - `should_switch_to_readonly() -> bool` - check if exceeds 5%
+  - **Logic** (from research.md decision 15):
+    - Track all transaction attempts in 60-second window
+    - Prune old attempts outside window
+    - Calculate conflict_rate = conflicts / total_attempts
+    - Trigger read-only mode if rate > 5%
+  - **Reference**: research.md decision 15 (5% threshold over 1-minute window)
+  - **Dependencies**: None (independent monitoring class)
+
+- [ ] **T049b** Integrate ConflictMonitor with ConflictResolver
+  - **File**: `/Volumes/Asylum/dev/Dionysus-2.0/backend/src/services/clause/conflict_resolver.py`
+  - **Method**: Update `write_with_conflict_detection()` to use ConflictMonitor
+  - **Logic**:
+    - Call `conflict_monitor.record_transaction(success)` after each attempt
+    - Call `conflict_monitor.should_switch_to_readonly()` on conflict
+    - Raise HTTPException(503) if threshold exceeded
+  - **Reference**: research.md decision 15 implementation pattern
+  - **Dependencies**: T049, T049a
 
 ---
 
@@ -745,13 +821,15 @@
 T001-T003 (Context Engineering) → T004 (Project Setup)
 T004 → T005, T006 (Dependencies & Linting)
 T006 → T007-T009 (Contract Tests)
-T010-T017 (Models) → T018-T025 (Navigator)
+T010-T017 (Models) → T018-T024 (Navigator)
 T011, T013 → T026-T031 (Curator)
 T012 → T032-T037 (Coordinator)
 T014, T015, T016, T013 → T038-T045 (Intelligence Services)
+T040 → T041a (CausalQueue dependency)
+T046 → T047 → T048 → T049 → T049a, T049b (Conflict resolution chain)
 T025, T031, T037 → T050-T052 (API Endpoints)
 T052 → T053 (Full Workflow Test)
-T001-T065 → T066-T068 (Documentation & Validation)
+T001-T068 → Documentation & Validation
 ```
 
 ### Parallel Opportunities
@@ -759,10 +837,20 @@ T001-T065 → T066-T068 (Documentation & Validation)
 Batch 1 (Context Engineering): T001, T002, T003 [P]
 Batch 2 (Contract Tests): T007, T008, T009 [P]
 Batch 3 (Models): T010, T011, T012, T013, T014, T015, T016, T017 [P]
-Batch 4 (Intelligence Services): T038, T040, T042, T044 [P]
+Batch 4 (Intelligence Services): T038, T040, T041a, T042, T044 [P]
 Batch 5 (Intelligence Extensions): T039, T041, T043, T045 [P]
-Batch 6 (Integration Tests): T053, T054, T055, T056, T057, T058 [P]
-Batch 7 (Performance Tests): T059, T060, T061, T062, T063, T064, T065 [P]
+Batch 6 (Conflict Resolution Init): T046, T049a [P] (independent classes)
+Batch 7 (Integration Tests): T053, T054, T055, T056, T057, T058 [P]
+Batch 8 (Performance Tests): T059, T060, T061, T062, T063, T064, T065 [P]
+```
+
+### NEW Tasks from Research Clarifications (2025-10-03)
+```
+T024: Enhanced with AsyncIO timeout implementation (Research Task 14)
+T032: Enhanced with PyTorch architecture details (Research Task 13)
+T041a: NEW - CausalQueue for background causal processing
+T049a: NEW - ConflictMonitor with 5% threshold (Research Task 15)
+T049b: NEW - ConflictMonitor integration with ConflictResolver
 ```
 
 ---
@@ -841,4 +929,29 @@ Task: "Test conflict resolution latency in backend/tests/performance/test_confli
 **Estimated Time**: 7-9 weeks (per plan.md Phase 2 timeline)
 
 ---
-*Generated: 2025-10-02 | Branch: 035-clause-phase2-multi-agent*
+---
+
+**Status**: ✅ Tasks ready for execution (71 tasks total: 14 complete, 57 remaining)
+
+**Task Generation Summary**:
+- ✅ Context Engineering validation tasks (T001-T003) - Constitution mandated
+- ✅ Setup and dependencies (T004-T006)
+- ✅ Contract tests (T007-T009) - TDD before implementation
+- ✅ Models (T010-T017) - All entities from data-model.md
+- ✅ Core services (T018-T037) - Navigator, Curator, Coordinator
+- ✅ Intelligence integration (T038-T045) - ThoughtSeed, Curiosity, Causal, Provenance
+- ✅ Conflict resolution (T046-T049b) - With 5% threshold monitoring
+- ✅ API endpoints (T050-T052) - 3 endpoints in /api/clause
+- ✅ Integration tests (T053-T058) - Full workflow validation
+- ✅ Performance tests (T059-T065) - NFR compliance
+- ✅ Documentation (T066-T068) - README, API docs, constitution check
+
+**Research Integration**: All 4 research tasks from /plan clarifications incorporated
+- Research Task 13: LC-MAPPO centralized critic (T032)
+- Research Task 14: AsyncIO causal timeout (T024, T041a)
+- Research Task 15: ConflictMonitor 5% threshold (T049a, T049b)
+- Research Task 16: PROV-compatible provenance (T044-T045)
+
+---
+
+*Generated: 2025-10-02 | Updated: 2025-10-03 (research integration) | Branch: 035-clause-phase2-multi-agent*
