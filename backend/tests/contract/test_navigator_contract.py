@@ -18,15 +18,13 @@ from datetime import datetime
 def client():
     """FastAPI test client with CLAUSE routes for contract testing"""
     from fastapi import FastAPI
-    import sys
-    sys.path.insert(0, '/Volumes/Asylum/dev/Dionysus-2.0/backend/src')
 
-    # Import CLAUSE router
-    from api.routes import clause
+    # Import CLAUSE router directly (not through __init__.py)
+    from api.routes.clause import router as clause_router
 
     # Create minimal app with CLAUSE routes
     app = FastAPI()
-    app.include_router(clause.router)
+    app.include_router(clause_router)
 
     return TestClient(app)
 
