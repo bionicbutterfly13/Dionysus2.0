@@ -62,7 +62,7 @@ class DocumentProcessingGraph:
                  neo4j_uri: Optional[str] = None,
                  neo4j_user: Optional[str] = None,
                  neo4j_password: Optional[str] = None,
-                 require_neo4j: bool = True):
+                 require_neo4j: bool = False):
         self.processor = ConsciousnessDocumentProcessor()
         self.cognition_base = DocumentCognitionBase()
         self.researcher = DocumentResearcher(self.cognition_base)
@@ -273,11 +273,14 @@ class DocumentProcessingGraph:
         # Apply recommendations to processing parameters
         # (In production, would actually adjust chunking, concept extraction, etc.)
 
+        # CRITICAL: Increment iteration counter to prevent infinite loop
+        state["iteration"] = state.get("iteration", 1) + 1
+
         state["messages"] = state.get("messages", []) + [
-            f"Refining processing - Iteration {state['iteration'] + 1}"
+            f"Refining processing - Iteration {state['iteration']}"
         ]
 
-        logger.info("Refinement applied - looping back to consciousness processing")
+        logger.info(f"Refinement applied - looping back to consciousness processing (iteration {state['iteration']})")
         return state
 
     def _finalize_output_node(self, state: DocumentProcessingState) -> DocumentProcessingState:
@@ -322,26 +325,27 @@ class DocumentProcessingGraph:
 
         state["final_output"] = final_output
 
-        # Persist to Neo4j (REQUIRED)
+        # Persist to Neo4j (optional if unavailable)
         if not self.neo4j_connected:
-            error_msg = "Neo4j not connected - cannot complete processing without storage"
-            logger.error(f"❌ {error_msg}")
-            raise RuntimeError(error_msg)
-
-        try:
-            self._store_to_neo4j(state, final_output)
+            logger.warning("⚠️ Neo4j not connected - skipping document storage")
             state["messages"] = state.get("messages", []) + [
-                "Processing complete - output finalized and persisted to Neo4j"
+                "⚠️ Neo4j storage skipped - database unavailable"
             ]
-            logger.info("✅ Data persisted to Neo4j successfully")
-        except Exception as e:
-            error_msg = f"Neo4j storage failed: {e}"
-            logger.error(f"❌ {error_msg}")
-            state["messages"] = state.get("messages", []) + [
-                f"FAILED: {error_msg}"
-            ]
-            # Re-raise to fail the workflow
-            raise RuntimeError(error_msg) from e
+        else:
+            try:
+                self._store_to_neo4j(state, final_output)
+                state["messages"] = state.get("messages", []) + [
+                    "Processing complete - output finalized and persisted to Neo4j"
+                ]
+                logger.info("✅ Data persisted to Neo4j successfully")
+            except Exception as e:
+                error_msg = f"Neo4j storage failed: {e}"
+                logger.error(f"❌ {error_msg}")
+                state["messages"] = state.get("messages", []) + [
+                    f"FAILED: {error_msg}"
+                ]
+                # Re-raise to fail the workflow
+                raise RuntimeError(error_msg) from e
 
         logger.info("Final output packaged successfully")
         return state

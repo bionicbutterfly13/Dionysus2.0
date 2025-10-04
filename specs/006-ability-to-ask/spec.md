@@ -68,6 +68,7 @@ A researcher wants to ask complex questions about their research data and receiv
 - **FR-010**: System MUST authenticate and authorize users before processing queries [NEEDS CLARIFICATION: authentication method and user roles not specified]
 - **FR-011**: System MUST format responses in a readable, structured manner [NEEDS CLARIFICATION: specific formatting requirements not detailed]
 - **FR-012**: System MUST provide response time within acceptable limits [NEEDS CLARIFICATION: performance targets not specified]
+- **FR-013**: Response synthesis MUST use a consciousness-aware LLM generation step (local Ollama models by default, configurable remote provider with explicit opt-in) that weaves retrieved evidence into coherent answers with inline provenance. Template-only or placeholder strings are prohibited; automated TDD scenarios MUST assert that synthesized answers (a) exceed 200 characters for integration fixtures, (b) include at least one cited source from Neo4j or the vector index, and (c) degrade gracefully with clearly messaged fallbacks if the preferred LLM is unavailable.
 
 ### Key Entities *(include if feature involves data)*
 - **Question**: User-submitted natural language query with metadata (timestamp, user, complexity)

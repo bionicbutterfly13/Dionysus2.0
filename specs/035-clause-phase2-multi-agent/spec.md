@@ -120,9 +120,11 @@ def test_curiosity_trigger_on_high_prediction_error():
 
 **Acceptance Criteria**:
 - For each candidate next hop: estimate P(answer | do(select_path=candidate))
-- Causal reasoner implements do-calculus intervention
-- Select candidate with highest causal_score - λ_step × step_cost
-- Store causal_scores in path metadata for analysis
+- Causal reasoner implements do-calculus intervention with 30ms timeout
+- If causal computation exceeds 30ms: queue for background processing, use semantic similarity heuristic immediately (non-blocking)
+- Background causal results update scoring for subsequent hops if available
+- Select candidate with highest causal_score - λ_step × step_cost (or heuristic_score if causal unavailable)
+- Store causal_scores and fallback_used flag in path metadata for analysis
 
 **Test Cases**:
 ```python
@@ -222,7 +224,9 @@ def test_lcmappo_shaped_return_calculation():
 - Detect conflicts: multiple agents writing to same node simultaneously
 - Conflict resolution strategies: MERGE (take max basin strength), ROLLBACK, RETRY
 - Exponential backoff on retry (100ms, 200ms, 400ms)
-- Log conflict events with metadata (agents, nodes, resolution)
+- Monitor conflict rate continuously; log conflict events with metadata (agents, nodes, resolution)
+- Research and establish baseline conflict rate threshold during implementation (consult distributed systems best practices for acceptable conflict rates in multi-writer scenarios)
+- Implement read-only mode fallback when threshold exceeded (initially disabled until baseline established)
 
 **Test Cases**:
 ```python
@@ -521,17 +525,23 @@ def test_write_conflict_detection_and_resolution():
 - Neo4j 5.x driver (graph storage, transactions)
 - Redis 7.x (caching, queue management)
 
+## Clarifications
+
+### Session 2025-10-03
+- Q: When Causal Inference Latency exceeds 30ms, which fallback strategy should the Path Navigator use? → A: Queue for background processing, continue with heuristic immediately
+- Q: When multiple agents write to the same basin simultaneously (FR-008), what is the maximum acceptable conflict rate before switching to read-only mode? → A: Research distributed systems best practices during implementation (deferred)
+
 ## Risks and Mitigations
 
 ### Risk 1: Causal Inference Latency
 - **Risk**: Bayesian network inference may exceed 30ms for complex graphs
 - **Mitigation**: Pre-compute causal DAG structure, cache intervention predictions
-- **Fallback**: Simple heuristic scoring if causal unavailable
+- **Fallback**: Queue causal computation for background processing, continue navigation with semantic similarity heuristic immediately (non-blocking). Background result updates future hops if available.
 
 ### Risk 2: Conflict Resolution Overhead
 - **Risk**: Frequent conflicts may degrade throughput
 - **Mitigation**: Partition basin writes by concept hash (reduce collision probability)
-- **Fallback**: Read-only mode for high-conflict scenarios
+- **Fallback**: Read-only mode for high-conflict scenarios (threshold to be determined from distributed systems best practices research during implementation - monitor conflict rate and establish baseline)
 
 ### Risk 3: ThoughtSeed Storage Growth
 - **Risk**: Generating 100+ seeds/sec may overwhelm Neo4j write capacity

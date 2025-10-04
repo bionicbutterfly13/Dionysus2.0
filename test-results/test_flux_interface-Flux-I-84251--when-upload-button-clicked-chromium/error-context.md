@@ -1,0 +1,49 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e7]
+        - generic [ref=e10]: Flux
+      - navigation [ref=e11]:
+        - link "Dashboard" [ref=e12] [cursor=pointer]:
+          - /url: /
+          - img [ref=e13] [cursor=pointer]
+          - text: Dashboard
+        - link "Knowledge Base" [ref=e16] [cursor=pointer]:
+          - /url: /knowledge-base
+          - img [ref=e17] [cursor=pointer]
+          - text: Knowledge Base
+        - link "Knowledge Graph" [ref=e21] [cursor=pointer]:
+          - /url: /knowledge-graph
+          - img [ref=e22] [cursor=pointer]
+          - text: Knowledge Graph
+        - link "ThoughtSeed" [ref=e27] [cursor=pointer]:
+          - /url: /thoughtseed
+          - img [ref=e28] [cursor=pointer]
+          - text: ThoughtSeed
+        - link "Curiosity Missions" [ref=e30] [cursor=pointer]:
+          - /url: /curiosity
+          - img [ref=e31] [cursor=pointer]
+          - text: Curiosity Missions
+      - generic [ref=e35]:
+        - generic [ref=e36]:
+          - img [ref=e37]
+          - text: Documents (0)
+        - generic [ref=e40]: No documents yet
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - img [ref=e43]
+          - generic [ref=e45]: Consciousness Active
+        - link "Settings" [ref=e46] [cursor=pointer]:
+          - /url: /settings
+          - img [ref=e47] [cursor=pointer]
+          - text: Settings
+    - main [ref=e51]
+  - generic [ref=e52]:
+    - generic [ref=e53]: Consciousness Stream Active
+    - button [ref=e55] [cursor=pointer]:
+      - img [ref=e56] [cursor=pointer]
+```

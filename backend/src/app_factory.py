@@ -12,8 +12,9 @@ import os
 import yaml
 from pathlib import Path
 
-from .api.routes import documents, curiosity, visualization, stats, consciousness, query
-from .api.routes import clause  # Import separately to avoid circular dependency
+from .api.routes import documents, curiosity, visualization, stats, consciousness, query, crawl, health
+# from .api.routes import clause  # Import separately to avoid circular dependency
+# from .api.routes import demo_clause  # Demo CLAUSE pipeline
 from .middleware.auth import LocalAuthMiddleware
 from .middleware.validation import ValidationMiddleware
 
@@ -76,7 +77,10 @@ def create_app() -> FastAPI:
     app.include_router(stats.router, tags=["stats"])
     app.include_router(consciousness.router, tags=["consciousness"])
     app.include_router(query.router, tags=["query"])  # Query endpoint per Spec 006
-    app.include_router(clause.router, tags=["clause"])  # CLAUSE endpoints per Spec 034
+    app.include_router(crawl.router, prefix="/api", tags=["crawl"])  # Web crawling from Archon
+    app.include_router(health.router, prefix="/api", tags=["health"])  # System health checks
+    # app.include_router(clause.router, tags=["clause"])  # DISABLED - import issues
+    # app.include_router(demo_clause.router, tags=["demo"])  # DISABLED - import issues
 
     @app.get("/")
     async def root():
@@ -118,3 +122,11 @@ def create_app() -> FastAPI:
 
 # Application instance
 app = create_app()
+
+# Create app instance for uvicorn to import
+app = create_app()
+
+# Main entry point
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=9127, reload=True)

@@ -169,6 +169,15 @@ Implementation of an ultra-granular document processing system that uses conscio
 - Client-side state management for visualization
 - Connection resilience and reconnection logic
 
+### TR-022-006: Extraction Adapter Implementations
+**Description**: Implement production-grade adapters for every document extraction path (text, structured data, algorithm detection, knowledge graph triples).
+**Implementation**:
+- `_extract_text_pymupdf` MUST use PyMuPDF to return raw text, metadata, and page spans for PDFs; unit tests MUST assert non-empty output for fixture documents.
+- `_extract_structured_langextract` MUST invoke LangExtract pipelines (or documented local equivalent) to return structured sections, tables, and figures; tests MUST fail if placeholder payloads (e.g., `{ "status": "placeholder" }`) are returned.
+- `_extract_algorithms` MUST identify algorithm blocks/code listings using the configured extractor and emit typed records (name, complexity, pseudocode snippet); regression tests cover known algorithm fixtures.
+- `_extract_knowledge_graph` MUST call KGGen (or the specified auto-schema builder) to emit entities and relationships compatible with AutoSchemaKG; contract tests MUST validate schema conformity before ingestion.
+- All adapters MUST surface actionable error messages when upstream tools are unavailable and provide deterministic fallbacks that still satisfy TDD assertions (no silent passes).
+
 ## Performance Requirements
 
 ### PR-022-001: Processing Speed

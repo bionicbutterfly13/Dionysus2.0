@@ -267,7 +267,13 @@ class DatabaseHealthService:
 
 
 # Global service instance for application use
-database_health_service = DatabaseHealthService()
+# Use settings from config module
+from ..config.settings import settings
+database_health_service = DatabaseHealthService(
+    neo4j_uri=settings.NEO4J_URI,
+    neo4j_user=settings.NEO4J_USER,
+    neo4j_password=settings.NEO4J_PASSWORD
+)
 
 
 def get_database_health() -> Dict[str, Any]:

@@ -1,0 +1,107 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e7]
+        - generic [ref=e10]: Flux
+      - navigation [ref=e11]:
+        - link "Dashboard" [ref=e12] [cursor=pointer]:
+          - /url: /
+          - img [ref=e13] [cursor=pointer]
+          - text: Dashboard
+        - link "Knowledge Base" [ref=e16] [cursor=pointer]:
+          - /url: /knowledge-base
+          - img [ref=e17] [cursor=pointer]
+          - text: Knowledge Base
+        - link "Knowledge Graph" [ref=e21] [cursor=pointer]:
+          - /url: /knowledge-graph
+          - img [ref=e22] [cursor=pointer]
+          - text: Knowledge Graph
+        - link "ThoughtSeed" [ref=e27] [cursor=pointer]:
+          - /url: /thoughtseed
+          - img [ref=e28] [cursor=pointer]
+          - text: ThoughtSeed
+        - link "Curiosity Missions" [ref=e30] [cursor=pointer]:
+          - /url: /curiosity
+          - img [ref=e31] [cursor=pointer]
+          - text: Curiosity Missions
+      - generic [ref=e35]:
+        - generic [ref=e36]:
+          - img [ref=e37]
+          - text: Documents (0)
+        - generic [ref=e40]: No documents yet
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - img [ref=e43]
+          - generic [ref=e45]: Consciousness Active
+        - link "Settings" [ref=e46] [cursor=pointer]:
+          - /url: /settings
+          - img [ref=e47] [cursor=pointer]
+          - text: Settings
+    - main [ref=e51]:
+      - generic [ref=e52]:
+        - generic [ref=e53]:
+          - heading "Dashboard" [level=1] [ref=e54]
+          - paragraph [ref=e55]: Overview of your consciousness emulator's learning progress
+        - generic [ref=e56]:
+          - generic [ref=e58]:
+            - img [ref=e60]
+            - generic [ref=e63]:
+              - paragraph [ref=e64]: Documents Processed
+              - paragraph [ref=e65]: "42"
+          - generic [ref=e67]:
+            - img [ref=e69]
+            - generic [ref=e72]:
+              - paragraph [ref=e73]: Concepts Extracted
+              - paragraph [ref=e74]: "156"
+          - generic [ref=e76]:
+            - img [ref=e78]
+            - generic [ref=e81]:
+              - paragraph [ref=e82]: Curiosity Missions
+              - paragraph [ref=e83]: "8"
+          - generic [ref=e85]:
+            - img [ref=e87]
+            - generic [ref=e89]:
+              - paragraph [ref=e90]: Active ThoughtSeeds
+              - paragraph [ref=e91]: "12"
+        - generic [ref=e92]:
+          - generic [ref=e93]:
+            - heading "Recent Document Processing" [level=3] [ref=e94]
+            - generic [ref=e95]:
+              - generic [ref=e96]:
+                - img [ref=e97]
+                - generic [ref=e100]: research_paper_ai_ethics.pdf
+                - generic [ref=e101]: Processed
+              - generic [ref=e102]:
+                - img [ref=e103]
+                - generic [ref=e106]: consciousness_theory_notes.md
+                - generic [ref=e107]: Processing
+              - generic [ref=e108]:
+                - img [ref=e109]
+                - generic [ref=e112]: neuroscience_review.pdf
+                - generic [ref=e113]: Curious
+          - generic [ref=e114]:
+            - heading "Active ThoughtSeeds" [level=3] [ref=e115]
+            - generic [ref=e116]:
+              - generic [ref=e117]:
+                - generic [ref=e118]: Active Inference Learning
+                - img [ref=e119]
+              - generic [ref=e122]:
+                - generic [ref=e123]: Pattern Recognition
+                - img [ref=e124]
+              - generic [ref=e127]:
+                - generic [ref=e128]: Memory Consolidation
+                - img [ref=e129]
+        - generic [ref=e133]:
+          - img [ref=e135]
+          - paragraph [ref=e138]:
+            - strong [ref=e139]: "Development Mode:"
+            - text: Dashboard showing simulated data. Real data integration pending backend connection.
+  - generic [ref=e140]:
+    - generic [ref=e141]: Consciousness Stream Active
+    - button [ref=e143] [cursor=pointer]:
+      - img [ref=e144] [cursor=pointer]
+```

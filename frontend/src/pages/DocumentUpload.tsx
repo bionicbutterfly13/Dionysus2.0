@@ -46,14 +46,65 @@ interface DocumentUploadProps {
   onClose?: () => void
 }
 
+interface HealthStatus {
+  overall_status: string
+  can_upload: boolean
+  can_crawl: boolean
+  errors: string[]
+  services: Record<string, {
+    name: string
+    status: string
+    message: string
+  }>
+}
+
 export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [selectedMode, setSelectedMode] = useState<'crawl' | 'upload'>('crawl')
   const [crawlUrl, setCrawlUrl] = useState('')
+  const [crawlDepth, setCrawlDepth] = useState(2)
   const [isCrawling, setIsCrawling] = useState(false)
+  const [healthError, setHealthError] = useState<string | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
+  // Check system health before upload
+  const checkSystemHealth = async (): Promise<HealthStatus | null> => {
+    try {
+      const response = await fetch('/api/health')
+      if (!response.ok) {
+        throw new Error(`Health check failed: ${response.statusText}`)
+      }
+      const health = await response.json()
+      return health
+    } catch (error) {
+      console.error('[HEALTH] Check failed:', error)
+      return null
+    }
+  }
+
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    // Clear previous health errors
+    setHealthError(null)
+
+    // Check system health BEFORE starting upload
+    console.log('[HEALTH] Checking system health before upload...')
+    const health = await checkSystemHealth()
+
+    if (!health) {
+      setHealthError('⚠️ Cannot connect to backend health check. Backend may be down.')
+      return
+    }
+
+    if (!health.can_upload) {
+      // Show specific error messages from health check
+      const errorMsg = health.errors.join('\n')
+      setHealthError(errorMsg)
+      console.error('[HEALTH] Upload blocked:', health.errors)
+      return
+    }
+
+    console.log('[HEALTH] ✅ All systems healthy, proceeding with upload')
+
     // Create file entries with uploading status
     const newFiles: UploadedFile[] = acceptedFiles.map((file) => ({
       id: Math.random().toString(36).substr(2, 9),
@@ -84,7 +135,7 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
           )
         }, 200)
 
-        const response = await fetch('/api/documents', {
+        const response = await fetch('/api/v1/documents', {
           method: 'POST',
           body: formData,
         })
@@ -144,6 +195,61 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
       }
     }
   }, [])
+
+  // Handle web crawl
+  const handleStartCrawl = async () => {
+    if (!crawlUrl.trim()) {
+      setHealthError('⚠️ Please enter a valid URL to crawl')
+      return
+    }
+
+    // Clear previous errors
+    setHealthError(null)
+
+    // Check system health BEFORE starting crawl
+    console.log('[HEALTH] Checking system health before crawl...')
+    const health = await checkSystemHealth()
+
+    if (!health) {
+      setHealthError('⚠️ Cannot connect to backend health check. Backend may be down.')
+      return
+    }
+
+    if (!health.can_crawl) {
+      const errorMsg = health.errors.join('\n')
+      setHealthError(errorMsg)
+      console.error('[HEALTH] Crawl blocked:', health.errors)
+      return
+    }
+
+    console.log('[HEALTH] ✅ All systems healthy, proceeding with crawl')
+
+    // Close modal immediately
+    if (onClose) {
+      onClose()
+    }
+
+    // Start crawl in background - fire and forget
+    fetch('/api/crawl', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url: crawlUrl,
+        max_depth: crawlDepth,
+        tags: ['web_crawl', `depth_${crawlDepth}`]
+      }),
+    }).then(response => {
+      if (response.ok) {
+        console.log('[CRAWL] Started successfully - check sidebar for progress')
+      } else {
+        console.error('[CRAWL] Failed to start')
+      }
+    }).catch(error => {
+      console.error('[CRAWL] Error:', error)
+    })
+  }
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -251,92 +357,109 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
 
           {selectedMode === 'crawl' ? (
             <>
+              {/* Health Error Alert */}
+              {healthError && (
+                <div className="mb-6 p-4 bg-red-900/30 border border-red-500 rounded-lg">
+                  <div className="flex items-start">
+                    <XCircle className="h-5 w-5 text-red-400 mr-3 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <h3 className="text-red-400 font-medium mb-2">Crawl Failed</h3>
+                      <div className="text-red-300 text-sm whitespace-pre-line mb-3">
+                        {healthError}
+                      </div>
+                      <button
+                        onClick={() => setHealthError(null)}
+                        className="mt-3 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Website URL input */}
               <div className="mb-6">
                 <label className="block text-white text-sm font-medium mb-2">Website URL</label>
                 <input
                   type="url"
+                  value={crawlUrl}
+                  onChange={(e) => setCrawlUrl(e.target.value)}
                   placeholder="https://docs.example.com or https://github.com/..."
                   className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:border-blue-400 focus:outline-none"
+                  disabled={isCrawling}
                 />
                 <p className="text-gray-500 text-xs mt-2">Enter the URL of a website you want to crawl for knowledge</p>
               </div>
 
-              {/* Knowledge Type */}
-              <div className="mb-6">
-                <label className="block text-white text-sm font-medium mb-2">Knowledge Type</label>
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Technical - selected */}
-                  <button className="p-4 bg-gray-800 border-2 border-blue-500 rounded-lg text-left">
-                    <div className="flex items-center mb-1">
-                      <span className="text-blue-400 mr-2">⚡</span>
-                      <span className="text-blue-400 font-medium">Technical</span>
-                      <span className="ml-auto text-blue-400">✓</span>
-                    </div>
-                    <p className="text-gray-400 text-xs">Code, APIs, dev docs</p>
-                  </button>
-
-                  {/* Business */}
-                  <button className="p-4 bg-gray-800 border border-gray-600 rounded-lg text-left hover:border-gray-500">
-                    <div className="flex items-center mb-1">
-                      <span className="text-gray-400 mr-2">📊</span>
-                      <span className="text-white font-medium">Business</span>
-                    </div>
-                    <p className="text-gray-400 text-xs">Guides, policies, general</p>
-                  </button>
-                </div>
-                <p className="text-gray-500 text-xs mt-2">Choose the type that best describes your content</p>
-              </div>
-
               {/* Crawl Depth */}
-              <div className="mb-6">
+              <div className="mb-8">
                 <div className="flex items-center mb-2">
                   <label className="text-white text-sm font-medium">Crawl Depth</label>
-                  <span className="ml-2 text-gray-500 text-xs">ⓘ</span>
+                  <span className="ml-2 text-gray-500 text-xs">ⓘ Higher levels crawl deeper</span>
                 </div>
-                <div className="grid grid-cols-4 gap-2">
-                  <button className="p-3 bg-gray-800 border border-gray-600 rounded text-center hover:border-gray-500">
-                    <div className="text-white font-medium">1</div>
-                    <div className="text-gray-400 text-xs">level</div>
-                  </button>
-                  {/* Level 2 - selected */}
-                  <button className="p-3 bg-gray-800 border-2 border-blue-500 rounded text-center">
-                    <div className="text-blue-400 font-medium">2</div>
-                    <div className="text-gray-400 text-xs">levels</div>
-                    <span className="text-blue-400 text-xs">✓</span>
-                  </button>
-                  <button className="p-3 bg-gray-800 border border-gray-600 rounded text-center hover:border-gray-500">
-                    <div className="text-white font-medium">3</div>
-                    <div className="text-gray-400 text-xs">levels</div>
-                  </button>
-                  <button className="p-3 bg-gray-800 border border-gray-600 rounded text-center hover:border-gray-500">
-                    <div className="text-white font-medium">5</div>
-                    <div className="text-gray-400 text-xs">levels</div>
-                  </button>
+                <div className="grid grid-cols-3 gap-2">
+                  {[1, 2, 3].map((depth) => (
+                    <button
+                      key={depth}
+                      onClick={() => setCrawlDepth(depth)}
+                      disabled={isCrawling}
+                      className={`p-3 bg-gray-800 rounded text-center transition-all ${
+                        crawlDepth === depth
+                          ? 'border-2 border-blue-500'
+                          : 'border border-gray-600 hover:border-gray-500'
+                      } ${isCrawling ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <div className={`font-medium ${crawlDepth === depth ? 'text-blue-400' : 'text-white'}`}>
+                        {depth}
+                      </div>
+                      <div className="text-gray-400 text-xs">{depth === 1 ? 'level' : 'levels'}</div>
+                      {crawlDepth === depth && <span className="text-blue-400 text-xs">✓</span>}
+                    </button>
+                  ))}
                 </div>
-                <p className="text-gray-500 text-xs mt-2">Higher levels crawl deeper into the website structure</p>
-              </div>
-
-              {/* Tags */}
-              <div className="mb-8">
-                <label className="block text-white text-sm font-medium mb-2">Tags</label>
-                <input
-                  type="text"
-                  placeholder="Add tags like 'api', 'documentation', 'guide'..."
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:border-blue-400 focus:outline-none"
-                />
-                <p className="text-gray-500 text-xs mt-1">Press Enter or comma to add tags • Backspace to remove last tag</p>
-                <p className="text-gray-500 text-xs">0/10 tags used</p>
               </div>
 
               {/* Start Crawling Button */}
-              <button className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+              <button
+                onClick={handleStartCrawl}
+                disabled={isCrawling || !crawlUrl.trim()}
+                className={`w-full py-3 text-white font-medium rounded-lg transition-colors ${
+                  isCrawling || !crawlUrl.trim()
+                    ? 'bg-gray-600 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+              >
                 <Globe className="inline h-4 w-4 mr-2" />
-                Start Crawling
+                {isCrawling ? 'Crawling...' : 'Start Crawling'}
               </button>
             </>
           ) : (
             <>
+              {/* Health Error Alert */}
+              {healthError && (
+                <div className="mb-6 p-4 bg-red-900/30 border border-red-500 rounded-lg">
+                  <div className="flex items-start">
+                    <XCircle className="h-5 w-5 text-red-400 mr-3 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <h3 className="text-red-400 font-medium mb-2">System Health Check Failed</h3>
+                      <div className="text-red-300 text-sm whitespace-pre-line mb-3">
+                        {healthError}
+                      </div>
+                      <p className="text-gray-400 text-xs">
+                        Copy this error and paste into your terminal or GPT for help resolving the issue.
+                      </p>
+                      <button
+                        onClick={() => setHealthError(null)}
+                        className="mt-3 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Upload Document Interface */}
               <div className="mb-8">
                 {uploadedFiles.length === 0 ? (
@@ -494,18 +617,26 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
               </div>
 
 
-              {/* Upload Button */}
-              <button 
+              {/* Close Button - can close even while uploading */}
+              <button
                 onClick={() => {
-                  const hasUploading = uploadedFiles.some(f => f.status === 'uploading' || f.status === 'processing')
-                  if (!hasUploading && onClose) {
+                  if (onClose) {
                     onClose()
                   }
                 }}
                 className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
               >
-                <Upload className="inline h-4 w-4 mr-2" />
-                {uploadedFiles.some(f => f.status === 'uploading' || f.status === 'processing') ? 'Uploading...' : 'Close'}
+                {uploadedFiles.some(f => f.status === 'uploading' || f.status === 'processing') ? (
+                  <>
+                    <Upload className="inline h-4 w-4 mr-2 animate-pulse" />
+                    Close (uploads continue in background)
+                  </>
+                ) : (
+                  <>
+                    <Upload className="inline h-4 w-4 mr-2" />
+                    Close
+                  </>
+                )}
               </button>
             </>
           )}

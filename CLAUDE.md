@@ -140,8 +140,10 @@ python test_consciousness_pipeline_integration.py
 
 ### Consciousness Enhanced Pipeline
 ```bash
-# Start Redis service for consciousness processing
-docker run -d --name redis-consciousness -p 6379:6379 redis:7-alpine
+# Start Redis service (native installation)
+# macOS:   brew services start redis
+# Ubuntu:  systemctl start redis
+# Or use Redis Cloud with REDIS_URL environment variable
 
 # Run enhanced pipeline with consciousness guidance
 python extensions/context_engineering/consciousness_enhanced_pipeline.py
@@ -162,10 +164,17 @@ python start_context_engineering.py --test
 python start_context_engineering.py --no-dashboard
 ```
 
-### Database Migration
+### Database Setup (Native Installation)
 ```bash
-# Start Neo4j for unified database
-docker-compose -f extensions/context_engineering/docker-compose-neo4j.yml up -d
+# Neo4j (required)
+# macOS:   brew install neo4j && brew services start neo4j
+# Ubuntu:  apt install neo4j && systemctl start neo4j
+# Or use Neo4j Aura cloud service
+
+# Redis (optional, for caching)
+# macOS:   brew install redis && brew services start redis
+# Ubuntu:  apt install redis-server && systemctl start redis
+# Or use Redis Cloud
 
 # Run database migration scripts
 python extensions/context_engineering/migration_scripts.py
@@ -261,7 +270,7 @@ python test_integration.py
 - **Hierarchical Beliefs**: Multi-level cognitive modeling
 
 ### Production Ready Features
-- **Docker Integration**: Containerized database services
+- **Docker Independent**: All services support native installation (brew, apt, managed cloud)
 - **Async Processing**: Non-blocking pipeline operations
 - **Configuration Management**: Environment-based setup
 - **Test Coverage**: Comprehensive validation suite
@@ -317,15 +326,41 @@ python numpy2_consciousness_processor.py
 
 ## System Requirements
 
+### Core Requirements
 - Python 3.8+
 - NumPy 2.0+ (use frozen environment above)
-- Redis (for ThoughtSeed caching)
-- Docker & Docker Compose (for services)
-- Neo4j (optional, for graph database features)
+- Node.js 18+ (for frontend)
 - Minimum 16GB RAM, 32GB recommended
+
+### Services (Docker-Independent)
+**Note**: This project is Docker-independent. All services support native installation.
+
+#### Neo4j (Required for document processing)
+- **Native**: `brew install neo4j` (macOS), `apt install neo4j` (Ubuntu)
+- **Cloud**: Neo4j Aura (https://neo4j.com/cloud/aura/)
+- **Config**: Set `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD` in environment
+
+#### Redis (Optional for caching)
+- **Native**: `brew install redis` (macOS), `apt install redis-server` (Ubuntu)
+- **Cloud**: Redis Cloud (https://redis.com/try-free/)
+- **Config**: Set `REDIS_URL` in environment if using cloud
+
+#### PostgreSQL (Optional for structured data)
+- **Native**: `brew install postgresql` (macOS), `apt install postgresql` (Ubuntu)
+- **Cloud**: Supabase (https://supabase.com/)
+- **Config**: Set `DATABASE_URL` in environment
+
+### External Dependencies
+**ThoughtSeeds**, **Daedalus**, and **ASI-GO-2** are external projects:
+```bash
+pip install thoughtseeds daedalus asi-go-2
+```
+These are imported as packages, NOT implemented internally.
 
 ## Important Notes
 
+- **Docker Independent**: This project does NOT require Docker. All services support native installation (brew, apt) or managed cloud alternatives
+- **External Dependencies**: ThoughtSeeds, Daedalus, and ASI-GO-2 are external packages, NOT internal implementations
 - **NumPy 2.0 ONLY**: Use the frozen environment to avoid compatibility issues FOREVER
 - **Preservation Principle**: Original ASI-Arch functionality is completely preserved
 - **Spec-Driven**: All implementation follows formal specifications

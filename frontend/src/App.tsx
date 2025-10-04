@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import DocumentUpload from './pages/DocumentUpload'
+import DocumentDetail from './pages/DocumentDetail'
 import KnowledgeGraph from './pages/KnowledgeGraph'
 import KnowledgeBase from './pages/KnowledgeBase'
 import CuriosityMissions from './pages/CuriosityMissions'
@@ -16,6 +17,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/upload" element={<DocumentUpload />} />
+          <Route path="/document/:id" element={<DocumentDetail />} />
           <Route path="/knowledge-base" element={<KnowledgeBase />} />
           <Route path="/knowledge-graph" element={<KnowledgeGraph />} />
           <Route path="/thoughtseed" element={<ThoughtSeedMonitor />} />

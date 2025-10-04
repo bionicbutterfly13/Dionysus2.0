@@ -1,8 +1,265 @@
 # 🤖 Consciousness System Agent Constitution
 
-**Version**: 1.0.0  
-**Effective Date**: 2025-09-24  
+**Version**: 1.1.0
+**Effective Date**: 2025-10-04
 **Purpose**: Establish permanent standards for agent behavior and system compatibility
+
+## 📋 Article 0: Multi-Agent Collaboration Standards
+
+### Section 0.1: Branch Isolation (MANDATORY - ZERO TOLERANCE)
+**CRITICAL**: All agents MUST work in isolated feature branches to prevent conflicts:
+
+#### 🚫 ABSOLUTELY PROHIBITED
+- **NEVER** work directly on main/master branch
+- **NEVER** commit to another agent's feature branch
+- **NEVER** merge branches without user approval
+- **NEVER** force push to shared branches
+- **NEVER** modify files being actively edited by another agent
+
+#### ✅ REQUIRED WORKFLOW
+```bash
+# MANDATORY: Start every session by checking current branch
+git branch --show-current
+
+# MANDATORY: Create feature branch if not exists
+# Format: NNN-short-description (e.g., 035-clause-phase2-multi-agent)
+git checkout -b 043-your-feature-name
+
+# MANDATORY: Commit frequently with descriptive messages
+git add -A
+git commit -m "feat: specific change description
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+# MANDATORY: Push to remote feature branch only
+git push -u origin 043-your-feature-name
+```
+
+#### 🔒 FILE LOCKING MECHANISM
+**Before modifying any file, check if another agent is using it:**
+
+```bash
+# MANDATORY: Check git status for uncommitted changes
+git status
+
+# MANDATORY: Check recent commits for active work
+git log --oneline --since="1 hour ago" --all
+
+# MANDATORY: Check if file modified in last 10 minutes
+git log --since="10 minutes ago" --name-only --oneline -- path/to/file.py
+
+# IF file recently modified by another agent: WAIT or ask user
+```
+
+#### 📝 AGENT COORDINATION FILE
+**MANDATORY**: Update `.specify/memory/agent-activity.json` before starting work:
+
+```json
+{
+  "agents": [
+    {
+      "agent_id": "claude-code-session-abc123",
+      "branch": "035-clause-phase2-multi-agent",
+      "active_files": [
+        "backend/src/services/clause/path_navigator.py",
+        "backend/tests/contract/test_navigator_contract.py"
+      ],
+      "started_at": "2025-10-04T15:30:00Z",
+      "last_heartbeat": "2025-10-04T15:45:00Z",
+      "status": "active"
+    }
+  ]
+}
+```
+
+**Update protocol:**
+```bash
+# MANDATORY: Register your session at start
+echo '{
+  "agent_id": "claude-'$(date +%s)'",
+  "branch": "'$(git branch --show-current)'",
+  "active_files": [],
+  "started_at": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'",
+  "last_heartbeat": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'",
+  "status": "active"
+}' > .specify/memory/current-agent.json
+
+# MANDATORY: Check for conflicts before editing
+jq -r '.agents[] | select(.status=="active") | .active_files[]' .specify/memory/agent-activity.json
+```
+
+### Section 0.2: Merge Conflict Prevention
+**CRITICAL**: Prevent conflicts before they happen:
+
+#### 🔍 PRE-EDIT CHECKS
+```bash
+# MANDATORY: Before editing any file, run these checks
+
+# 1. Check if file exists in other active branches
+git branch -r | xargs -I {} git ls-tree --name-only -r {} path/to/file.py
+
+# 2. Check modification time
+ls -lh path/to/file.py
+
+# 3. Check git blame for recent authors
+git blame -L 1,20 path/to/file.py --date=relative
+
+# 4. If modified in last hour by another commit, STOP and ask user
+```
+
+#### 🚨 CONFLICT DETECTION
+```bash
+# MANDATORY: Before committing, check for potential conflicts
+
+# 1. Fetch latest from all branches
+git fetch --all
+
+# 2. Check if your files conflict with other branches
+git diff origin/main...HEAD --name-only
+
+# 3. If conflicts detected, ask user before proceeding
+```
+
+#### ✅ SAFE MERGE PROTOCOL
+```bash
+# MANDATORY: Only merge when user explicitly approves
+
+# 1. Create merge preview
+git merge --no-commit --no-ff origin/main
+
+# 2. Show user what will change
+git diff --cached
+
+# 3. Ask user: "I see conflicts in X files. Should I proceed with merge?"
+
+# 4. If approved, complete merge
+git commit -m "merge: integrate main into feature branch"
+
+# 5. If rejected, abort
+git merge --abort
+```
+
+### Section 0.3: Communication Standards
+**MANDATORY**: Agents must communicate status clearly:
+
+#### 📢 STATUS REPORTING
+**REQUIRED at start of every session:**
+```
+🤖 Agent Status Report:
+- Branch: 035-clause-phase2-multi-agent
+- Current work: Implementing path navigation tests
+- Files locked:
+  - backend/src/services/clause/path_navigator.py
+  - backend/tests/contract/test_navigator_contract.py
+- Expected duration: 30 minutes
+- Last sync with main: 2 hours ago
+```
+
+#### 🔔 NOTIFICATIONS
+**REQUIRED before:**
+- Modifying shared configuration files (package.json, requirements.txt, etc.)
+- Changing database schemas
+- Modifying core interfaces/contracts
+- Merging branches
+- Force pushing (should NEVER happen, but if emergency)
+
+**Format:**
+```
+⚠️ SHARED RESOURCE MODIFICATION:
+File: backend/requirements.txt
+Change: Adding new dependency 'crawl4ai>=0.3.0'
+Impact: All agents must pip install after this commit
+Proceed? (Y/N)
+```
+
+### Section 0.4: Emergency Procedures
+**CRITICAL**: What to do when conflicts occur:
+
+#### 🆘 CONFLICT RESOLUTION PROTOCOL
+```bash
+# IF conflict detected during merge:
+
+# 1. STOP immediately
+git merge --abort
+
+# 2. Report to user
+echo "⚠️ MERGE CONFLICT DETECTED"
+echo "Conflicting files:"
+git diff --name-only --diff-filter=U
+
+# 3. Ask user for guidance
+echo "Options:"
+echo "A) Manually resolve conflicts"
+echo "B) Abort merge and continue on feature branch"
+echo "C) Coordinate with other agent"
+echo ""
+echo "Your choice?"
+
+# 4. NEVER auto-resolve conflicts without user approval
+```
+
+#### 🔄 BRANCH SYNC STRATEGY
+```bash
+# MANDATORY: Sync with main regularly to minimize conflicts
+
+# Every 2 hours or before starting new file:
+git fetch origin main
+git rebase origin/main  # Only if no conflicts
+
+# If rebase fails:
+git rebase --abort
+# Ask user: "Should I merge main into feature branch?"
+```
+
+### Section 0.5: Enforcement Mechanisms
+**REQUIRED**: Automated checks to prevent violations:
+
+#### 🛡️ PRE-COMMIT HOOKS
+Create `.git/hooks/pre-commit`:
+```bash
+#!/bin/bash
+
+# Check we're not on main
+BRANCH=$(git branch --show-current)
+if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
+  echo "❌ CONSTITUTION VIOLATION: Cannot commit directly to main"
+  exit 1
+fi
+
+# Check agent-activity.json is updated
+if [ ! -f .specify/memory/current-agent.json ]; then
+  echo "❌ CONSTITUTION VIOLATION: Agent not registered"
+  echo "Run: update_agent_activity.sh"
+  exit 1
+fi
+
+# Check for file locks
+STAGED_FILES=$(git diff --cached --name-only)
+for file in $STAGED_FILES; do
+  # Check if file locked by another agent
+  if jq -e ".agents[] | select(.status==\"active\") | .active_files[] | select(. == \"$file\")" .specify/memory/agent-activity.json > /dev/null 2>&1; then
+    echo "⚠️  WARNING: $file is locked by another agent"
+    echo "Proceed anyway? (y/N)"
+    read -r response
+    if [ "$response" != "y" ]; then
+      exit 1
+    fi
+  fi
+done
+
+exit 0
+```
+
+#### 🔍 AUDIT TRAIL
+```bash
+# MANDATORY: Every commit must include agent identifier
+git log --pretty=format:"%h %s %aN" --grep="Claude Code"
+
+# MANDATORY: Track which agent modified which files
+git log --pretty=format:"%h %aN %s" --name-only
+```
 
 ## 📋 Article I: Dependency Management
 
@@ -196,9 +453,82 @@ When import errors occur:
 3. **THIRD**: Check for circular imports → refactor to remove cycle
 4. **NEVER**: Add random sys.path hacks to "fix" it
 
-## 📋 Article II: System Integration Standards
+## 📋 Article II: System Architecture Standards
 
-### Section 2.1: Context Engineering Requirements (MANDATORY)
+### Section 2.0: Docker Independence (MANDATORY - ZERO TOLERANCE)
+**CRITICAL**: This project is Docker-independent and MUST remain so:
+
+#### 🚫 ABSOLUTELY PROHIBITED
+- **NEVER** assume Docker is available or required
+- **NEVER** create docker-compose.yml files without user request
+- **NEVER** add Docker commands to setup/startup scripts
+- **NEVER** make any service depend on Docker containers
+- **NEVER** use Docker in documentation as a requirement
+
+#### ✅ REQUIRED ARCHITECTURE
+- **ALWAYS** support native installation (pip, npm, brew, etc.)
+- **ALWAYS** provide non-Docker alternatives for all services
+- **ALWAYS** document native setup first, Docker as optional
+- **ALWAYS** test functionality without Docker present
+- **ALWAYS** use environment variables for service configuration
+
+#### 📦 SERVICE CONFIGURATION
+- **Neo4j**: Local install via brew/apt OR managed service (Neo4j Aura)
+- **Redis**: Local install via brew/apt OR managed service (Redis Cloud)
+- **PostgreSQL**: Local install via brew/apt OR managed service (Supabase)
+- **All services**: Connection via environment variables, no Docker assumed
+
+#### 🔧 ENFORCEMENT
+```bash
+# ✅ CORRECT: Native installation instructions
+brew install neo4j redis postgresql
+npm install
+pip install -r requirements.txt
+
+# ❌ WRONG: Docker-dependent setup
+docker-compose up -d  # FORBIDDEN without explicit user request
+```
+
+### Section 2.1: External Component Architecture (MANDATORY)
+**CRITICAL**: ThoughtSeeds, Daedalus, and ASI-GO-2 are EXTERNAL projects:
+
+#### 🚫 ABSOLUTELY PROHIBITED
+- **NEVER** implement ThoughtSeed logic inside Dionysus codebase
+- **NEVER** implement Daedalus services inside Dionysus codebase
+- **NEVER** copy ASI-GO-2 code into Dionysus repository
+- **NEVER** merge external project features into Dionysus
+
+#### ✅ REQUIRED IMPORT PATTERN
+```python
+# ✅ CORRECT: Import as external dependency
+from thoughtseeds import ThoughtSeedEngine, BasinTracker
+from daedalus import DaedalusGateway, PerceptualProcessor
+from asi_go_2 import CognitionBase, Researcher, Analyst
+
+# ❌ WRONG: Internal implementation
+from services.thoughtseeds import ThoughtSeedEngine  # FORBIDDEN
+from services.daedalus import DaedalusGateway  # FORBIDDEN
+```
+
+#### 📦 DEPENDENCY MANAGEMENT
+```txt
+# requirements.txt
+thoughtseeds>=1.0.0  # External package
+daedalus>=2.0.0      # External package
+asi-go-2>=0.5.0      # External package
+```
+
+#### 🔍 VERIFICATION
+```bash
+# Check for prohibited internal implementations
+grep -r "class ThoughtSeed" backend/src/  # Should return NOTHING
+grep -r "class Daedalus" backend/src/     # Should return NOTHING
+
+# Verify external imports
+grep -r "from thoughtseeds import" backend/src/  # Should find imports
+```
+
+### Section 2.2: Context Engineering Requirements (MANDATORY)
 **CRITICAL**: All agents MUST integrate Context Engineering components from the start:
 
 #### Attractor Basin Integration
