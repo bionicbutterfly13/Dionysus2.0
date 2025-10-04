@@ -10,9 +10,12 @@ Per Spec 035:
 - ThoughtSeed generation: Bulk generation with basin context (Spec 028)
 - Curiosity triggers: Redis queue for prediction_error > threshold (Spec 029)
 - Causal reasoning: Pre-computed DAG with LRU cache (Spec 033)
+- T024: AsyncIO causal timeout (30ms) with background queue fallback
 - Latency target: <200ms per navigation
 """
 
+import asyncio
+import hashlib
 import numpy as np
 import logging
 from typing import Dict, Any, List, Optional, Tuple
@@ -25,6 +28,7 @@ from models.clause.path_models import (
     PathNavigationResponse,
 )
 from models.clause.shared_models import StateEncoding
+from services.causal.causal_queue import CausalQueue, CausalQueueItem
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +52,7 @@ class PathNavigator:
         basin_tracker=None,
         thoughtseed_generator=None,
         causal_network=None,
+        causal_queue=None,
     ):
         """
         Initialize PathNavigator with required dependencies.
@@ -59,6 +64,7 @@ class PathNavigator:
             basin_tracker: AttractorBasin tracker from Phase 1
             thoughtseed_generator: ThoughtSeed generation service (Spec 028)
             causal_network: Causal Bayesian network (Spec 033)
+            causal_queue: CausalQueue for background causal processing (T041a)
         """
         self.neo4j = neo4j_client
         self.redis = redis_client
@@ -66,10 +72,14 @@ class PathNavigator:
         self.basin_tracker = basin_tracker
         self.thoughtseed_gen = thoughtseed_generator
         self.causal_net = causal_network
+        self.causal_queue = causal_queue
 
         # Termination head weights (placeholder - will be learned via LC-MAPPO)
         self.termination_head_weights = np.random.randn(1155)  # 1154 state + 1 budget
         self.termination_head_bias = 0.0
+
+        # T024: Track previous query hash for causal result lookup
+        self._prev_query_hash: Optional[str] = None
 
         logger.info("PathNavigator initialized")
 
@@ -149,15 +159,35 @@ class PathNavigator:
 
             # Score candidates with optional causal reasoning
             scored_candidates = []
+
+            # T024: Check for previous step's causal results
+            causal_scores_dict = None
+            causal_fallback_used = False
+            if request.enable_causal and self.causal_queue and self._prev_query_hash:
+                causal_scores_dict = await self.causal_queue.get_result(self._prev_query_hash)
+                if causal_scores_dict:
+                    logger.debug(f"Using cached causal results from previous step")
+
             for candidate in candidates:
-                # T025: Causal reasoning (if enabled)
+                # T024: Causal reasoning with AsyncIO timeout (if enabled)
                 causal_score = None
                 if request.enable_causal and self.causal_net:
                     causal_start = time.time()
-                    causal_score = await self._estimate_causal_intervention(
-                        intervention_node=candidate["node"],
-                        target_node=request.query,  # Proxy for answer
-                    )
+
+                    # Try to use cached results from previous step first
+                    if causal_scores_dict and candidate["node"] in causal_scores_dict:
+                        causal_score = causal_scores_dict[candidate["node"]]
+                        logger.debug(f"Using cached causal score for {candidate['node']}")
+                    else:
+                        # T024: AsyncIO timeout with fallback
+                        causal_score, causal_fallback_used = await self._causal_predict_with_timeout(
+                            candidates=[c["node"] for c in candidates],
+                            query_hash=self._make_query_hash(request.query, step_num),
+                            step_num=step_num,
+                        )
+                        # Extract score for this candidate
+                        causal_score = causal_score.get(candidate["node"], 0.5)
+
                     perf_tracker["causal_pred_ms"] += (time.time() - causal_start) * 1000
 
                 # Base score (semantic similarity)
@@ -418,7 +448,83 @@ class PathNavigator:
         await self.redis.lpush("curiosity_queue", str(trigger_data))
         logger.debug(f"Curiosity trigger queued for concept: {concept}")
 
-    # T025: Causal Reasoning Hook
+    # T024: AsyncIO Causal Timeout with Background Queue
+    async def _causal_predict_with_timeout(
+        self,
+        candidates: List[str],
+        query_hash: str,
+        step_num: int,
+    ) -> Tuple[Dict[str, float], bool]:
+        """
+        T024: Causal prediction with 30ms AsyncIO timeout and background queue fallback.
+
+        Per research.md decision 14:
+        - Try causal prediction with 30ms timeout
+        - On timeout: queue for background processing, use semantic similarity fallback
+        - On success: return causal scores
+        - Next step checks queue for previous step's results
+
+        Args:
+            candidates: List of candidate node names
+            query_hash: Hash identifying this query (for result lookup)
+            step_num: Current navigation step
+
+        Returns:
+            Tuple of (scores_dict, fallback_used)
+            - scores_dict: Dict[candidate -> causal_score]
+            - fallback_used: True if semantic fallback was used
+        """
+        if not self.causal_net:
+            return {}, True
+
+        try:
+            # T024: AsyncIO timeout (30ms)
+            scores = await asyncio.wait_for(
+                self.causal_net.predict(candidates),
+                timeout=0.03  # 30ms timeout
+            )
+
+            # Success - store query hash for next step
+            self._prev_query_hash = query_hash
+            logger.debug(f"Causal prediction succeeded within 30ms")
+            return scores, False
+
+        except asyncio.TimeoutError:
+            # T024: Timeout - queue for background processing
+            logger.debug(f"Causal prediction timeout - queueing for background processing")
+
+            if self.causal_queue:
+                # Queue this prediction
+                await self.causal_queue.put(
+                    CausalQueueItem(
+                        query_hash=query_hash,
+                        candidates=candidates,
+                        step_num=step_num,
+                    )
+                )
+
+                # Store query hash for next step result lookup
+                self._prev_query_hash = query_hash
+
+            # T024: Fallback to semantic similarity (uniform scores)
+            fallback_scores = {candidate: 0.5 for candidate in candidates}
+            return fallback_scores, True
+
+    def _make_query_hash(self, query: str, step_num: int) -> str:
+        """
+        Create hash for query + step to identify causal results.
+
+        Args:
+            query: Query text
+            step_num: Navigation step number
+
+        Returns:
+            SHA256 hash (first 16 chars)
+        """
+        content = f"{query}:{step_num}"
+        return hashlib.sha256(content.encode()).hexdigest()[:16]
+
+    # T025: Causal Reasoning Hook (DEPRECATED - use _causal_predict_with_timeout instead)
     async def _estimate_causal_intervention(
         self, intervention_node: str, target_node: str
     ) -> Optional[float]:
@@ -427,6 +533,9 @@ class PathNavigator:
 
         Integrates with Spec 033 for causal reasoning.
         Uses pre-computed DAG + LRU cache for <30ms latency.
+
+        NOTE: This method is deprecated in favor of _causal_predict_with_timeout (T024).
+        Kept for backward compatibility.
 
         Args:
             intervention_node: Node to intervene on
