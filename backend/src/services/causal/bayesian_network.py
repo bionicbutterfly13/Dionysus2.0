@@ -1,190 +1,281 @@
 """
-T040: Causal Bayesian Network Service
+T042-T043: CausalBayesianNetwork service
 
-Implements causal reasoning per Spec 033.
-Uses pre-computed DAG with LRU cache for <30ms intervention predictions.
+Implements causal reasoning using do-calculus on knowledge graph structure.
+Per research.md decision 5: Pre-computed DAG + LRU cache for intervention predictions.
 
-Key Features:
-- Pre-computed causal DAG structure
-- Do-calculus for intervention estimation
-- LRU cache (size=1000) for fast lookup
-- <30ms latency target
+Uses Neo4j graph structure to build causal DAG and estimate intervention effects.
 """
 
 import logging
-from typing import Dict, Optional, Tuple
 from functools import lru_cache
-import time
-
-from models.clause.causal_models import CausalIntervention
+from typing import Dict, Optional, Set, Tuple
+import hashlib
 
 logger = logging.getLogger(__name__)
 
 
 class CausalBayesianNetwork:
     """
-    Causal Bayesian Network for intervention estimation.
+    Causal Bayesian Network for intervention prediction.
 
-    Per Spec 033:
-    - Pre-compute causal DAG structure offline
-    - Use do-calculus: P(target | do(intervention))
-    - LRU cache for frequent intervention queries
-    - Target latency: <30ms per prediction
+    Per research.md decision 5:
+    - Pre-compute causal DAG from Neo4j graph structure
+    - Use do-calculus to estimate P(target | do(intervention))
+    - LRU cache (size=1000) for prediction results
     """
 
-    def __init__(self, neo4j_client=None, cache_size: int = 1000):
+    def __init__(self, neo4j_client=None):
         """
-        Initialize Causal Bayesian Network.
+        Initialize CausalBayesianNetwork.
 
         Args:
-            neo4j_client: Neo4j client for DAG structure
-            cache_size: LRU cache size (default 1000)
+            neo4j_client: Neo4jClient instance (injected)
         """
         self.neo4j = neo4j_client
-        self.cache_size = cache_size
+        self.dag_cache: Dict[str, Set[str]] = {}  # node -> children
+        self.dag_built = False
 
-        # Pre-computed DAG structure (adjacency list)
-        self.dag: Dict[str, list] = {}
-
-        # Intervention cache (will use @lru_cache on method)
-        self.cache_hits = 0
-        self.cache_misses = 0
-
-        logger.info(f"Causal Bayesian Network initialized (cache_size={cache_size})")
-
-    async def build_dag(self) -> None:
+    async def build_causal_dag(self) -> None:
         """
-        Build causal DAG structure from Neo4j.
+        Pre-compute causal DAG structure from Neo4j.
 
-        Offline pre-computation for fast online queries.
+        Builds directed graph from Neo4j relationships:
+        - CAUSES → causal edge
+        - RELATED_TO → bidirectional edge
+        - HAS_CONCEPT → concept hierarchy
+
+        Stores in self.dag_cache for fast lookup.
         """
         if not self.neo4j:
-            logger.warning("Neo4j not configured - using empty DAG")
+            logger.warning("Neo4j not available, using empty DAG")
+            self.dag_built = True
             return
 
-        # Query Neo4j for causal relationships
-        # Placeholder - would use actual Neo4j query
-        query = """
-        MATCH (a)-[r:CAUSES]->(b)
-        RETURN a.id AS from, b.id AS to
+        logger.info("Building causal DAG from Neo4j graph...")
+
+        try:
+            # Query Neo4j for causal relationships
+            query = """
+            MATCH (source)-[r:CAUSES|RELATED_TO|HAS_CONCEPT]->(target)
+            RETURN source.name AS source_name, target.name AS target_name, type(r) AS rel_type
+            LIMIT 10000
+            """
+
+            # Execute query (mock implementation for now)
+            # In production, would use self.neo4j.execute_query(query)
+            results = []
+
+            # Build DAG from results
+            for record in results:
+                source = record.get("source_name", "")
+                target = record.get("target_name", "")
+                rel_type = record.get("rel_type", "")
+
+                if source and target:
+                    # Add edge to DAG
+                    if source not in self.dag_cache:
+                        self.dag_cache[source] = set()
+
+                    if rel_type == "CAUSES":
+                        # Directed causal edge
+                        self.dag_cache[source].add(target)
+                    elif rel_type in ["RELATED_TO", "HAS_CONCEPT"]:
+                        # Bidirectional edge (add both directions)
+                        self.dag_cache[source].add(target)
+                        if target not in self.dag_cache:
+                            self.dag_cache[target] = set()
+                        self.dag_cache[target].add(source)
+
+            self.dag_built = True
+            logger.info(f"Causal DAG built: {len(self.dag_cache)} nodes")
+
+        except Exception as e:
+            logger.error(f"Failed to build causal DAG: {e}", exc_info=True)
+            self.dag_built = True  # Mark as built to avoid retry loops
+
+    async def predict(self, candidates: list[str]) -> Dict[str, float]:
         """
+        Predict causal scores for candidate nodes.
 
-        # Build adjacency list
-        # results = await self.neo4j.execute(query)
-        # for record in results:
-        #     self.dag.setdefault(record["from"], []).append(record["to"])
+        Args:
+            candidates: List of candidate node names
 
-        logger.info(f"DAG built with {len(self.dag)} nodes")
+        Returns:
+            Dict[candidate -> causal_score] (0.0-1.0)
+        """
+        if not self.dag_built:
+            await self.build_causal_dag()
+
+        scores = {}
+
+        for candidate in candidates:
+            # Use cached do-calculus prediction
+            score = self._do_calculus_cached(candidate)
+            scores[candidate] = score
+
+        return scores
+
+    @lru_cache(maxsize=1000)
+    def _do_calculus_cached(self, target_node: str) -> float:
+        """
+        Cached do-calculus intervention prediction.
+
+        Args:
+            target_node: Target node for intervention
+
+        Returns:
+            Intervention score (0.0-1.0)
+        """
+        # Simplified do-calculus: use graph connectivity as proxy
+        # In production, would implement full do-calculus algorithm
+
+        if target_node not in self.dag_cache:
+            return 0.5  # Default score for unknown nodes
+
+        # Score based on out-degree (more connections = higher causal influence)
+        out_degree = len(self.dag_cache[target_node])
+        score = min(1.0, out_degree / 10.0)  # Normalize to [0, 1]
+
+        return score
 
     async def estimate_intervention(
-        self, intervention: str, target: str
-    ) -> Optional[float]:
+        self, intervention_node: str, target_node: str
+    ) -> float:
         """
-        Estimate causal intervention effect using do-calculus.
+        Estimate P(target | do(intervention)) using do-calculus.
 
-        P(target | do(intervention)) - probability of target given intervention.
+        Args:
+            intervention_node: Node to intervene on
+            target_node: Target outcome node
+
+        Returns:
+            Intervention score (0.0-1.0)
+        """
+        if not self.dag_built:
+            await self.build_causal_dag()
+
+        # Use cached prediction
+        cache_key = self._make_cache_key(intervention_node, target_node)
+        return self._estimate_intervention_cached(cache_key)
+
+    @lru_cache(maxsize=1000)
+    def _estimate_intervention_cached(self, cache_key: str) -> float:
+        """
+        Cached intervention estimation.
+
+        Args:
+            cache_key: Hash of (intervention_node, target_node)
+
+        Returns:
+            Intervention score (0.0-1.0)
+        """
+        # Simplified implementation: check if path exists from intervention to target
+        # In production, would implement full backdoor criterion + do-calculus
+
+        intervention_node, target_node = cache_key.split("->")
+
+        # BFS to find path
+        if intervention_node not in self.dag_cache:
+            return 0.3  # Default low score
+
+        visited = set()
+        queue = [intervention_node]
+        depth = 0
+        max_depth = 5
+
+        while queue and depth < max_depth:
+            current = queue.pop(0)
+
+            if current == target_node:
+                # Path found - score based on depth (shorter = stronger causal link)
+                return 1.0 - (depth / max_depth)
+
+            if current in visited:
+                continue
+
+            visited.add(current)
+
+            # Add neighbors to queue
+            if current in self.dag_cache:
+                for neighbor in self.dag_cache[current]:
+                    if neighbor not in visited:
+                        queue.append(neighbor)
+
+            depth += 1
+
+        # No path found - weak causal link
+        return 0.2
+
+    def _make_cache_key(self, intervention_node: str, target_node: str) -> str:
+        """Create cache key for intervention pair"""
+        return f"{intervention_node}->{target_node}"
+
+    def do_calculus(self, intervention: str, target: str) -> float:
+        """
+        T043: Do-calculus intervention prediction (synchronous wrapper).
 
         Args:
             intervention: Intervention node
-            target: Target outcome node
-
-        Returns:
-            Intervention score [0, 1] or None
-        """
-        start_time = time.time()
-
-        # Check cache
-        cache_key = (intervention, target)
-        score = self._cached_do_calculus(cache_key)
-
-        computation_time_ms = (time.time() - start_time) * 1000
-
-        if score is not None:
-            self.cache_hits += 1
-            logger.debug(
-                f"Cache hit: {intervention} → {target} ({computation_time_ms:.2f}ms)"
-            )
-        else:
-            self.cache_misses += 1
-            logger.debug(
-                f"Cache miss: {intervention} → {target} ({computation_time_ms:.2f}ms)"
-            )
-
-        # Return as CausalIntervention model
-        if score is not None:
-            return score
-
-        return None
-
-    @lru_cache(maxsize=1000)
-    def _cached_do_calculus(self, cache_key: Tuple[str, str]) -> Optional[float]:
-        """
-        Cached do-calculus computation.
-
-        Uses LRU cache for fast repeated queries.
-
-        Args:
-            cache_key: (intervention, target) tuple
-
-        Returns:
-            Intervention score or None
-        """
-        intervention, target = cache_key
-
-        # Check if path exists in DAG
-        if intervention not in self.dag:
-            return None
-
-        # Compute P(target | do(intervention)) using do-calculus
-        # Placeholder - simplified path-based scoring
-        if target in self.dag.get(intervention, []):
-            return 0.85  # Direct causal link
-        elif self._has_path(intervention, target):
-            return 0.60  # Indirect causal link
-        else:
-            return 0.10  # No causal link
-
-    def _has_path(self, source: str, target: str, visited=None) -> bool:
-        """
-        Check if path exists from source to target in DAG.
-
-        Args:
-            source: Source node
             target: Target node
-            visited: Set of visited nodes (for cycle detection)
 
         Returns:
-            True if path exists
+            Intervention score (0.0-1.0)
         """
-        if visited is None:
-            visited = set()
+        # Synchronous wrapper for async estimate_intervention
+        # Use cached version directly
+        cache_key = self._make_cache_key(intervention, target)
+        return self._estimate_intervention_cached(cache_key)
 
-        if source == target:
-            return True
-
-        if source in visited:
-            return False
-
-        visited.add(source)
-
-        for neighbor in self.dag.get(source, []):
-            if self._has_path(neighbor, target, visited):
-                return True
-
-        return False
-
-    def get_cache_stats(self) -> Dict[str, int]:
+    def get_descendants(self, node: str, max_depth: int = 3) -> Set[str]:
         """
-        Get cache statistics.
+        Get all descendant nodes (children, grandchildren, etc.)
+
+        Args:
+            node: Source node
+            max_depth: Maximum traversal depth
 
         Returns:
-            Dict with cache_hits, cache_misses, hit_rate
+            Set of descendant node names
         """
-        total = self.cache_hits + self.cache_misses
-        hit_rate = self.cache_hits / total if total > 0 else 0.0
+        if node not in self.dag_cache:
+            return set()
 
+        descendants = set()
+        visited = set()
+        queue = [(node, 0)]
+
+        while queue:
+            current, depth = queue.pop(0)
+
+            if depth >= max_depth:
+                continue
+
+            if current in visited:
+                continue
+
+            visited.add(current)
+
+            # Add children
+            if current in self.dag_cache:
+                for child in self.dag_cache[current]:
+                    descendants.add(child)
+                    queue.append((child, depth + 1))
+
+        return descendants
+
+    def get_dag_stats(self) -> Dict:
+        """Get DAG statistics for debugging"""
         return {
-            "cache_hits": self.cache_hits,
-            "cache_misses": self.cache_misses,
-            "hit_rate": hit_rate,
+            "nodes": len(self.dag_cache),
+            "edges": sum(len(children) for children in self.dag_cache.values()),
+            "avg_degree": (
+                sum(len(children) for children in self.dag_cache.values())
+                / len(self.dag_cache)
+                if self.dag_cache
+                else 0
+            ),
+            "cache_size": self._do_calculus_cached.cache_info().currsize,
+            "cache_hits": self._do_calculus_cached.cache_info().hits,
+            "cache_misses": self._do_calculus_cached.cache_info().misses,
         }
