@@ -127,14 +127,14 @@
 ### **Immediate Actions (Next 15 minutes)**
 1. **Agent-B**: Provide status update (REQUIRED)
 2. **Agent-A**: Complete coordination protocol setup
-3. **Agent-CX**: Select first implementation target (recommend `feature/response-synthesizer-llm`) and draft failing test outline
+3. **Agent-CX**: Prepare merge plan for `feature/response-synthesizer-llm` and circulate test results
 4. **All Agents**: Review coordination protocols
 
 ### **Short Term Actions (Next 2 hours)**
 1. **Agent-A**: Create remaining coordination documents
 2. **Agent-A**: Prepare Dionysus 1.0 for GitHub push
 3. **Agent-B**: Begin assigned development task
-4. **Agent-CX**: Open spec/TDD notes for selected implementation branch and schedule work session
+4. **Agent-CX**: Kick off next backlog item (document processor adapters) with TDD outline
 5. **All Agents**: Establish regular update rhythm
 
 ### **Medium Term Actions (Next day)**
