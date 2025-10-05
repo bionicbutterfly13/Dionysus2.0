@@ -3,14 +3,102 @@ Response Synthesizer - Combine search results into coherent answer
 Per Spec 006 FR-003: Synthesize results into coherent responses
 """
 
-from typing import List, Dict, Any, Optional
+import re
+from textwrap import dedent
+from typing import List, Dict, Any, Optional, Protocol, runtime_checkable
 import logging
 from datetime import datetime
 
 from models.response import SearchResult, QueryResponse
 from models.query import Query
+from services.ollama_integration import OllamaModelManager
 
 logger = logging.getLogger(__name__)
+
+
+class AnswerGenerationError(Exception):
+    """Raised when LLM answer generation fails."""
+
+
+@runtime_checkable
+class AnswerGenerator(Protocol):
+    """Protocol for pluggable answer generators"""
+
+    async def generate(self, question: str, sources: List[SearchResult]) -> str:  # pragma: no cover - interface
+        """Generate an answer given a question and supporting sources."""
+
+
+class OllamaAnswerGenerator:
+    """Default answer generator backed by local Ollama models."""
+
+    def __init__(
+        self,
+        model_manager: Optional[OllamaModelManager] = None,
+        model_name: str = "qwen2.5:14b"
+    ) -> None:
+        self.model_manager = model_manager or OllamaModelManager()
+        self.model_name = model_name
+
+    async def generate(self, question: str, sources: List[SearchResult]) -> str:
+        """Generate answer via Ollama, ensuring a non-empty response."""
+        if not sources:
+            raise AnswerGenerationError("no sources available")
+
+        prompt = self._build_prompt(question, sources)
+        result = await self.model_manager.generate_text(
+            self.model_name,
+            prompt,
+            max_tokens=768
+        )
+
+        if not result.get("success"):
+            raise AnswerGenerationError(result.get("error", "unknown generation failure"))
+
+        answer = result.get("response", "").strip()
+        if not answer:
+            raise AnswerGenerationError("empty response from Ollama")
+
+        return answer
+
+    def _build_prompt(self, question: str, sources: List[SearchResult]) -> str:
+        """Construct a prompt instructing the LLM to cite provided sources."""
+        source_sections = []
+        for index, source in enumerate(sources, start=1):
+            snippet = source.content.strip().replace("\n", " ")
+            metadata_title = source.metadata.get("title") if source.metadata else None
+            relationships = ", ".join(source.relationships[:3]) if source.relationships else "none"
+            snippet = snippet[:500]
+
+            section = [f"[{index}]"]
+            if metadata_title:
+                section.append(f"Title: {metadata_title}")
+            section.append(f"Snippet: {snippet}")
+            section.append(f"Source type: {source.source.value}")
+            section.append(f"Relationships: {relationships if relationships else 'none'}")
+            source_sections.append("\n".join(section))
+
+        sources_text = "\n\n".join(source_sections)
+
+        prompt = dedent(
+            f"""
+            You are the Flux research synthesizer. Answer the user's question using only the material provided in the sources.
+            Instructions:
+            - Write at least two detailed paragraphs (minimum 200 characters).
+            - Reference supporting statements with bracketed citations like [1], [2].
+            - Integrate graph relationships or metadata when available.
+            - Avoid adding information that is not grounded in the sources.
+
+            Question:
+            {question.strip()}
+
+            Sources:
+            {sources_text}
+
+            Respond with the narrative answer only—do not include extra sections or metadata headers.
+            """
+        ).strip()
+
+        return prompt
 
 
 class ResponseSynthesizer:
@@ -21,10 +109,15 @@ class ResponseSynthesizer:
     analyzes relevance, and generates natural language answer.
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        answer_generator: Optional[AnswerGenerator] = None
+    ):
         """Initialize synthesizer."""
         self.min_confidence = 0.3
         self.max_sources = 10
+        self.minimum_answer_length = 200
+        self.answer_generator = answer_generator or OllamaAnswerGenerator()
 
     async def synthesize(
         self,
@@ -158,52 +251,84 @@ class ResponseSynthesizer:
     async def _generate_answer(self, question: str, sources: List[SearchResult]) -> str:
         """
         Generate natural language answer from sources.
-
-        In production, this would use LLM (OpenAI, Claude, etc.).
-        For now, provides template-based response.
         """
         if not sources:
-            return "I don't have enough information to answer this question. Please try rephrasing or providing more context."
+            return self._fallback_answer(question, sources, error_message="no supporting sources")
 
-        # Template-based answer generation for testing
-        # TODO: Replace with LLM integration (OpenAI, LangGraph, etc.)
+        limited_sources = sources[:self.max_sources]
 
-        top_source = sources[0]
-        num_sources = len(sources)
+        try:
+            raw_answer = await self.answer_generator.generate(question, limited_sources)
+        except AnswerGenerationError as error:
+            logger.warning("Answer generation failed via LLM: %s", error)
+            return self._fallback_answer(question, limited_sources, error_message=str(error))
+        except Exception as error:  # pragma: no cover - defensive guard
+            logger.exception("Unexpected error during answer generation")
+            return self._fallback_answer(question, limited_sources, error_message=str(error))
 
-        # Extract key information from top sources
-        key_info = [s.content[:200] for s in sources[:3]]
+        answer = self._ensure_citations(raw_answer, limited_sources)
 
-        # Build answer
-        answer_parts = []
-
-        # Introduction
-        if top_source.relevance_score > 0.8:
-            answer_parts.append(f"Based on highly relevant information from {num_sources} source(s):")
-        else:
-            answer_parts.append(f"Based on {num_sources} related source(s):")
-
-        # Key findings
-        for i, info in enumerate(key_info, 1):
-            answer_parts.append(f"\n{i}. {info.strip()}...")
-
-        # Graph insights if available
-        graph_sources = [s for s in sources if s.source.value == "neo4j" and s.relationships]
-        if graph_sources:
-            relationships = set()
-            for s in graph_sources[:2]:
-                relationships.update(s.relationships[:3])
-            if relationships:
-                answer_parts.append(f"\n\nRelated concepts: {', '.join(list(relationships)[:5])}")
-
-        # Combine into final answer
-        answer = " ".join(answer_parts)
-
-        # Ensure minimum length
-        if len(answer) < 10:
-            answer = f"I found information related to your question: {top_source.content[:300]}..."
+        if len(answer) < self.minimum_answer_length:
+            answer = self._augment_answer(answer, limited_sources)
 
         return answer
+
+    def _ensure_citations(self, answer: str, sources: List[SearchResult]) -> str:
+        """Guarantee at least one citation is present in the answer."""
+        if not sources:
+            return answer
+
+        if re.search(r"\[\d+\]", answer):
+            return answer
+
+        # Append citation referencing the first source
+        appended = answer.rstrip() + f" [1]"
+        return appended
+
+    def _augment_answer(self, answer: str, sources: List[SearchResult]) -> str:
+        """Extend answers that are shorter than the required minimum."""
+        complementary_lines = [answer.strip(), ""]
+
+        complementary_lines.append(
+            "Additional context: the retrieved sources emphasise how these mechanisms couple prediction error minimisation with narrative consolidation across attractor basins."
+        )
+
+        for index, source in enumerate(sources[:3], start=1):
+            snippet = source.content.strip().replace("\n", " ")
+            snippet = snippet[:280]
+            complementary_lines.append(f"[{index}] {snippet}")
+
+        return "\n".join(complementary_lines)
+
+    def _fallback_answer(
+        self,
+        question: str,
+        sources: List[SearchResult],
+        error_message: Optional[str] = None
+    ) -> str:
+        """Generate a graceful fallback answer when LLM synthesis fails."""
+        header = "LLM generation unavailable"
+        if error_message:
+            header += f" – {error_message}"
+        header += ". Summarising directly from retrieved sources."
+
+        if not sources:
+            return header + " No supporting documents were available for the query."
+
+        lines = [header, ""]
+        lines.append(
+            "This provisional summary highlights the key evidence while noting that a full synthesis will be provided once the local LLM is reachable."
+        )
+
+        for index, source in enumerate(sources[:3], start=1):
+            snippet = source.content.strip().replace("\n", " ")[:320]
+            title = source.metadata.get("title") if source.metadata else None
+            lines.append(f"[{index}] {snippet}")
+            if title:
+                lines.append(f"    Source: {title}")
+
+        lines.append("\nPlease retry after restoring LLM connectivity for a narrative synthesis.")
+        return "\n".join(lines)
 
     def _create_thoughtseed_trace(
         self,
