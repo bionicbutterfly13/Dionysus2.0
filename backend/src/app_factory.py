@@ -9,10 +9,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
 import os
+import sys
 import yaml
 from pathlib import Path
 
-from .api.routes import documents, curiosity, visualization, stats, consciousness, query, crawl, health
+BACKEND_SRC = Path(__file__).resolve().parent
+if str(BACKEND_SRC) not in sys.path:
+    sys.path.insert(0, str(BACKEND_SRC))
+
+from .api.routes import (  # noqa: E402  — import after sys.path adjustment
+    documents,
+    curiosity,
+    visualization,
+    stats,
+    consciousness,
+    query,
+    crawl,
+    health,
+)
 # from .api.routes import clause  # Import separately to avoid circular dependency
 # from .api.routes import demo_clause  # Demo CLAUSE pipeline
 from .middleware.auth import LocalAuthMiddleware
