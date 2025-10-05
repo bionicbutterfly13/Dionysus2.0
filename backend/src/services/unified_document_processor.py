@@ -21,6 +21,10 @@ from datetime import datetime
 from pathlib import Path
 import hashlib
 import json
+import re
+from collections import Counter
+
+logger = logging.getLogger(__name__)
 
 # Document extraction libraries
 try:
@@ -42,15 +46,67 @@ try:
 except ImportError:
     FITZ_AVAILABLE = False
 
-# Our existing extraction systems
-from ..legacy.daedalus_bridge.context_isolator import ContextIsolatedAgent
-from ...dionysus_source.agents.advanced_algorithm_extractor import AdvancedAlgorithmExtractor
-from ...dionysus_source.kggen.core_extractor import KGGenExtractor
-from ...dionysus_source.agents.langextract_adapter import LangExtractAdapter
-from ...dionysus_source.agents.thoughtseed_core import ThoughtseedNetwork, NeuronalPacket
-from ...dionysus_source.constitutional_document_gateway import ConstitutionalDocumentGateway
+# Optional Dionysus subsystems (graceful fallbacks if unavailable)
+try:
+    from legacy.daedalus_bridge.context_isolator import ContextIsolatedAgent  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    ContextIsolatedAgent = None
+    logger.warning("ContextIsolatedAgent not available - context isolation disabled")
 
-logger = logging.getLogger(__name__)
+try:
+    from dionysus_source.agents.advanced_algorithm_extractor import AdvancedAlgorithmExtractor  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    class AdvancedAlgorithmExtractor:  # type: ignore
+        async def extract(self, document_path: str) -> Dict[str, Any]:
+            return {"algorithms": [], "status": "unavailable"}
+
+    logger.warning("AdvancedAlgorithmExtractor not available - using fallback extractor")
+
+try:
+    from dionysus_source.kggen.core_extractor import KGGenExtractor  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    class KGGenExtractor:  # type: ignore
+        async def extract(self, document_path: str) -> Dict[str, Any]:
+            return {"entities": [], "relationships": [], "status": "unavailable"}
+
+    logger.warning("KGGenExtractor not available - using fallback extractor")
+
+try:
+    from dionysus_source.agents.langextract_adapter import LangExtractAdapter, LANGEXTRACT_AVAILABLE as ADAPTER_LANGEXTRACT_AVAILABLE  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    class LangExtractAdapter:  # type: ignore
+        async def extract(self, document_path: str) -> Dict[str, Any]:
+            return {"sections": [], "entities": [], "status": "unavailable"}
+
+    ADAPTER_LANGEXTRACT_AVAILABLE = False
+    logger.warning("LangExtractAdapter not available - using fallback structured extraction")
+
+# Align overall availability flag with adapter state
+LANGEXTRACT_AVAILABLE = LANGEXTRACT_AVAILABLE and ADAPTER_LANGEXTRACT_AVAILABLE
+
+try:
+    from dionysus_source.agents.thoughtseed_core import ThoughtseedNetwork, NeuronalPacket  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    class ThoughtseedNetwork:  # type: ignore
+        async def process_packet(self, packet: "NeuronalPacket") -> Dict[str, Any]:
+            return {"layers": [], "packet_id": packet.id}
+
+    class NeuronalPacket:  # type: ignore
+        def __init__(self, id: str, content: Dict[str, Any], activation_level: float = 0.0):
+            self.id = id
+            self.content = content
+            self.activation_level = activation_level
+
+    logger.warning("ThoughtSeedNetwork not available - using fallback consciousness processor")
+
+try:
+    from dionysus_source.constitutional_document_gateway import ConstitutionalDocumentGateway  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    class ConstitutionalDocumentGateway:  # type: ignore
+        def validate(self, document_path: str) -> Dict[str, Any]:
+            return {"approved": True, "reason": "fallback"}
+
+    logger.warning("ConstitutionalDocumentGateway not available - using permissive fallback")
 
 @dataclass
 class ExtractionCapability:
@@ -158,6 +214,113 @@ class UnifiedDocumentProcessor:
         processors["thoughtseed"] = self.thoughtseed_network
 
         return processors
+
+    # ------------------------------------------------------------------
+    # Utility helpers
+    # ------------------------------------------------------------------
+
+    def _read_plain_text(self, path: Path) -> str:
+        """Read text from a file with defensive fallbacks."""
+        try:
+            return path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            return path.read_text(encoding="utf-8", errors="ignore")
+        except Exception:
+            logger.warning("Failed to read text from %s", path)
+            return ""
+
+    def _split_into_sections(self, text: str) -> List[Dict[str, Any]]:
+        """Split text into lightweight sections for fallback structured extraction."""
+        paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
+        sections: List[Dict[str, Any]] = []
+
+        for index, paragraph in enumerate(paragraphs, start=1):
+            lines = [ln.strip() for ln in paragraph.splitlines() if ln.strip()]
+            if not lines:
+                continue
+
+            title_candidate = lines[0].rstrip(": ").strip()
+            if not title_candidate or len(title_candidate) > 120:
+                title_candidate = f"Section {index}"
+
+            body_lines = lines[1:] if len(lines) > 1 else lines
+            body = "\n".join(body_lines).strip() or paragraph
+
+            sections.append({
+                "id": f"section_{index}",
+                "title": title_candidate,
+                "content": paragraph.strip(),
+                "summary": body[:200].strip()
+            })
+
+        if not sections and text.strip():
+            sections.append({
+                "id": "section_1",
+                "title": "Document",
+                "content": text.strip(),
+                "summary": text.strip()[:200]
+            })
+
+        return sections
+
+    def _extract_entities(self, text: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """Extract simple entities for fallback knowledge graph/structured data."""
+        words = re.findall(r"[A-Za-z][A-Za-z0-9_-]{3,}", text)
+        counts: Counter[str] = Counter()
+        for word in words:
+            if word[0].isupper():
+                counts[word.rstrip(',.:;')] += 1
+
+        if not counts:
+            # fall back to most frequent lowercase tokens of length > 4
+            fallback_counts = Counter(
+                word.lower().rstrip(',.:;')
+                for word in words if len(word) > 4
+            )
+            counts = Counter({name.title(): freq for name, freq in fallback_counts.items()})
+
+        entities: List[Dict[str, Any]] = []
+        for index, (name, freq) in enumerate(counts.most_common(limit), start=1):
+            entities.append({
+                "id": f"entity_{index}",
+                "name": name,
+                "frequency": freq,
+                "salience": min(freq / max(len(text.split()), 1), 1.0)
+            })
+
+        return entities
+
+    def _build_relationships(self, sentences: List[str], entities: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Create lightweight co-occurrence relationships for fallback KG extraction."""
+        relationships: List[Dict[str, Any]] = []
+        entity_names = [entity["name"] for entity in entities]
+
+        for idx, sentence in enumerate(sentences):
+            tokens = re.findall(r"[A-Za-z][A-Za-z0-9_-]{2,}", sentence)
+            if len(tokens) < 2:
+                continue
+
+            source = tokens[0].rstrip(',.:;')
+            target = tokens[1].rstrip(',.:;')
+
+            relationships.append({
+                "id": f"relationship_{idx + 1}",
+                "source": source,
+                "target": target,
+                "type": "co_occurrence",
+                "confidence": 0.4
+            })
+
+        if not relationships and len(entity_names) >= 2:
+            relationships.append({
+                "id": "relationship_1",
+                "source": entity_names[0],
+                "target": entity_names[1],
+                "type": "co_occurrence",
+                "confidence": 0.3
+            })
+
+        return relationships
 
     async def process_document(self,
                              document_path: str,
@@ -267,23 +430,159 @@ class UnifiedDocumentProcessor:
 
     async def _extract_text_pymupdf(self, document_path: str) -> Dict[str, Any]:
         """Extract text using PyMuPDF (fastest, most accurate)"""
-        # Implementation for PyMuPDF extraction
-        return {"method": "pymupdf", "status": "placeholder"}
+        path = Path(document_path)
+        metadata = {
+            "source_path": str(path),
+            "file_extension": path.suffix.lower()
+        }
+
+        content = ""
+        method = "plain_text_fallback"
+        status = "fallback_plain_text"
+
+        if path.suffix.lower() == ".pdf" and FITZ_AVAILABLE:
+            try:
+                import fitz  # Local import to avoid hard dependency
+
+                with fitz.open(document_path) as doc:
+                    text_chunks = [page.get_text("text") for page in doc]
+                    content = "\n".join(text_chunks).strip()
+                    metadata["page_count"] = doc.page_count
+                method = "pymupdf"
+                status = "success"
+            except Exception as exc:  # pragma: no cover - defensive guard
+                logger.warning("PyMuPDF extraction failed for %s: %s", document_path, exc)
+                content = self._read_plain_text(path)
+        else:
+            content = self._read_plain_text(path)
+
+        metadata["character_count"] = len(content)
+        metadata["total_words"] = len(content.split()) if content else 0
+        metadata["line_count"] = content.count("\n") + 1 if content else 0
+
+        return {
+            "method": method,
+            "status": status,
+            "content": content,
+            "metadata": metadata
+        }
 
     async def _extract_structured_langextract(self, document_path: str) -> Dict[str, Any]:
         """Extract structured data using LangExtract"""
-        # Implementation for LangExtract
-        return {"method": "langextract", "status": "placeholder"}
+        try:
+            if self.capabilities["langextract"].available and "langextract" in self.processors:
+                adapter = self.processors["langextract"]
+                result = await adapter.extract(document_path)
+                result.setdefault("status", "success")
+                result.setdefault("method", "langextract")
+                return result
+        except Exception as exc:  # pragma: no cover - optional subsystem failure
+            logger.warning("LangExtract adapter failed for %s: %s", document_path, exc)
+
+        text_result = await self._extract_text_pymupdf(document_path)
+        text_content = text_result.get("content", "")
+
+        sections = self._split_into_sections(text_content)
+        entities = self._extract_entities(text_content, limit=15)
+
+        return {
+            "method": "langextract_fallback",
+            "status": "fallback",
+            "sections": sections,
+            "entities": entities,
+            "tables": [],
+            "figures": [],
+            "metadata": {
+                "source_path": document_path,
+                "section_count": len(sections)
+            }
+        }
 
     async def _extract_algorithms(self, document_path: str) -> Dict[str, Any]:
         """Extract algorithms and code using Advanced Algorithm Extractor"""
-        # Implementation for algorithm extraction
-        return {"method": "algorithm_extractor", "status": "placeholder"}
+        try:
+            if self.capabilities["algorithm_extractor"].available and "algorithm_extractor" in self.processors:
+                extractor = self.processors["algorithm_extractor"]
+                result = await extractor.extract(document_path)
+                if isinstance(result, dict):
+                    result.setdefault("method", "algorithm_extractor")
+                    result.setdefault("status", "success")
+                    return result
+        except Exception as exc:  # pragma: no cover - optional subsystem failure
+            logger.warning("Advanced algorithm extractor failed for %s: %s", document_path, exc)
+
+        text_result = await self._extract_text_pymupdf(document_path)
+        text_content = text_result.get("content", "")
+
+        code_blocks = []
+        fence_pattern = re.compile(r"```(?P<lang>\w+)?\n(?P<code>.*?)(?:```|$)", re.DOTALL)
+        for index, match in enumerate(fence_pattern.finditer(text_content), start=1):
+            code = match.group("code").strip()
+            if not code:
+                continue
+            language = match.group("lang") or "plain-text"
+            code_blocks.append({
+                "id": f"algorithm_{index}",
+                "language": language,
+                "snippet": code,
+                "confidence": 0.7
+            })
+
+        if not code_blocks:
+            lines = text_content.splitlines()
+            for index, line in enumerate(lines):
+                stripped = line.strip()
+                if stripped.startswith(("def ", "class ", "for ", "while ")):
+                    snippet = "\n".join(lines[index:index + 6]).strip()
+                    code_blocks.append({
+                        "id": f"algorithm_{index + 1}",
+                        "language": "python",
+                        "snippet": snippet,
+                        "confidence": 0.4
+                    })
+
+        status = "success" if code_blocks else "not_found"
+
+        return {
+            "method": "algorithm_extractor_fallback",
+            "status": status,
+            "algorithms": code_blocks,
+            "metadata": {
+                "source_path": document_path,
+                "detected_algorithms": len(code_blocks)
+            }
+        }
 
     async def _extract_knowledge_graph(self, document_path: str) -> Dict[str, Any]:
         """Extract knowledge graph using KGGen"""
-        # Implementation for KGGen extraction
-        return {"method": "kggen", "status": "placeholder"}
+        try:
+            if self.capabilities["kggen"].available and "kggen" in self.processors:
+                extractor = self.processors["kggen"]
+                result = await extractor.extract(document_path)
+                if isinstance(result, dict):
+                    result.setdefault("method", "kggen")
+                    result.setdefault("status", "success")
+                    return result
+        except Exception as exc:  # pragma: no cover - optional subsystem failure
+            logger.warning("KGGen extractor failed for %s: %s", document_path, exc)
+
+        text_result = await self._extract_text_pymupdf(document_path)
+        text_content = text_result.get("content", "")
+        sentences = [s.strip() for s in re.split(r"[.!?]+\s*", text_content) if s.strip()]
+
+        entities = self._extract_entities(text_content, limit=12)
+        relationships = self._build_relationships(sentences, entities)
+
+        return {
+            "method": "kggen_fallback",
+            "status": "fallback",
+            "entities": entities,
+            "relationships": relationships,
+            "metadata": {
+                "source_path": document_path,
+                "sentence_count": len(sentences)
+            }
+        }
 
     def _analyze_emergence_patterns(self, traces: List[Any]) -> Dict[str, Any]:
         """Analyze consciousness emergence patterns from ThoughtSeed traces"""
