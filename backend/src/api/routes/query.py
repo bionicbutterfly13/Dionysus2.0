@@ -1,9 +1,6 @@
 """
 Query API Routes - Natural language query interface
 Per Spec 006: POST /api/query endpoint
-
-Per Constitution Article I, Section 1.4:
-- Use direct imports (not relative imports through __init__.py)
 """
 
 from fastapi import APIRouter, HTTPException, status
@@ -11,9 +8,9 @@ from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
 import logging
 
-from models.query import Query
-from models.response import QueryResponse
-from services.query_engine import QueryEngine
+from ...models.query import Query
+from ...models.response import QueryResponse
+from ...services.query_engine import QueryEngine
 
 logger = logging.getLogger(__name__)
 
