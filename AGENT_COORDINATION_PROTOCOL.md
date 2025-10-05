@@ -2,7 +2,7 @@
 
 **Version**: 1.0.0  
 **Status**: ACTIVE COORDINATION PROTOCOL  
-**Last Updated**: 2025-09-24  
+**Last Updated**: 2025-10-07 09:30  
 **Purpose**: Multi-agent document-based coordination to prevent conflicts  
 
 ---
@@ -12,7 +12,8 @@
 ### **Current Agent Setup**
 - **Agent A**: Working in central panel (primary development)
 - **Agent B**: Working in side panel (supporting development)
-- **Future Agents**: Will work in Warp interface with full coordination
+- **Agent CX**: Operating from Codex CLI (spec-driven collaboration)
+- **Future Agents**: Warp interface (standby once coordination backlog clears)
 
 ### **Coordination Principles**
 1. **Document-Based Communication**: All coordination through shared documents
@@ -30,7 +31,7 @@
 |----------|----------|--------------|--------|--------------|-------------|
 | **Agent-A** | Central Panel | Project Rename + Coordination Setup | 🔄 **ACTIVE** | 2025-09-24 12:45 | Document coordination protocol |
 | **Agent-B** | Side Panel | Unknown (need status update) | ❓ **UNKNOWN** | - | Status check required |
-| **Agent-C** | Future Warp | TBD | ⏳ **PENDING** | - | Awaiting assignment |
+| **Agent-CX** | Codex CLI Workspace | Spec 043 authoring + documentation alignment | ✅ **ONBOARDING COMPLETE** | 2025-10-07 09:30 | Maintain feature branch workflow & update status docs |
 
 ### **Current Work Assignments**
 
@@ -38,6 +39,7 @@
 |----------------|----------------|--------|----------|--------------|
 | **Project Rename to Dionysus 2.0** | Agent-A | ✅ **COMPLETE** | HIGH | None |
 | **Agent Coordination Protocol** | Agent-A | 🔄 **IN PROGRESS** | HIGH | Project rename |
+| **Spec 043 · Codex Collaboration Agent** | Agent-CX | ✅ **COMPLETE** | HIGH | Constitution & Spec Kit review |
 | **Dionysus 1.0 GitHub Push** | TBD | ⏳ **PENDING** | HIGH | Coordination setup |
 | **ClearMind Integration** | TBD | ⏳ **PENDING** | MEDIUM | Dionysus 1.0 push |
 | **Multi-Agent System** | TBD | ⏳ **PENDING** | MEDIUM | ClearMind integration |
@@ -302,22 +304,23 @@
 
 1. **Agent-A**: Complete coordination protocol setup
 2. **Agent-B**: Provide status update (required)
-3. **Both Agents**: Review and agree on coordination protocols
-4. **Agent-A**: Create shared coordination documents
+3. **Agent-CX**: Publish onboarding spec (Spec 043) + cascade updates to status docs
+4. **All Agents**: Review and agree on coordination protocols
 
 ### **Short Term (Next 2 hours)**
 
 1. **Agent-A**: Prepare Dionysus 1.0 for GitHub push
 2. **Agent-B**: Begin assigned development task
-3. **Both Agents**: Establish regular status update rhythm
-4. **Coordination**: Test conflict resolution protocols
+3. **Agent-CX**: Drive placeholder-removal roadmap alignment + queue follow-up tasks
+4. **Coordination**: Test conflict resolution protocols & establish regular status updates (all agents)
 
 ### **Medium Term (Next day)**
 
 1. **Agent-A**: Complete Dionysus 1.0 GitHub push
 2. **Agent-B**: Continue development work with coordination
-3. **Future Agents**: Onboard using established protocols
-4. **System**: Full multi-agent coordination operational
+3. **Agent-CX**: Enforce feature-branch + spec-kit cadence across active efforts
+4. **Future Agents**: Onboard using established protocols once backlog reduced
+5. **System**: Full multi-agent coordination operational
 
 ---
 
