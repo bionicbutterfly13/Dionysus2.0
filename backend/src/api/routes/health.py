@@ -40,7 +40,7 @@ async def check_health():
 
     # Check Neo4j
     try:
-        from services.database_health import database_health_service
+        from ...services.database_health import database_health_service
         neo4j_health = database_health_service.check_neo4j_health()
 
         if neo4j_health['status'] == 'healthy':
@@ -69,7 +69,7 @@ async def check_health():
 
     # Check Redis
     try:
-        from services.database_health import database_health_service
+        from ...services.database_health import database_health_service
         redis_health = database_health_service.check_redis_health()
 
         if redis_health['status'] == 'healthy':
@@ -98,7 +98,7 @@ async def check_health():
 
     # Check Daedalus gateway
     try:
-        from services.daedalus import Daedalus
+        from ...services.daedalus import Daedalus
         daedalus = Daedalus()
 
         services["daedalus"] = ServiceStatus(

@@ -16,7 +16,7 @@ from datetime import datetime
 import io
 
 # Daedalus Gateway Integration (Spec 021)
-from services.daedalus import Daedalus
+from ...services.daedalus import Daedalus
 
 logger = logging.getLogger(__name__)
 
