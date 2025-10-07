@@ -129,8 +129,8 @@
 
 **Tier Management**:
 - **FR-028**: System MUST track which tier (warm, cool, cold) each document is stored in
-- **FR-029**: System MUST allow tier transitions based on [NEEDS CLARIFICATION: What triggers tier migration? Access frequency, age, explicit user request?]
-- **FR-030**: System MUST [NEEDS CLARIFICATION: What happens to cold-tier documents? Are they archived to different storage, compressed, or just marked differently in same database?]
+- **FR-029**: System MUST allow tier transitions based on hybrid criteria combining both age and access patterns (documents age to cooler tiers over time, but frequently accessed documents remain in warmer tiers regardless of age)
+- **FR-030**: System MUST archive cold-tier documents to separate cheaper storage (S3, filesystem) while retaining metadata and document reference in Neo4j, with understanding that cold document retrieval will be slower than warm/cool tier access
 
 ### Key Entities
 
@@ -157,8 +157,8 @@
 - [x] All mandatory sections completed
 
 ### Requirement Completeness
-- [ ] No [NEEDS CLARIFICATION] markers remain (2 present - tier migration triggers, cold tier behavior)
-- [x] Requirements are testable and unambiguous (except clarifications)
+- [x] No [NEEDS CLARIFICATION] markers remain (resolved via /clarify session 2025-10-07)
+- [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable (performance targets specified)
 - [x] Scope is clearly bounded (persistence and retrieval only)
 - [x] Dependencies and assumptions identified (Spec 040, Daedalus workflow)
@@ -173,7 +173,7 @@
 - [x] User scenarios defined
 - [x] Requirements generated (30 functional requirements)
 - [x] Entities identified (6 key entities)
-- [ ] Review checklist passed (pending clarifications)
+- [x] Review checklist passed (clarifications resolved 2025-10-07)
 
 ---
 
@@ -187,6 +187,15 @@ Based on the Context Engineering Foundation, this feature will integrate conscio
 4. **Consciousness Processing Artifacts**: Thoughtseeds and basins are first-class entities in the knowledge graph
 
 These integrations ensure document persistence captures not just static content, but the dynamic consciousness processing that occurred during analysis.
+
+---
+
+## Clarifications
+
+### Session 2025-10-07
+
+- Q: What triggers a document to migrate from one storage tier to another? → A: Hybrid approach combining age AND access patterns (old but frequently accessed stays warm, rarely accessed ages to cold faster)
+- Q: What happens to documents when they reach the "cold" storage tier? → A: Archive to separate storage (cold documents moved to cheaper storage like S3/filesystem, only metadata remains in Neo4j, retrieval slower)
 
 ---
 
