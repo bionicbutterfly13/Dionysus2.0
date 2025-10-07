@@ -10,7 +10,7 @@
 
 | Spec | Status | Clarifications | Plan | Tasks | Implementation |
 |------|--------|---------------|------|-------|----------------|
-| **054** - Document Persistence | ✅ Complete | ✅ 2/2 Resolved | ✅ Complete | ⏸️ Pending | ⏸️ Not Started |
+| **054** - Document Persistence | ✅ Complete | ✅ 2/2 Resolved | ✅ Complete | ✅ Complete (57 tasks) | ⏸️ Ready to Start |
 | **055** - Knowledge Graph APIs | ✅ Complete | ⚠️ 2/2 Pending | ⏸️ Pending | ⏸️ Pending | ⏸️ Not Started |
 | **056** - Frontend Live Data | ✅ Complete | ⚠️ 2/2 Pending | ⏸️ Pending | ⏸️ Pending | ⏸️ Not Started |
 | **057** - E2E Verification | ✅ Complete | ⚠️ 2/2 Pending | ⏸️ Pending | ⏸️ Pending | ⏸️ Not Started |
@@ -50,8 +50,17 @@
    # NO direct neo4j imports
    ```
 
+### ✅ Tasks Generated (57 total)
+- **Phase 1**: Context Engineering validation (T001-T008)
+- **Phase 2**: Tests First/TDD (T009-T018) - MUST FAIL before implementation
+- **Phase 3**: Core Implementation (T019-T033) - Schema, repository, APIs
+- **Phase 4**: Tier Management (T034-T044) - Migration, archival, endpoints
+- **Phase 5**: Integration (T045-T048) - Background jobs, basin manager
+- **Phase 6**: Polish (T049-T057) - Unit tests, optimization, load testing
+
 ### 🔜 Next Steps
-**Recommended**: Run `/tasks` to generate actionable work items for Phase 1
+**Ready to Begin**: Start with T001 (Context Engineering validation)
+**File**: [tasks.md](specs/054-document-persistence-repository/tasks.md)
 
 ---
 
