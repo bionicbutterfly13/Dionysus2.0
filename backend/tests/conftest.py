@@ -1,19 +1,31 @@
-"""
-Pytest configuration for backend tests.
-Centralizes Python path setup - NO sys.path in individual test files!
+"""Pytest configuration for backend tests."""
 
-Per Constitution Article I, Section 1.4:
-- MANDATORY for all test directories
-- Eliminates sys.path manipulation in individual test files
-- Prevents fragile import chains through __init__.py
-"""
 import sys
 from pathlib import Path
 
-# Add backend/src to path ONCE for all tests
-backend_src = Path(__file__).parent.parent / "src"
-if str(backend_src) not in sys.path:
-    sys.path.insert(0, str(backend_src))
+import pytest_asyncio
+from httpx import AsyncClient
 
-# Verify path was added correctly
+# Add backend root and backend/src to path ONCE for all tests
+backend_root = Path(__file__).parent.parent
+backend_src = backend_root / "src"
+
+for path in (backend_root, backend_src):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
+
+assert backend_root.exists(), f"Backend root path doesn't exist: {backend_root}"
 assert backend_src.exists(), f"Backend src path doesn't exist: {backend_src}"
+
+from src.app_factory import create_app  # noqa: E402 - imported after sys.path mutation
+
+
+@pytest_asyncio.fixture
+async def test_client():
+    """Provide an AsyncClient backed by the FastAPI application."""
+    from httpx import ASGITransport
+
+    app = create_app()
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        yield client
