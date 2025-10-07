@@ -1,0 +1,156 @@
+name: Constitutional Compliance Check
+
+# Spec 040 M3 - Governance Enforcement
+# Ensures all Neo4j access flows through DaedalusGraphChannel
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'backend/**/*.py'
+  push:
+    branches: [main, develop]
+    paths:
+      - 'backend/**/*.py'
+
+jobs:
+  neo4j-import-ban:
+    name: Verify Graph Channel Compliance
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Check for banned neo4j imports
+        run: |
+          echo "🔍 Checking for direct neo4j imports (Constitutional violation)..."
+
+          # Allowed files (whitelist)
+          ALLOWED_FILES=(
+            "backend/tests/"  # Tests can import for mocking
+          )
+
+          # Find all Python files with neo4j imports
+          violations=0
+
+          # Search backend/ excluding allowed paths
+          while IFS= read -r file; do
+            # Skip if in daedalus-gateway (that's the ONLY allowed import location)
+            if [[ "$file" == *"daedalus-gateway"* ]]; then
+              continue
+            fi
+
+            # Skip test files (allowed for mocking)
+            if [[ "$file" == *"/tests/"* ]]; then
+              continue
+            fi
+
+            # Skip archived legacy modules
+            if [[ "$file" == *"/backup/deprecated/"* ]]; then
+              continue
+            fi
+
+            # Check for banned imports
+            if grep -n "^import neo4j" "$file" || \
+               grep -n "^from neo4j import" "$file" || \
+               grep -n "from neo4j\." "$file"; then
+              echo "❌ CONSTITUTIONAL VIOLATION in $file"
+              echo "   Direct neo4j import detected (AGENT_CONSTITUTION §2.1, §2.2)"
+              echo "   All graph access MUST use: from daedalus_gateway import get_graph_channel"
+              grep -n "neo4j" "$file"
+              violations=$((violations + 1))
+            fi
+          done < <(find backend/src -name "*.py" -type f)
+
+          if [ $violations -gt 0 ]; then
+            echo ""
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "🚨 CONSTITUTIONAL COMPLIANCE FAILURE"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo ""
+            echo "Found $violations file(s) with banned neo4j imports"
+            echo ""
+            echo "Per AGENT_CONSTITUTION Sections 2.1 and 2.2:"
+            echo "  - ALL Neo4j access MUST flow through Daedalus Gateway"
+            echo "  - ONLY daedalus-gateway may import neo4j directly"
+            echo "  - Backend services MUST use DaedalusGraphChannel facade"
+            echo ""
+            echo "Migration guide: GRAPH_CHANNEL_MIGRATION_QUICK_REFERENCE.md"
+            echo "Constitution: AGENT_CONSTITUTION.md"
+            echo ""
+            echo "This is a HARD GATE. Fix violations before merge."
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            exit 1
+          fi
+
+          echo "✅ No constitutional violations detected"
+          echo "   All Neo4j access flows through DaedalusGraphChannel"
+
+      - name: Verify Graph Channel usage
+        run: |
+          echo "🔍 Verifying proper Graph Channel usage patterns..."
+
+          # Check that files using graph operations import get_graph_channel
+          while IFS= read -r file; do
+            if grep -q "get_graph_channel()" "$file"; then
+              if ! grep -q "from daedalus_gateway import get_graph_channel" "$file"; then
+                echo "❌ File uses get_graph_channel() but doesn't import it: $file"
+                exit 1
+              fi
+            fi
+          done < <(find backend/src -name "*.py" -type f)
+
+          echo "✅ Graph Channel usage patterns verified"
+
+      - name: Check for audit trail compliance
+        run: |
+          echo "🔍 Checking for caller_service and caller_function in Graph Channel calls..."
+
+          # This is a softer check - warn but don't fail
+          # (Some operations might not need full audit trail)
+
+          warnings=0
+          while IFS= read -r file; do
+            # Find execute_read/write calls without caller_service
+            if grep -q "\.execute_read\|\.execute_write" "$file"; then
+              # Check if caller_service is present in same file
+              if ! grep -q "caller_service=" "$file"; then
+                echo "⚠️  Missing caller_service in Graph Channel call: $file"
+                echo "   Recommended: Add caller_service and caller_function for audit trail"
+                warnings=$((warnings + 1))
+              fi
+            fi
+          done < <(find backend/src -name "*.py" -type f)
+
+          if [ $warnings -gt 0 ]; then
+            echo ""
+            echo "⚠️  Found $warnings file(s) without full audit trail"
+            echo "   This is a WARNING, not a failure"
+            echo "   Consider adding caller_service and caller_function parameters"
+          else
+            echo "✅ Audit trail compliance verified"
+          fi
+
+      - name: Report compliance status
+        if: success()
+        run: |
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ CONSTITUTIONAL COMPLIANCE VERIFIED"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "All code complies with AGENT_CONSTITUTION §2.1, §2.2"
+          echo "  - No direct neo4j imports detected in backend/src"
+          echo "  - All graph access flows through DaedalusGraphChannel"
+          echo "  - Markov blanket boundary enforced"
+          echo ""
+          echo "Spec 040 M3 Governance: ACTIVE"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

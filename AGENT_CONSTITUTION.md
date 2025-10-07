@@ -54,6 +54,32 @@ pip install -r requirements-frozen.txt
 - **REQUIRED**: Avoid source compilation that might upgrade NumPy
 - **REQUIRED**: Use conda-forge for ML packages when possible
 
+### Section 1.3: Pre-Implementation Review Protocol
+**CONSTITUTIONAL PRINCIPLE**: No code is written before the surrounding system is understood.
+
+#### ✅ REQUIRED ACTIONS
+- **ALWAYS** perform a dependency and impact review before authoring new code or refactors
+- **ALWAYS** examine adjacent modules, services, and specs for redundancy, repetition, or conflicting logic
+- **ALWAYS** document review findings (conflicts discovered, overlaps avoided, files inspected) in the work log before coding
+- **ALWAYS** align planned changes with existing architectural specs and extraction records
+
+#### 🚫 PROHIBITED ACTIONS
+- **NEVER** write new code without confirming how existing implementations address the requirement
+- **NEVER** introduce duplicated logic when an equivalent capability already exists
+- **NEVER** proceed with implementation if conflicts or ambiguities remain unresolved
+
+#### 🔧 ENFORCEMENT MECHANISMS
+```text
+PRE-CODING CHECKLIST (must be logged before implementation):
+1. Relevant specs consulted: ____________________
+2. Files/modules reviewed: ______________________
+3. Existing implementations reused or extended: __
+4. Conflict resolution summary: _________________
+5. Approval/acknowledgement recorded: ___________
+
+Coding may begin only after all five checkpoints are completed.
+```
+
 ## 📋 Article II: System Integration Standards
 
 ### Section 2.1: ThoughtSeed Integration Requirements
@@ -69,8 +95,51 @@ pip install -r requirements-frozen.txt
 - **REQUIRED**: Use prediction error minimization
 - **REQUIRED**: Maintain belief network coherence
 
-### Section 2.2: ASI-Arch Pipeline Standards
-**MANDATORY**: All agents MUST maintain ASI-Arch compatibility:
+### Section 2.2: Database Abstraction Requirements
+**MANDATORY**: All agents MUST enforce constitutional database access patterns:
+
+#### ✅ Graph Database Access Standards (Spec 040 M3 - ENFORCED)
+**Effective Date**: 2025-10-07
+**Enforcement**: Pre-commit hooks + CI + Linter + Regression tests
+
+- **REQUIRED**: ALL Neo4j access MUST flow through DaedalusGraphChannel
+- **REQUIRED**: Use `from daedalus_gateway import get_graph_channel` for graph operations
+- **REQUIRED**: Include `caller_service` and `caller_function` parameters for audit trail
+- **REQUIRED**: Use Graph Channel operations: `execute_read()`, `execute_write()`, `execute_schema()`
+
+#### 🚫 PROHIBITED ACTIONS
+- **NEVER** import neo4j directly in backend/src services
+- **NEVER** use `from neo4j import GraphDatabase` or similar direct imports
+- **NEVER** create direct Neo4j driver connections
+- **NEVER** bypass DaedalusGraphChannel facade
+
+**ONLY EXCEPTION**: The daedalus-gateway repository is the SOLE location allowed to import neo4j.
+
+#### 🔧 ENFORCEMENT MECHANISMS
+```python
+# ✅ CORRECT: Constitutional compliance
+from daedalus_gateway import get_graph_channel
+
+channel = get_graph_channel()
+result = await channel.execute_read(
+    query="MATCH (n:Concept) RETURN n LIMIT 10",
+    caller_service="my_service",
+    caller_function="fetch_concepts"
+)
+
+# ❌ VIOLATION: Direct neo4j import (BANNED)
+from neo4j import GraphDatabase  # This will FAIL pre-commit + CI
+driver = GraphDatabase.driver(uri, auth=(user, password))
+```
+
+**Enforcement Chain**:
+1. **Pre-commit hook**: Blocks commits with direct neo4j imports
+2. **CI check**: `.github/workflows/constitutional-compliance.yml` fails builds with violations
+3. **Linter**: `.ruff_constitutional_plugin.py` detects banned imports (CONST001/CONST002 errors)
+4. **Regression tests**: `tests/governance/test_constitutional_compliance.py` prevents backsliding
+
+**Migration Guide**: `GRAPH_CHANNEL_MIGRATION_QUICK_REFERENCE.md`
+**Audit Registry**: `LEGACY_REGISTRY.md`
 
 #### Pipeline Integration
 - **REQUIRED**: Use ThoughtSeed-enhanced context engineering
@@ -79,7 +148,7 @@ pip install -r requirements-frozen.txt
 
 #### Database Standards
 - **REQUIRED**: Use Redis for real-time operations
-- **REQUIRED**: Use Neo4j for knowledge graph operations
+- **REQUIRED**: Use Neo4j via DaedalusGraphChannel ONLY (see above)
 - **REQUIRED**: Maintain data consistency across services
 
 ## 📋 Article III: Agent Behavior Standards

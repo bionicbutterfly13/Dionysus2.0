@@ -17,6 +17,8 @@ This registry documents all files containing direct Neo4j imports (`from neo4j i
 
 **Constitutional Compliance**: Spec 040 FR-003 requires blocking new direct neo4j imports. All new code MUST use Graph Channel.
 
+**ONLY EXCEPTION**: The `daedalus-gateway` repository is the SOLE location allowed to import neo4j directly. It provides the constitutional DaedalusGraphChannel facade that ALL Dionysus-2.0 backend services must use.
+
 ---
 
 ## 📊 Categorization Results

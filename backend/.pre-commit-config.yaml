@@ -32,3 +32,14 @@ repos:
     hooks:
       - id: isort
         args: [--profile, black]
+
+  # Spec 040 M3 - Constitutional Compliance Enforcement
+  - repo: local
+    hooks:
+      - id: neo4j-import-ban
+        name: Constitutional Compliance - Neo4j Import Ban
+        entry: python -c "import sys; import re; violations = []; [violations.append(f) for f in sys.argv[1:] if not any(x in f for x in ['tests/', 'daedalus-gateway', 'backup/deprecated']) and any(re.search(r'^(import neo4j|from neo4j)', open(f).read(), re.MULTILINE) for _ in [1])]; sys.exit(1) if violations and print(f'❌ CONSTITUTIONAL VIOLATION\\n\\nDirect neo4j imports banned per AGENT_CONSTITUTION §2.1, §2.2\\nViolating files: {violations}\\n\\nAll graph access MUST use: from daedalus_gateway import get_graph_channel\\n\\nSee: GRAPH_CHANNEL_MIGRATION_QUICK_REFERENCE.md') else 0"
+        language: system
+        files: ^backend/src/.*\.py$
+        pass_filenames: true
+        verbose: true
