@@ -19,20 +19,32 @@ if str(BACKEND_SRC) not in sys.path:
 
 from .api.routes import (  # noqa: E402  — import after sys.path adjustment
     documents,
+    document_persistence,  # Spec 054 - Neo4j-backed persistence
     curiosity,
     visualization,
     stats,
     consciousness,
     query,
-    crawl,
     health,
 )
+
+# Optional: crawl (requires crawl4ai)
+try:
+    from .api.routes import crawl
+    CRAWL_AVAILABLE = True
+except ImportError:
+    CRAWL_AVAILABLE = False
+    # Will log warning after logger is initialized
+
 # from .api.routes import clause  # Import separately to avoid circular dependency
 # from .api.routes import demo_clause  # Demo CLAUSE pipeline
 from .middleware.auth import LocalAuthMiddleware
 from .middleware.validation import ValidationMiddleware
 
 logger = logging.getLogger(__name__)
+
+if not CRAWL_AVAILABLE:
+    logger.warning("crawl4ai not available, /api/crawl endpoints disabled")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -86,12 +98,14 @@ def create_app() -> FastAPI:
 
     # Include API routes
     app.include_router(documents.router, prefix="/api/v1", tags=["documents"])
+    app.include_router(document_persistence.router, tags=["document_persistence"])  # Spec 054 - Neo4j persistence
     app.include_router(curiosity.router, prefix="/api/v1", tags=["curiosity"])
     app.include_router(visualization.router, prefix="/ws/v1", tags=["visualization"])
     app.include_router(stats.router, tags=["stats"])
     app.include_router(consciousness.router, tags=["consciousness"])
     app.include_router(query.router, tags=["query"])  # Query endpoint per Spec 006
-    app.include_router(crawl.router, prefix="/api", tags=["crawl"])  # Web crawling from Archon
+    if CRAWL_AVAILABLE:
+        app.include_router(crawl.router, prefix="/api", tags=["crawl"])  # Web crawling from Archon
     app.include_router(health.router, prefix="/api", tags=["health"])  # System health checks
     # app.include_router(clause.router, tags=["clause"])  # DISABLED - import issues
     # app.include_router(demo_clause.router, tags=["demo"])  # DISABLED - import issues
