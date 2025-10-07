@@ -35,7 +35,11 @@ async def cleanup_test_documents():
         'doc_test_duplicate',
         'doc_test_duplicate_2',
         'doc_test_invalid',
-        'doc_test_performance'
+        'doc_test_performance',
+        'doc_filename_test_1',
+        'doc_filename_test_2',
+        'doc_metadata_test',
+        'doc_metadata_test_2'
     ]
 
     # Cleanup BEFORE test - delete all test documents in one query

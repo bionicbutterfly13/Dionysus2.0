@@ -42,6 +42,12 @@ class PersistDocumentRequest(BaseModel):
     tags: List[str] = Field(default_factory=list)
     daedalus_output: Dict[str, Any]
 
+    # Spec 057: Source metadata fields
+    source_type: str = Field(default="uploaded_file")
+    original_url: Optional[str] = None
+    connector_icon: Optional[str] = None
+    download_metadata: Optional[Dict[str, Any]] = None
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -51,6 +57,9 @@ class PersistDocumentRequest(BaseModel):
                 "file_size": 1048576,
                 "mime_type": "application/pdf",
                 "tags": ["research", "ai"],
+                "source_type": "uploaded_file",
+                "original_url": None,
+                "connector_icon": "pdf",
                 "daedalus_output": {
                     "quality": {"scores": {"overall": 0.85}},
                     "concepts": {"atomic": []},
@@ -82,6 +91,8 @@ async def persist_document(request: PersistDocumentRequest):
     """
     T041: Persist document with all processing artifacts to Neo4j.
 
+    Spec 055 Agent 2: Enhanced with structured 409 response for duplicates.
+
     From plan.md lines 1075-1106.
 
     Args:
@@ -89,16 +100,57 @@ async def persist_document(request: PersistDocumentRequest):
 
     Returns:
         Persistence result with performance metrics
+        409 Conflict with canonical document metadata if duplicate detected
     """
     try:
-        # Prepare metadata
+        # Spec 055 Agent 2: Check for duplicate BEFORE attempting persistence
+        duplicate = await document_repo.find_duplicate_by_hash(request.content_hash)
+
+        if duplicate:
+            # Log duplicate attempt for analytics
+            logger.info(
+                f"Duplicate upload attempt blocked: content_hash={request.content_hash}, "
+                f"canonical_document={duplicate['document_id']}, "
+                f"attempted_filename={request.filename}"
+            )
+
+            # Return structured 409 response with reuse guidance
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "status": "duplicate",
+                    "message": "Document with this content already exists",
+                    "content_hash": request.content_hash,
+                    "canonical_document": {
+                        "document_id": duplicate["document_id"],
+                        "filename": duplicate["filename"],
+                        "upload_timestamp": duplicate["upload_timestamp"],
+                        "quality_overall": duplicate["quality_overall"],
+                        "tier": duplicate["tier"],
+                        "tags": duplicate.get("tags", []),
+                        "file_size": duplicate.get("file_size", 0),
+                        "access_count": duplicate.get("access_count", 0)
+                    },
+                    "reuse_guidance": {
+                        "action": "link_to_existing",
+                        "url": f"/api/documents/{duplicate['document_id']}",
+                        "message": "Consider linking to the existing document instead of re-uploading"
+                    }
+                }
+            )
+
+        # Prepare metadata (Spec 057: Include source metadata)
         metadata = {
             "document_id": request.document_id,
             "filename": request.filename,
             "content_hash": request.content_hash,
             "file_size": request.file_size,
             "mime_type": request.mime_type,
-            "tags": request.tags
+            "tags": request.tags,
+            "source_type": request.source_type,
+            "original_url": request.original_url,
+            "connector_icon": request.connector_icon,
+            "download_metadata": request.download_metadata
         }
 
         # Persist via repository
@@ -109,29 +161,16 @@ async def persist_document(request: PersistDocumentRequest):
 
         return result
 
+    except HTTPException:
+        # Re-raise HTTPExceptions (like the 409 above)
+        raise
     except ValueError as e:
-        # Duplicate document or validation error
-        if "Duplicate document" in str(e):
-            # Extract existing document_id from error message
-            existing_doc_id = None
-            if "exists as document" in str(e):
-                existing_doc_id = str(e).split("exists as document ")[-1]
-
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail={
-                    "status": "duplicate",
-                    "message": str(e),
-                    "content_hash": request.content_hash,
-                    "existing_document": existing_doc_id,
-                    "options": ["reprocess", "skip"]
-                }
-            )
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=str(e)
-            )
+        # Validation errors (missing fields, etc.)
+        logger.warning(f"Validation error in persist_document: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(e)
+        )
     except Exception as e:
         logger.error(f"Document persistence failed: {e}", exc_info=True)
         raise HTTPException(
@@ -151,12 +190,14 @@ async def list_documents(
     date_to: Optional[str] = Query(None),
     sort: str = Query("upload_date", pattern="^(upload_date|quality|curiosity)$"),
     order: str = Query("desc", pattern="^(asc|desc)$"),
-    tier: Optional[str] = Query(None, pattern="^(warm|cool|cold)$")
+    tier: Optional[str] = Query(None, pattern="^(warm|cool|cold)$"),
+    source_type: Optional[str] = Query(None, pattern="^(uploaded_file|url|api)$")
 ):
     """
     T042: List documents with pagination, filtering, and sorting.
 
     From plan.md lines 1108-1147.
+    Spec 057: Added source_type filtering.
 
     Query Parameters:
         page: Page number (1-indexed)
@@ -168,6 +209,7 @@ async def list_documents(
         sort: Sort field (upload_date, quality, curiosity)
         order: Sort order (asc, desc)
         tier: Filter by tier (warm, cool, cold)
+        source_type: Filter by source_type (uploaded_file, url, api)
 
     Returns:
         Documents list with pagination metadata
@@ -176,7 +218,7 @@ async def list_documents(
         # Parse tags
         tag_list = tags.split(",") if tags else None
 
-        # Call repository
+        # Call repository (Spec 057: Pass source_type filter)
         result = await document_repo.list_documents(
             page=page,
             limit=limit,
@@ -186,7 +228,8 @@ async def list_documents(
             date_to=date_to,
             sort=sort,
             order=order,
-            tier=tier
+            tier=tier,
+            source_type=source_type
         )
 
         return result
@@ -274,4 +317,223 @@ async def update_document_tier(document_id: str, request: UpdateTierRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Tier update failed: {str(e)}"
+        )
+
+
+# Spec 057: GET /api/documents/{id}/external-link
+@router.get("/documents/{document_id}/external-link")
+async def get_external_link(document_id: str):
+    """
+    Spec 057: Get external link for 'Open Original' button.
+
+    Returns availability and URL for opening the original document source.
+
+    Args:
+        document_id: Document ID
+
+    Returns:
+        {
+            "available": bool,
+            "url": str | None,
+            "source_type": str,
+            "message": str
+        }
+    """
+    try:
+        # Get document to check source metadata
+        document = await document_repo.get_document(document_id)
+
+        if document is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Document {document_id} not found"
+            )
+
+        metadata = document.get("metadata", {})
+        source_type = metadata.get("source_type", "uploaded_file")
+        original_url = metadata.get("original_url")
+
+        # Determine availability and construct response
+        if source_type == "url" and original_url:
+            return {
+                "available": True,
+                "url": original_url,
+                "source_type": source_type,
+                "message": "Original document available at URL"
+            }
+        elif source_type == "uploaded_file":
+            return {
+                "available": False,
+                "url": None,
+                "source_type": source_type,
+                "message": "Document was uploaded directly (no external source)"
+            }
+        elif source_type == "api":
+            # API ingested documents might have URLs
+            if original_url:
+                return {
+                    "available": True,
+                    "url": original_url,
+                    "source_type": source_type,
+                    "message": "Original document available at URL"
+                }
+            else:
+                return {
+                    "available": False,
+                    "url": None,
+                    "source_type": source_type,
+                    "message": "Document was ingested via API (no external source URL)"
+                }
+        else:
+            return {
+                "available": False,
+                "url": None,
+                "source_type": source_type,
+                "message": "No external source available"
+            }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"External link retrieval failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"External link retrieval failed: {str(e)}"
+        )
+
+
+# Spec 056: POST /api/documents/ingest-url
+class IngestURLRequest(BaseModel):
+    """Request model for POST /api/documents/ingest-url"""
+    url: str = Field(..., description="HTTPS URL to ingest")
+    tags: List[str] = Field(default_factory=list)
+    document_id: Optional[str] = Field(None, description="Optional custom document ID")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "url": "https://arxiv.org/pdf/2301.12345.pdf",
+                "tags": ["research", "ai"],
+                "document_id": None
+            }
+        }
+
+
+@router.post("/documents/ingest-url", status_code=status.HTTP_201_CREATED)
+async def ingest_url(request: IngestURLRequest):
+    """
+    Spec 056: Ingest document from HTTPS URL.
+
+    Downloads PDF/HTML from URL, chunks content, and persists to Neo4j.
+
+    Args:
+        request: URL and metadata
+
+    Returns:
+        Persistence result with chunk count
+
+    Raises:
+        400: Invalid URL format
+        409: Duplicate content detected
+        422: Unsupported MIME type
+        500: Download or processing error
+    """
+    try:
+        # Validate URL format
+        from urllib.parse import urlparse
+        parsed = urlparse(request.url)
+        if parsed.scheme != "https":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only HTTPS URLs are supported"
+            )
+
+        if not parsed.netloc:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid URL format"
+            )
+
+        # Prepare metadata
+        metadata = {
+            "tags": request.tags,
+            "namespace": "default"
+        }
+
+        if request.document_id:
+            metadata["document_id"] = request.document_id
+
+        # Ingest via repository
+        result = await document_repo.persist_document_from_url(
+            url=request.url,
+            metadata=metadata
+        )
+
+        return result
+
+    except ValueError as e:
+        # Duplicate detection
+        if "duplicate" in str(e).lower():
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=str(e)
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=str(e)
+            )
+    except Exception as e:
+        from src.services.url_downloader import (
+            DownloadError,
+            UnsupportedMimeTypeError,
+            NetworkError
+        )
+
+        if isinstance(e, UnsupportedMimeTypeError):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=str(e)
+            )
+        elif isinstance(e, (DownloadError, NetworkError)):
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Failed to download URL: {str(e)}"
+            )
+        else:
+            logger.error(f"URL ingestion failed: {e}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"URL ingestion failed: {str(e)}"
+            )
+
+
+# Spec 056: GET /api/documents/{id}/chunks
+@router.get("/documents/{document_id}/chunks")
+async def get_document_chunks(document_id: str):
+    """
+    Spec 056: Get all chunks for a document.
+
+    Returns chunks in position order for citation highlighting.
+
+    Args:
+        document_id: Document ID
+
+    Returns:
+        List of chunks with content and position metadata
+    """
+    try:
+        chunks = await document_repo.get_document_chunks(document_id)
+
+        return {
+            "document_id": document_id,
+            "chunk_count": len(chunks),
+            "chunks": chunks
+        }
+
+    except Exception as e:
+        logger.error(f"Chunk retrieval failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Chunk retrieval failed: {str(e)}"
         )

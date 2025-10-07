@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 """
-Neo4j Schema Initialization - Spec 054 T019-T020
+Neo4j Schema Initialization - Spec 054 T019-T020 + Spec 055 Agent 1
 
 Creates uniqueness constraints and performance indexes for document persistence.
+
+SPEC 055 AGENT 1 ENHANCEMENTS:
+- UNIQUE constraint on Document.content_hash (deduplication)
+- Index on content_hash for fast lookup
 
 CONSTITUTIONAL COMPLIANCE (Spec 040):
 - All operations via DaedalusGraphChannel
 - NO direct neo4j imports
 
-Author: Spec 054 Implementation
+Author: Spec 054 + Spec 055 Agent 1 Implementation
 Created: 2025-10-07
 """
 
@@ -102,6 +106,14 @@ class Neo4jSchemaInitializer:
                 CREATE CONSTRAINT seed_id_unique IF NOT EXISTS
                 FOR (t:ThoughtSeed) REQUIRE t.seed_id IS UNIQUE
                 """
+            },
+            # Chunk constraint (Spec 056)
+            {
+                "name": "chunk_id_unique",
+                "query": """
+                CREATE CONSTRAINT chunk_id_unique IF NOT EXISTS
+                FOR (c:Chunk) REQUIRE c.chunk_id IS UNIQUE
+                """
             }
         ]
 
@@ -171,6 +183,30 @@ class Neo4jSchemaInitializer:
                 "query": """
                 CREATE INDEX concept_salience IF NOT EXISTS
                 FOR (c:Concept) ON (c.salience)
+                """
+            },
+            # SPEC 055 AGENT 1: Index on content_hash for fast duplicate lookup
+            {
+                "name": "document_content_hash",
+                "query": """
+                CREATE INDEX document_content_hash IF NOT EXISTS
+                FOR (d:Document) ON (d.content_hash)
+                """
+            },
+            # SPEC 056: Chunk indexes
+            {
+                "name": "chunk_position",
+                "query": """
+                CREATE INDEX chunk_position IF NOT EXISTS
+                FOR (c:Chunk) ON (c.position)
+                """
+            },
+            # SPEC 057: Document source_url index for filtering
+            {
+                "name": "document_source_url",
+                "query": """
+                CREATE INDEX document_source_url IF NOT EXISTS
+                FOR (d:Document) ON (d.original_url)
                 """
             }
         ]

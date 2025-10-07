@@ -1,21 +1,26 @@
 #!/usr/bin/env python3
 """
-Document Node Models - Spec 054 T021
+Document Node Models - Spec 054 T021 + Spec 055 Agent 1
 
 Pydantic models for Document, Concept, and ThoughtSeed nodes.
 These are lightweight serialization models for Neo4j persistence.
 
+SPEC 055 AGENT 1 ENHANCEMENTS:
+- content_hash field is required for DocumentNode
+- SHA-256 format validation (64 hex characters)
+
 For actual basin behavior, import from:
     from thoughtseed_active_inference_services.attractor_basin_dynamics import AttractorBasin
 
-Author: Spec 054 Implementation
+Author: Spec 054 + Spec 055 Agent 1 Implementation
 Created: 2025-10-07
 """
 
 from typing import List, Dict, Optional, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from enum import Enum
+import re
 
 
 class TierEnum(str, Enum):
@@ -46,11 +51,16 @@ class DocumentNode(BaseModel):
     Document node for Neo4j persistence.
 
     From plan.md lines 165-200.
+
+    SPEC 055 AGENT 1: content_hash is REQUIRED and validated as SHA-256 format.
     """
     # Core metadata
     document_id: str
     filename: str
-    content_hash: str
+    content_hash: str = Field(
+        ...,
+        description="SHA-256 content hash (64 hex characters). Required for deduplication."
+    )
     upload_timestamp: datetime = Field(default_factory=datetime.utcnow)
     file_size: int = Field(gt=0)
     mime_type: str
@@ -71,6 +81,16 @@ class DocumentNode(BaseModel):
     curiosity_triggers: int = Field(default=0, ge=0)
     research_questions: int = Field(default=0, ge=0)
 
+    # Spec 055 Agent 3: LLM Summary fields
+    summary: Optional[str] = Field(
+        None,
+        description="Token-budgeted LLM summary of document (max 150 tokens)"
+    )
+    summary_metadata: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Summary generation metadata: {method, model, tokens_used, generated_at, error}"
+    )
+
     # Tier management
     tier: TierEnum = TierEnum.WARM
     last_accessed: datetime = Field(default_factory=datetime.utcnow)
@@ -81,17 +101,141 @@ class DocumentNode(BaseModel):
     archive_location: Optional[str] = None
     archived_at: Optional[datetime] = None
 
+    # Spec 057: Source metadata fields
+    source_type: str = Field(
+        default="uploaded_file",
+        description="How document was ingested: uploaded_file, url, api"
+    )
+    original_url: Optional[str] = Field(
+        None,
+        description="Original URL if document came from web"
+    )
+    connector_icon: Optional[str] = Field(
+        None,
+        description="Icon hint for UI (pdf, html, upload)"
+    )
+    download_metadata: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Metadata from download: status_code, redirects, etc."
+    )
+
+    @field_validator('source_type')
+    @classmethod
+    def validate_source_type(cls, v: str) -> str:
+        """
+        Validate source_type is one of allowed values.
+
+        SPEC 057: Must be uploaded_file, url, or api.
+
+        Args:
+            v: source_type value
+
+        Returns:
+            Validated source_type
+
+        Raises:
+            ValueError: If source_type is invalid
+        """
+        allowed_types = ["uploaded_file", "url", "api"]
+        if v not in allowed_types:
+            raise ValueError(
+                f"source_type must be one of {allowed_types}. Got: {v}"
+            )
+        return v
+
+    @field_validator('original_url')
+    @classmethod
+    def validate_original_url(cls, v: Optional[str]) -> Optional[str]:
+        """
+        Validate original_url is valid HTTP(S) URL if provided.
+
+        SPEC 057: Must be valid HTTP(S) URL.
+
+        Args:
+            v: original_url value
+
+        Returns:
+            Validated URL
+
+        Raises:
+            ValueError: If URL format is invalid
+        """
+        if v is None:
+            return None
+
+        # Check if URL starts with http:// or https://
+        if not (v.startswith("http://") or v.startswith("https://")):
+            raise ValueError(
+                f"original_url must start with http:// or https://. Got: {v}"
+            )
+
+        # Basic URL validation (no spaces, reasonable length)
+        if " " in v:
+            raise ValueError(
+                f"original_url must not contain spaces. Got: {v}"
+            )
+
+        if len(v) > 2048:
+            raise ValueError(
+                f"original_url must not exceed 2048 characters. Got {len(v)} characters."
+            )
+
+        return v
+
+    @field_validator('content_hash')
+    @classmethod
+    def validate_content_hash_format(cls, v: str) -> str:
+        """
+        Validate content_hash is valid SHA-256 format.
+
+        SPEC 055 AGENT 1: Must be exactly 64 hexadecimal characters.
+
+        Args:
+            v: content_hash value
+
+        Returns:
+            Normalized lowercase hash
+
+        Raises:
+            ValueError: If hash format is invalid
+        """
+        if not isinstance(v, str):
+            raise ValueError("content_hash must be a string")
+
+        # Normalize to lowercase
+        normalized = v.lower()
+
+        # Check length
+        if len(normalized) != 64:
+            raise ValueError(
+                f"content_hash must be exactly 64 characters (SHA-256). "
+                f"Got {len(normalized)} characters."
+            )
+
+        # Check hex format
+        hex_pattern = re.compile(r'^[0-9a-f]{64}$')
+        if not hex_pattern.match(normalized):
+            raise ValueError(
+                "content_hash must contain only hexadecimal characters (0-9, a-f). "
+                f"Invalid hash: {v[:20]}..."
+            )
+
+        return normalized
+
     class Config:
         json_schema_extra = {
             "example": {
                 "document_id": "doc_1234567890",
                 "filename": "research_paper.pdf",
-                "content_hash": "sha256:abc123",
+                "content_hash": "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a",
                 "file_size": 1048576,
                 "mime_type": "application/pdf",
                 "tags": ["research", "neuroscience"],
                 "quality_overall": 0.85,
-                "tier": "warm"
+                "tier": "warm",
+                "source_type": "uploaded_file",
+                "original_url": None,
+                "connector_icon": "pdf"
             }
         }
 

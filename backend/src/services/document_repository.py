@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 """
-Document Repository Service - Spec 054
+Document Repository Service - Spec 054 + Spec 055 Agent 1
 
 Persists Daedalus LangGraph final_output to Neo4j via Graph Channel.
+
+SPEC 055 AGENT 1 ENHANCEMENTS:
+- SHA-256 content hash computation (deterministic)
+- Content hash validation
+- Duplicate detection via content_hash
 
 CONSTITUTIONAL COMPLIANCE (Spec 040):
 - All Neo4j access via DaedalusGraphChannel
 - NO direct neo4j imports allowed
 - Only: from daedalus_gateway import get_graph_channel
 
-Author: Spec 054 Implementation
+Author: Spec 054 + Spec 055 Agent 1 Implementation
 Created: 2025-10-07
 """
 
@@ -19,6 +24,8 @@ import logging
 import time
 import asyncio
 import redis
+import hashlib
+import re
 
 # Constitutional compliance: Only Graph Channel import allowed
 from daedalus_gateway import get_graph_channel
@@ -36,16 +43,149 @@ from ..models.document_relationships import (
 logger = logging.getLogger(__name__)
 
 
+# ============================================================================
+# SPEC 055 AGENT 1: Content Hash Utilities
+# ============================================================================
+
+def infer_connector_icon(mime_type: str, source_type: str) -> str:
+    """
+    Infer connector icon from mime_type and source_type.
+
+    Spec 057: Icon hint for UI display.
+
+    Args:
+        mime_type: Document MIME type
+        source_type: How document was ingested (uploaded_file, url, api)
+
+    Returns:
+        Icon hint string (pdf, html, upload, etc.)
+
+    Example:
+        >>> infer_connector_icon("application/pdf", "uploaded_file")
+        'pdf'
+        >>> infer_connector_icon("text/html", "url")
+        'html'
+    """
+    # Map mime_type to icon
+    mime_icon_map = {
+        "application/pdf": "pdf",
+        "text/html": "html",
+        "text/plain": "text",
+        "application/msword": "doc",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "doc",
+        "text/markdown": "markdown",
+        "application/json": "json"
+    }
+
+    # Check if we have a specific icon for this mime type
+    if mime_type in mime_icon_map:
+        return mime_icon_map[mime_type]
+
+    # Default based on source_type
+    if source_type == "url":
+        return "web"
+    elif source_type == "api":
+        return "api"
+    else:
+        return "upload"
+
+
+def compute_content_hash(document_body: str, namespace: str = "default") -> str:
+    """
+    Compute deterministic SHA-256 hash from document content.
+
+    Spec 055 Agent 1: Hash = SHA256(document_body + namespace)
+
+    Args:
+        document_body: Raw document text/content
+        namespace: Namespace for hash scoping (default: "default")
+
+    Returns:
+        64-character lowercase hex SHA-256 hash
+
+    Example:
+        >>> compute_content_hash("Test content", "research")
+        'a1b2c3d4...'  # 64 hex characters
+    """
+    if not isinstance(document_body, str):
+        raise TypeError(f"document_body must be str, got {type(document_body)}")
+    if not isinstance(namespace, str):
+        raise TypeError(f"namespace must be str, got {type(namespace)}")
+
+    # Combine content and namespace
+    combined = document_body + namespace
+
+    # Compute SHA-256 hash
+    hash_bytes = hashlib.sha256(combined.encode('utf-8')).digest()
+
+    # Return lowercase hex representation
+    return hash_bytes.hex()
+
+
+def validate_content_hash(content_hash: str) -> bool:
+    """
+    Validate content_hash is valid SHA-256 format.
+
+    Spec 055 Agent 1: Must be exactly 64 hexadecimal characters.
+
+    Args:
+        content_hash: Hash string to validate
+
+    Returns:
+        True if valid SHA-256 format, False otherwise
+
+    Example:
+        >>> validate_content_hash("a" * 64)
+        True
+        >>> validate_content_hash("invalid")
+        False
+    """
+    if not isinstance(content_hash, str):
+        return False
+
+    # Normalize to lowercase for validation
+    normalized = content_hash.lower()
+
+    # Check length (SHA-256 = 64 hex chars)
+    if len(normalized) != 64:
+        return False
+
+    # Check all characters are hex (0-9, a-f)
+    hex_pattern = re.compile(r'^[0-9a-f]{64}$')
+    return bool(hex_pattern.match(normalized))
+
+
+# ============================================================================
+# Document Repository
+# ============================================================================
+
 class DocumentRepository:
     """
     Repository for document persistence and retrieval.
 
     All Neo4j operations go through DaedalusGraphChannel (Spec 040 compliance).
+    Spec 055 Agent 3: Integrates DocumentSummarizer for LLM summaries.
     """
 
     def __init__(self):
-        """Initialize repository with Graph Channel."""
+        """Initialize repository with Graph Channel and DocumentSummarizer."""
         self.graph_channel = get_graph_channel()
+
+        # Spec 055 Agent 3: Initialize DocumentSummarizer
+        try:
+            from .document_summarizer import DocumentSummarizer, SummarizerConfig
+            config = SummarizerConfig(
+                model="gpt-3.5-turbo",
+                max_tokens=150,
+                temperature=0.3
+            )
+            self.summarizer = DocumentSummarizer(config)
+            self.summarizer_available = True
+            logger.info("DocumentSummarizer initialized")
+        except Exception as e:
+            self.summarizer = None
+            self.summarizer_available = False
+            logger.warning(f"DocumentSummarizer not available: {e}")
 
         # Redis for basin evolution tracking (optional, with fallback)
         try:
@@ -68,9 +208,13 @@ class DocumentRepository:
 
         T024-T029 implementation from plan.md lines 615-672.
 
+        SPEC 055 AGENT 1: Computes content_hash if not provided,
+        validates format, and checks for duplicates.
+
         Args:
             final_output: Daedalus LangGraph final_output
             metadata: Document metadata (filename, content_hash, tags, etc.)
+                     If content_hash not provided, will compute from document_body
 
         Returns:
             Persistence result with performance metrics
@@ -79,6 +223,27 @@ class DocumentRepository:
         logger.info(f"Starting persistence for document {metadata.get('document_id')}")
 
         try:
+            # SPEC 055 AGENT 1: Compute content_hash if not provided
+            if "content_hash" not in metadata:
+                if "document_body" in metadata:
+                    namespace = metadata.get("namespace", "default")
+                    metadata["content_hash"] = compute_content_hash(
+                        metadata["document_body"],
+                        namespace
+                    )
+                    logger.info(f"Computed content_hash: {metadata['content_hash'][:16]}...")
+                else:
+                    raise ValueError(
+                        "Either 'content_hash' or 'document_body' must be provided in metadata"
+                    )
+
+            # SPEC 055 AGENT 1: Validate content_hash format
+            if not validate_content_hash(metadata["content_hash"]):
+                raise ValueError(
+                    f"Invalid content_hash format. Must be 64 hex characters. "
+                    f"Got: {metadata['content_hash']}"
+                )
+
             # T024: Validation and duplicate check
             await self._validate_and_check_duplicates(metadata)
 
@@ -237,7 +402,11 @@ class DocumentRepository:
                 "tags": doc["tags"],
                 "tier": doc["tier"],
                 "last_accessed": doc["last_accessed"],
-                "access_count": doc["access_count"]
+                "access_count": doc["access_count"],
+                "source_type": doc.get("source_type", "uploaded_file"),
+                "original_url": doc.get("original_url"),
+                "connector_icon": doc.get("connector_icon"),
+                "download_metadata": doc.get("download_metadata")
             },
             "quality": {
                 "overall": doc["quality_overall"],
@@ -248,7 +417,10 @@ class DocumentRepository:
             "concepts": concepts_by_level,
             "basins": [b for b in record["basins"] if b and b.get("basin_id")],
             "thoughtseeds": [s for s in record["thoughtseeds"] if s and s.get("seed_id")],
-            "processing_timeline": []  # Can be added from metadata if stored
+            "processing_timeline": [],  # Can be added from metadata if stored
+            # Spec 055 Agent 3: Include summary in response
+            "summary": doc.get("summary"),
+            "summary_metadata": doc.get("summary_metadata")
         }
 
         logger.info(f"✅ Retrieved document {document_id} (access_count: {doc['access_count']})")
@@ -264,12 +436,14 @@ class DocumentRepository:
         date_to: Optional[str] = None,
         sort: str = "upload_date",
         order: str = "desc",
-        tier: Optional[str] = None
+        tier: Optional[str] = None,
+        source_type: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         T031-T033: List documents with pagination, filtering, sorting.
 
         From plan.md lines 864-982.
+        Spec 057: Added source_type filtering.
 
         Args:
             page: Page number (1-indexed)
@@ -281,6 +455,7 @@ class DocumentRepository:
             sort: Sort field (upload_date, quality, curiosity)
             order: Sort order (asc, desc)
             tier: Filter by tier (warm, cool, cold)
+            source_type: Filter by source_type (uploaded_file, url, api)
 
         Returns:
             Documents list with pagination metadata
@@ -311,6 +486,10 @@ class DocumentRepository:
         if tier:
             where_clauses.append("d.tier = $tier")
             parameters["tier"] = tier
+
+        if source_type:
+            where_clauses.append("d.source_type = $source_type")
+            parameters["source_type"] = source_type
 
         where_clause = " AND ".join(where_clauses) if where_clauses else "true"
 
@@ -348,6 +527,10 @@ class DocumentRepository:
             d.tier as tier,
             d.curiosity_triggers as curiosity_triggers,
             d.file_size as file_size,
+            d.summary as summary,
+            d.source_type as source_type,
+            d.original_url as original_url,
+            d.connector_icon as connector_icon,
             size([(c:Concept)-[:EXTRACTED_FROM]->(d) | c]) as concept_count,
             size([(b:AttractorBasin)-[:ATTRACTED_TO]->(d) | b]) as basin_count,
             size([(t:ThoughtSeed)-[:GERMINATED_FROM]->(d) | t]) as thoughtseed_count
@@ -393,6 +576,10 @@ class DocumentRepository:
                     "tier": record["tier"],
                     "curiosity_triggers": record["curiosity_triggers"],
                     "file_size": record["file_size"],
+                    "summary": record.get("summary"),  # Spec 055 Agent 3
+                    "source_type": record.get("source_type", "uploaded_file"),  # Spec 057
+                    "original_url": record.get("original_url"),  # Spec 057
+                    "connector_icon": record.get("connector_icon"),  # Spec 057
                     "concept_count": record["concept_count"],
                     "basin_count": record["basin_count"],
                     "thoughtseed_count": record["thoughtseed_count"]
@@ -452,6 +639,62 @@ class DocumentRepository:
 
     # Private helper methods for persist_document()
 
+    async def find_duplicate_by_hash(self, content_hash: str) -> Optional[Dict[str, Any]]:
+        """
+        Find duplicate document by content_hash with full metadata.
+
+        Spec 055 Agent 2: Returns structured canonical document info for 409 response.
+
+        Args:
+            content_hash: SHA-256 content hash to check
+
+        Returns:
+            Canonical document metadata if duplicate found, None otherwise
+        """
+        duplicate_check_query = """
+        MATCH (d:Document {content_hash: $content_hash})
+        RETURN
+            d.document_id as document_id,
+            d.filename as filename,
+            d.upload_timestamp as upload_timestamp,
+            d.quality_overall as quality_overall,
+            d.tier as tier,
+            d.tags as tags,
+            d.file_size as file_size,
+            d.access_count as access_count
+        """
+
+        result = await self.graph_channel.execute_read(
+            query=duplicate_check_query,
+            parameters={"content_hash": content_hash},
+            caller_service="document_repository",
+            caller_function="find_duplicate_by_hash"
+        )
+
+        if result.get("records"):
+            record = result["records"][0]
+
+            # Convert Neo4j DateTime to ISO format string for JSON serialization
+            upload_timestamp = record["upload_timestamp"]
+            if hasattr(upload_timestamp, 'isoformat'):
+                upload_timestamp = upload_timestamp.isoformat()
+            elif hasattr(upload_timestamp, 'to_native'):
+                # Neo4j DateTime object
+                upload_timestamp = upload_timestamp.to_native().isoformat()
+
+            return {
+                "document_id": record["document_id"],
+                "filename": record["filename"],
+                "upload_timestamp": upload_timestamp,
+                "quality_overall": record["quality_overall"],
+                "tier": record["tier"],
+                "tags": record.get("tags", []),
+                "file_size": record.get("file_size", 0),
+                "access_count": record.get("access_count", 0)
+            }
+
+        return None
+
     async def _validate_and_check_duplicates(self, metadata: Dict[str, Any]) -> None:
         """
         T024: Validate required fields and check for duplicates.
@@ -464,24 +707,13 @@ class DocumentRepository:
             if field not in metadata:
                 raise ValueError(f"Missing required field: {field}")
 
-        # Check for duplicate by content_hash
-        duplicate_check_query = """
-        MATCH (d:Document {content_hash: $content_hash})
-        RETURN d.document_id as document_id, d.filename as filename, d.upload_timestamp as uploaded_at
-        """
+        # Check for duplicate by content_hash using enhanced method
+        duplicate = await self.find_duplicate_by_hash(metadata["content_hash"])
 
-        result = await self.graph_channel.execute_read(
-            query=duplicate_check_query,
-            parameters={"content_hash": metadata["content_hash"]},
-            caller_service="document_repository",
-            caller_function="_validate_and_check_duplicates"
-        )
-
-        if result.get("records"):
-            existing = result["records"][0]
+        if duplicate:
             raise ValueError(
                 f"Duplicate document detected. Content hash {metadata['content_hash']} "
-                f"already exists as document {existing['document_id']}"
+                f"already exists as document {duplicate['document_id']}"
             )
 
     async def _create_document_node(
@@ -493,9 +725,61 @@ class DocumentRepository:
         T025: Create Document node in Neo4j.
 
         From plan.md lines 647-672.
+        Spec 055 Agent 3: Generates and stores LLM summary.
         """
         quality = final_output.get("quality", {}).get("scores", {})
         research = final_output.get("research", {})
+
+        # Spec 057: Infer connector_icon if not provided
+        source_type = metadata.get("source_type", "uploaded_file")
+        original_url = metadata.get("original_url")
+        connector_icon = metadata.get("connector_icon")
+        download_metadata = metadata.get("download_metadata")
+
+        if not connector_icon:
+            connector_icon = infer_connector_icon(
+                metadata.get("mime_type", "application/pdf"),
+                source_type
+            )
+
+        # Spec 055 Agent 3: Generate LLM summary
+        summary = None
+        summary_metadata = None
+
+        if self.summarizer_available:
+            try:
+                # Extract document text from metadata or final_output
+                document_text = (
+                    metadata.get("document_body") or
+                    final_output.get("extracted_text") or
+                    final_output.get("content") or
+                    ""
+                )
+
+                if document_text:
+                    summary_result = await self.summarizer.generate_summary(
+                        document_text,
+                        max_tokens=150
+                    )
+                    summary = summary_result.get("summary")
+                    summary_metadata = {
+                        "method": summary_result.get("method"),
+                        "model": summary_result.get("model"),
+                        "tokens_used": summary_result.get("tokens_used"),
+                        "generated_at": summary_result.get("generated_at"),
+                        "error": summary_result.get("error")
+                    }
+                    logger.info(
+                        f"Generated summary for {metadata['document_id']}: "
+                        f"{summary_result['tokens_used']} tokens via {summary_result['method']}"
+                    )
+                else:
+                    logger.warning(
+                        f"No document text available for summary generation: {metadata['document_id']}"
+                    )
+            except Exception as e:
+                logger.warning(f"Summary generation failed for {metadata['document_id']}: {e}")
+                # Continue without summary - not a critical failure
 
         create_query = """
         CREATE (d:Document {
@@ -518,6 +802,14 @@ class DocumentRepository:
 
             curiosity_triggers: $curiosity_triggers,
             research_questions: $research_questions,
+
+            summary: $summary,
+            summary_metadata: $summary_metadata,
+
+            source_type: $source_type,
+            original_url: $original_url,
+            connector_icon: $connector_icon,
+            download_metadata: $download_metadata,
 
             tier: "warm",
             last_accessed: datetime(),
@@ -545,7 +837,13 @@ class DocumentRepository:
             "quality_novelty": quality.get("novelty"),
             "quality_depth": quality.get("depth"),
             "curiosity_triggers": research.get("curiosity_triggers", 0),
-            "research_questions": research.get("research_questions", 0)
+            "research_questions": research.get("research_questions", 0),
+            "summary": summary,
+            "summary_metadata": summary_metadata,
+            "source_type": source_type,
+            "original_url": original_url,
+            "connector_icon": connector_icon,
+            "download_metadata": download_metadata
         }
 
         await self.graph_channel.execute_write(
@@ -823,3 +1121,278 @@ class DocumentRepository:
 
         except Exception as e:
             logger.warning(f"Failed to update basin manager in Redis: {e}")
+
+    # ============================================================================
+    # SPEC 056: URL Ingestion & Chunking
+    # ============================================================================
+
+    async def persist_document_from_url(
+        self,
+        url: str,
+        metadata: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Download URL, chunk, and persist to Neo4j.
+
+        Spec 056: Complete URL ingestion pipeline.
+
+        Workflow:
+        1. Download URL → bytes
+        2. Convert to text (PDF/HTML/plain)
+        3. Chunk text
+        4. Persist document + chunks + relationships
+
+        Args:
+            url: HTTPS URL to download
+            metadata: Additional metadata (tags, etc.)
+
+        Returns:
+            Persistence result with chunk count
+
+        Raises:
+            DownloadError: Download failed
+            UnsupportedMimeTypeError: MIME type not supported
+            ValueError: Duplicate content detected
+
+        Example:
+            >>> repo = DocumentRepository()
+            >>> result = await repo.persist_document_from_url(
+            ...     "https://arxiv.org/pdf/2301.12345.pdf",
+            ...     {"tags": ["research", "ai"]}
+            ... )
+            >>> print(f"Created {result['chunks_created']} chunks")
+        """
+        from .url_downloader import URLDownloader
+        from .document_chunker import DocumentChunker
+        import io
+        import PyPDF2
+        from bs4 import BeautifulSoup
+
+        logger.info(f"Starting URL ingestion: {url}")
+
+        # Step 1: Download URL
+        downloader = URLDownloader()
+        download_result = await downloader.download_url(url)
+
+        logger.info(
+            f"Downloaded {download_result['size_bytes']} bytes "
+            f"({download_result['mime_type']}) in {download_result['download_duration_ms']:.0f}ms"
+        )
+
+        # Step 2: Convert to text based on MIME type
+        mime_type = download_result["mime_type"]
+        content_bytes = download_result["content"]
+
+        if mime_type == "application/pdf":
+            # Extract text from PDF
+            reader = PyPDF2.PdfReader(io.BytesIO(content_bytes))
+            text = ""
+            for page in reader.pages:
+                text += page.extract_text()
+        elif mime_type == "text/html":
+            # Extract text from HTML
+            soup = BeautifulSoup(content_bytes, 'html.parser')
+            # Remove script and style elements
+            for script in soup(["script", "style"]):
+                script.decompose()
+            text = soup.get_text(separator="\n", strip=True)
+        elif mime_type == "text/plain":
+            # Plain text
+            text = content_bytes.decode('utf-8', errors='ignore')
+        else:
+            raise ValueError(f"Unsupported MIME type: {mime_type}")
+
+        logger.info(f"Extracted {len(text)} characters from {mime_type}")
+
+        # Step 3: Compute content_hash
+        namespace = metadata.get("namespace", "default")
+        content_hash = compute_content_hash(text, namespace)
+
+        # Check for duplicates
+        duplicate = await self.find_duplicate_by_hash(content_hash)
+        if duplicate:
+            raise ValueError(
+                f"Duplicate document detected. Content hash {content_hash} "
+                f"already exists as document {duplicate['document_id']}"
+            )
+
+        # Step 4: Chunk text
+        chunker = DocumentChunker(chunk_size=1000, overlap=200)
+        document_id = metadata.get("document_id") or f"doc_{int(time.time() * 1000)}"
+        chunks = await chunker.chunk_document(document_id, text)
+
+        logger.info(f"Created {len(chunks)} chunks for document {document_id}")
+
+        # Step 5: Process through Daedalus (if available)
+        # For now, create minimal Daedalus output
+        # TODO: Integrate with actual Daedalus processing
+        final_output = {
+            "quality": {"scores": {"overall": 0.75}},
+            "concepts": {"atomic": []},
+            "basins": [],
+            "thoughtseeds": [],
+            "research": {"curiosity_triggers": 0, "research_questions": 0},
+            "processing_duration_ms": 0
+        }
+
+        # Step 6: Prepare metadata
+        filename = url.split("/")[-1] or "downloaded_document"
+        persistence_metadata = {
+            "document_id": document_id,
+            "filename": filename,
+            "content_hash": content_hash,
+            "file_size": download_result["size_bytes"],
+            "mime_type": mime_type,
+            "tags": metadata.get("tags", []),
+            "source_type": "url",
+            "original_url": url,
+            "connector_icon": infer_connector_icon(mime_type, "url"),
+            "download_metadata": {
+                "status_code": download_result["status_code"],
+                "redirected_url": download_result["redirected_url"],
+                "download_duration_ms": download_result["download_duration_ms"]
+            },
+            "document_body": text  # For summary generation
+        }
+
+        # Step 7: Persist document
+        result = await self.persist_document(final_output, persistence_metadata)
+
+        # Step 8: Persist chunks
+        chunks_created = await self._persist_chunks(chunks, document_id)
+
+        logger.info(
+            f"✅ URL ingestion complete: {url} → {document_id} "
+            f"({len(chunks)} chunks)"
+        )
+
+        return {
+            **result,
+            "chunks_created": chunks_created,
+            "original_url": url,  # Spec 057: Use original_url consistently
+            "text_length": len(text)
+        }
+
+    async def _persist_chunks(
+        self,
+        chunks: List[Dict[str, Any]],
+        document_id: str
+    ) -> int:
+        """
+        Persist document chunks to Neo4j.
+
+        Spec 056: Store chunks with stable IDs and relationships.
+
+        Args:
+            chunks: List of chunk dictionaries
+            document_id: Parent document ID
+
+        Returns:
+            Number of chunks created
+        """
+        total_chunks = 0
+
+        for chunk in chunks:
+            # Create chunk node
+            chunk_query = """
+            CREATE (c:Chunk {
+                chunk_id: $chunk_id,
+                content: $content,
+                position: $position,
+                start_char: $start_char,
+                end_char: $end_char,
+                created_at: datetime()
+            })
+            """
+
+            await self.graph_channel.execute_write(
+                query=chunk_query,
+                parameters={
+                    "chunk_id": chunk["chunk_id"],
+                    "content": chunk["content"],
+                    "position": chunk["position"],
+                    "start_char": chunk["start_char"],
+                    "end_char": chunk["end_char"]
+                },
+                caller_service="document_repository",
+                caller_function="_persist_chunks"
+            )
+
+            # Link chunk to document
+            link_query = """
+            MATCH (c:Chunk {chunk_id: $chunk_id})
+            MATCH (d:Document {document_id: $document_id})
+            CREATE (c)-[:PART_OF {
+                position: $position,
+                chunk_index: $position
+            }]->(d)
+            """
+
+            await self.graph_channel.execute_write(
+                query=link_query,
+                parameters={
+                    "chunk_id": chunk["chunk_id"],
+                    "document_id": document_id,
+                    "position": chunk["position"]
+                },
+                caller_service="document_repository",
+                caller_function="_persist_chunks"
+            )
+
+            total_chunks += 1
+
+        logger.info(f"✅ Persisted {total_chunks} chunks for document {document_id}")
+        return total_chunks
+
+    async def get_document_chunks(
+        self,
+        document_id: str
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieve all chunks for a document.
+
+        Spec 056: Query chunks in position order.
+
+        Args:
+            document_id: Document ID
+
+        Returns:
+            List of chunks ordered by position
+
+        Example:
+            >>> chunks = await repo.get_document_chunks("doc_123")
+            >>> print(f"Found {len(chunks)} chunks")
+        """
+        query = """
+        MATCH (c:Chunk)-[:PART_OF]->(d:Document {document_id: $document_id})
+        RETURN
+            c.chunk_id as chunk_id,
+            c.content as content,
+            c.position as position,
+            c.start_char as start_char,
+            c.end_char as end_char,
+            c.created_at as created_at
+        ORDER BY c.position ASC
+        """
+
+        result = await self.graph_channel.execute_read(
+            query=query,
+            parameters={"document_id": document_id},
+            caller_service="document_repository",
+            caller_function="get_document_chunks"
+        )
+
+        chunks = []
+        if result.get("records"):
+            for record in result["records"]:
+                chunks.append({
+                    "chunk_id": record["chunk_id"],
+                    "content": record["content"],
+                    "position": record["position"],
+                    "start_char": record["start_char"],
+                    "end_char": record["end_char"],
+                    "created_at": record["created_at"]
+                })
+
+        logger.info(f"Retrieved {len(chunks)} chunks for document {document_id}")
+        return chunks
