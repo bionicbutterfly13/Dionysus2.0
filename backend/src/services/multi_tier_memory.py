@@ -31,10 +31,10 @@ except ImportError:
     REDIS_AVAILABLE = False
 
 try:
-    from neo4j import AsyncGraphDatabase
-    NEO4J_AVAILABLE = True
+    from daedalus_gateway import get_graph_channel
+    GRAPH_CHANNEL_AVAILABLE = True
 except ImportError:
-    NEO4J_AVAILABLE = False
+    GRAPH_CHANNEL_AVAILABLE = False
 
 try:
     import qdrant_client
@@ -296,93 +296,114 @@ class HotMemoryManager:
 
 class WarmMemoryManager:
     """Neo4j-based warm memory for knowledge graphs (months/years)"""
-    
+
     def __init__(self, neo4j_uri: str = "bolt://localhost:7687", username: str = "neo4j", password: str = "thoughtseed"):
-        self.neo4j_uri = neo4j_uri
-        self.username = username
-        self.password = password
-        self.driver = None
+        # Parameters kept for backwards compatibility but not used
+        # Graph Channel manages connection via environment variables
+        self.graph_channel = None
         self.connected = False
-        
+
     async def connect(self):
-        """Connect to Neo4j"""
-        if not NEO4J_AVAILABLE:
-            logger.warning("Neo4j not available - using in-memory graph fallback")
+        """Connect to Neo4j via Graph Channel"""
+        if not GRAPH_CHANNEL_AVAILABLE:
+            logger.warning("Graph Channel not available - using in-memory graph fallback")
             self.graph_store = {"nodes": {}, "relationships": []}
             self.connected = True
             return
-        
+
         try:
-            self.driver = AsyncGraphDatabase.driver(
-                self.neo4j_uri,
-                auth=(self.username, self.password)
-            )
+            # Get singleton Graph Channel instance
+            self.graph_channel = get_graph_channel()
+            await self.graph_channel.connect()
+
             # Test connection
-            async with self.driver.session() as session:
-                await session.run("RETURN 1")
-            self.connected = True
-            logger.info("Connected to Neo4j warm memory")
+            result = await self.graph_channel.execute_read(
+                query="RETURN 1 as test",
+                parameters={},
+                caller_service="multi_tier_memory",
+                caller_function="connect"
+            )
+
+            if result["success"]:
+                self.connected = True
+                logger.info("Connected to Neo4j warm memory via Graph Channel")
+            else:
+                raise Exception(f"Connection test failed: {result.get('error')}")
+
         except Exception as e:
-            logger.error(f"Failed to connect to Neo4j: {e}")
+            logger.error(f"Failed to connect to Graph Channel: {e}")
             self.graph_store = {"nodes": {}, "relationships": []}
             self.connected = True
     
     async def store_knowledge_graph(self, concepts: List[MemoryItem], relationships: List[MemoryItem]) -> bool:
         """Store concepts and relationships as knowledge graph"""
         try:
-            if self.driver:
-                async with self.driver.session() as session:
-                    # Create concept nodes
-                    for concept in concepts:
-                        await session.run(
-                            """
-                            MERGE (c:Concept {id: $id})
-                            SET c.content = $content,
-                                c.type = $type,
-                                c.created_at = $created_at,
-                                c.importance = $importance,
-                                c.tags = $tags,
-                                c.domain_tags = $domain_tags
+            if self.graph_channel:
+                # Create concept nodes
+                for concept in concepts:
+                    result = await self.graph_channel.execute_write(
+                        query="""
+                        MERGE (c:Concept {id: $id})
+                        SET c.content = $content,
+                            c.type = $type,
+                            c.created_at = $created_at,
+                            c.importance = $importance,
+                            c.tags = $tags,
+                            c.domain_tags = $domain_tags
+                        """,
+                        parameters={
+                            "id": concept.item_id,
+                            "content": json.dumps(concept.content) if concept.content else "",
+                            "type": concept.memory_type.value,
+                            "created_at": concept.created_at.isoformat(),
+                            "importance": concept.importance_score,
+                            "tags": concept.tags,
+                            "domain_tags": concept.domain_tags
+                        },
+                        caller_service="multi_tier_memory",
+                        caller_function="store_knowledge_graph"
+                    )
+
+                    if not result["success"]:
+                        logger.error(f"Failed to create concept node: {result.get('error')}")
+
+                # Create relationship edges
+                for relationship in relationships:
+                    if hasattr(relationship.content, 'source_concept') and hasattr(relationship.content, 'target_concept'):
+                        result = await self.graph_channel.execute_write(
+                            query="""
+                            MATCH (a:Concept {id: $source_id})
+                            MATCH (b:Concept {id: $target_id})
+                            MERGE (a)-[r:RELATES_TO {id: $rel_id}]->(b)
+                            SET r.type = $rel_type,
+                                r.strength = $strength,
+                                r.created_at = $created_at
                             """,
-                            id=concept.item_id,
-                            content=json.dumps(concept.content) if concept.content else "",
-                            type=concept.memory_type.value,
-                            created_at=concept.created_at.isoformat(),
-                            importance=concept.importance_score,
-                            tags=concept.tags,
-                            domain_tags=concept.domain_tags
+                            parameters={
+                                "source_id": relationship.content.get('source_concept', ''),
+                                "target_id": relationship.content.get('target_concept', ''),
+                                "rel_id": relationship.item_id,
+                                "rel_type": relationship.content.get('relationship_type', 'relates_to'),
+                                "strength": relationship.importance_score,
+                                "created_at": relationship.created_at.isoformat()
+                            },
+                            caller_service="multi_tier_memory",
+                            caller_function="store_knowledge_graph"
                         )
-                    
-                    # Create relationship edges
-                    for relationship in relationships:
-                        if hasattr(relationship.content, 'source_concept') and hasattr(relationship.content, 'target_concept'):
-                            await session.run(
-                                """
-                                MATCH (a:Concept {id: $source_id})
-                                MATCH (b:Concept {id: $target_id})
-                                MERGE (a)-[r:RELATES_TO {id: $rel_id}]->(b)
-                                SET r.type = $rel_type,
-                                    r.strength = $strength,
-                                    r.created_at = $created_at
-                                """,
-                                source_id=relationship.content.get('source_concept', ''),
-                                target_id=relationship.content.get('target_concept', ''),
-                                rel_id=relationship.item_id,
-                                rel_type=relationship.content.get('relationship_type', 'relates_to'),
-                                strength=relationship.importance_score,
-                                created_at=relationship.created_at.isoformat()
-                            )
+
+                        if not result["success"]:
+                            logger.error(f"Failed to create relationship: {result.get('error')}")
             else:
                 # Fallback to in-memory graph
                 for concept in concepts:
                     self.graph_store["nodes"][concept.item_id] = concept
-                
+
                 for relationship in relationships:
                     self.graph_store["relationships"].append(relationship)
-            
+
             logger.info(f"Stored knowledge graph with {len(concepts)} concepts and {len(relationships)} relationships")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to store knowledge graph: {e}")
             return False
@@ -390,14 +411,23 @@ class WarmMemoryManager:
     async def query_graph(self, cypher_query: str, params: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         """Execute Cypher query on knowledge graph"""
         try:
-            if self.driver:
-                async with self.driver.session() as session:
-                    result = await session.run(cypher_query, params or {})
-                    return [record.data() for record in await result.data()]
+            if self.graph_channel:
+                result = await self.graph_channel.execute_read(
+                    query=cypher_query,
+                    parameters=params or {},
+                    caller_service="multi_tier_memory",
+                    caller_function="query_graph"
+                )
+
+                if result["success"]:
+                    return result.get("records", [])
+                else:
+                    logger.error(f"Graph query failed: {result.get('error')}")
+                    return []
             else:
                 # Simple fallback query for in-memory graph
                 return self._query_memory_graph(cypher_query, params or {})
-        
+
         except Exception as e:
             logger.error(f"Failed to execute graph query: {e}")
             return []
@@ -419,26 +449,37 @@ class WarmMemoryManager:
     async def get_stats(self) -> MemoryStats:
         """Get warm memory statistics"""
         stats = MemoryStats(tier=MemoryTier.WARM)
-        
+
         try:
-            if self.driver:
-                async with self.driver.session() as session:
-                    # Count nodes
-                    result = await session.run("MATCH (n) RETURN count(n) as count")
-                    record = await result.single()
-                    stats.total_items = record["count"] if record else 0
-                    
-                    # Count relationships  
-                    result = await session.run("MATCH ()-[r]->() RETURN count(r) as count")
-                    record = await result.single()
-                    stats.knowledge_graphs = record["count"] if record else 0
+            if self.graph_channel:
+                # Count nodes
+                result = await self.graph_channel.execute_read(
+                    query="MATCH (n) RETURN count(n) as count",
+                    parameters={},
+                    caller_service="multi_tier_memory",
+                    caller_function="get_stats"
+                )
+
+                if result["success"] and result.get("records"):
+                    stats.total_items = result["records"][0].get("count", 0)
+
+                # Count relationships
+                result = await self.graph_channel.execute_read(
+                    query="MATCH ()-[r]->() RETURN count(r) as count",
+                    parameters={},
+                    caller_service="multi_tier_memory",
+                    caller_function="get_stats"
+                )
+
+                if result["success"] and result.get("records"):
+                    stats.knowledge_graphs = result["records"][0].get("count", 0)
             else:
                 stats.total_items = len(self.graph_store["nodes"])
                 stats.knowledge_graphs = len(self.graph_store["relationships"])
-        
+
         except Exception as e:
             logger.error(f"Failed to get warm memory stats: {e}")
-        
+
         return stats
     
     def _query_memory_graph(self, query: str, params: Dict[str, Any]) -> List[Dict[str, Any]]:

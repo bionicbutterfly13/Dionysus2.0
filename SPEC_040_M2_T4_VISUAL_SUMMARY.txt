@@ -1,0 +1,109 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║          SPEC 040 M2 TASK T4: LEGACY NEO4J MODULE AUDIT                  ║
+║                         ✅ TASK COMPLETE                                 ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+📊 AUDIT SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Total Files Audited:        17
+  ├─ CRITICAL (migrate):     3  ⚠️  Migration required
+  ├─ LEGACY (archived):      4  ✅  Contained in archive
+  ├─ EXTERNAL (document):    6  📝  Submodule files
+  ├─ DOCUMENTATION:          3  📄  No action needed
+  └─ TEST (update):          1  🧪  Needs migration
+
+📦 ARCHIVE RESULTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Total LOC Archived:         2,265 lines
+Archive Location:           backend/backup/deprecated/legacy_neo4j_modules/
+
+Archived Files:
+  ├─ neo4j_unified_schema.py         669 LOC  ✅ Deprecated
+  ├─ unified_database.py             765 LOC  ✅ Deprecated
+  ├─ cross_database_learning.py      588 LOC  ✅ Deprecated
+  └─ database.py                     243 LOC  ✅ Deprecated
+
+🔧 CRITICAL FILES (Migration Required)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. backend/src/services/neo4j_searcher.py
+   Purpose:  Query engine search
+   Impact:   Query API (Spec 006)
+   Target:   M3 T5 (4-6 hours)
+
+2. backend/src/services/clause/graph_loader.py
+   Purpose:  CLAUSE subgraph loading
+   Impact:   CLAUSE API (Spec 034)
+   Target:   M3 T6 (6-8 hours)
+
+3. backend/src/config/neo4j_config.py
+   Purpose:  Connection management
+   Impact:   Configuration layer
+   Target:   M3 T5 (2-3 hours)
+
+📄 DELIVERABLES CREATED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ LEGACY_REGISTRY.md (16 KB)
+   - Complete registry of all Neo4j imports
+   - Migration plan for CRITICAL files
+   - Constitutional enforcement strategy
+
+✅ backend/backup/deprecated/legacy_neo4j_modules/README.md (6.3 KB)
+   - Archive documentation
+   - Migration guidance
+   - Usage warnings
+
+✅ SPEC_040_M2_T4_COMPLETION_REPORT.md (10 KB)
+   - Executive summary
+   - Detailed audit results
+   - Impact analysis
+
+✅ TASK_SUMMARY.md (7.5 KB)
+   - Quick reference summary
+   - Next steps roadmap
+   - Verification checklist
+
+🚫 CONSTITUTIONAL COMPLIANCE: FR-003
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Spec 040 FR-003: "Block new direct neo4j imports"
+
+Enforcement Strategy Defined (Implementation: M3 T7):
+  ├─ Pre-commit Hook:   Block commits with direct imports
+  ├─ Linter Rules:      Ban neo4j module (ruff/pylint)
+  └─ CI/CD Checks:      Fail builds on violations
+
+⚠️ SPECIAL CASES HANDLED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+document_processing_graph.py:
+  ├─ Issue:     Active import of archived neo4j_unified_schema.py
+  ├─ Solution:  Temporary backwards compatibility via archive path
+  └─ Long-term: Migrate to Graph Channel (M3)
+
+📅 NEXT STEPS (Spec 040 M3)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Priority Tasks:
+  [ ] T5: Migrate neo4j_searcher.py to Graph Channel    (4-6 hours)
+  [ ] T6: Migrate graph_loader.py to Graph Channel      (6-8 hours)
+  [ ] T7: Implement FR-003 enforcement                  (2-3 hours)
+
+Follow-up:
+  [ ] Migrate document_processing_graph.py to Graph Channel
+  [ ] Update test_basin_persistence.py to use Graph Channel
+  [ ] Remove archive dependency completely
+
+Total Migration Effort: 12-17 hours
+
+✅ VERIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Archive exists:                    ✅ YES
+Documentation created:             ✅ YES (4 files, 39.8 KB)
+Total archived LOC verified:       ✅ 2,265 lines
+No broken imports (active code):   ✅ PASS (backwards compatibility)
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║  Task Status: ✅ COMPLETE                                                ║
+║  Constitutional Compliance: ✅ FR-003 Strategy Defined                   ║
+║  Next: Spec 040 M3 T5 - Migrate neo4j_searcher.py                        ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+Generated: 2025-10-07
+Audit Team: Spec 040 Compliance

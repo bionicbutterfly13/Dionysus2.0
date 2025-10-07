@@ -115,10 +115,10 @@ async def construct_subgraph(
                 detail="edge_budget must be between 1 and 1000"
             )
 
-        # Load k-hop subgraph from Neo4j (with NFR-005 retry logic)
+        # Load k-hop subgraph via Graph Channel (with NFR-005 retry logic)
         loader = get_graph_loader()
         try:
-            loader.load_subgraph_from_neo4j(
+            await loader.load_subgraph_from_neo4j(
                 query=request.query,
                 hop_distance=request.hop_distance,
                 max_seed_nodes=20,
@@ -127,7 +127,7 @@ async def construct_subgraph(
             # NFR-005: Return 503 after retry exhaustion
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail=f"Neo4j connection failed: {str(e)}"
+                detail=f"Graph connection failed: {str(e)}"
             )
 
         # TODO T022: Implement CLAUSE edge scoring and selection
@@ -227,9 +227,9 @@ async def get_basin_info(
     - 503 Service Unavailable: Database unavailable
     """
     try:
-        # TODO T024: Implement basin retrieval
+        # Retrieve basin info via Graph Channel
         loader = get_graph_loader()
-        basin_data = loader.get_basin_info(concept_id)
+        basin_data = await loader.get_basin_info(concept_id)
 
         if basin_data is None:
             raise HTTPException(

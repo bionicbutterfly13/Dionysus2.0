@@ -24,12 +24,12 @@ from dataclasses import dataclass, field
 from enum import Enum
 import uuid
 
-# Knowledge graph construction
+# Knowledge graph construction - using Graph Channel (Spec 040 M2 T3.2)
 try:
-    from neo4j import AsyncGraphDatabase
-    NEO4J_AVAILABLE = True
+    from daedalus_gateway import get_graph_channel
+    GRAPH_CHANNEL_AVAILABLE = True
 except ImportError:
-    NEO4J_AVAILABLE = False
+    GRAPH_CHANNEL_AVAILABLE = False
 
 # Concept extraction integration
 try:
@@ -113,22 +113,24 @@ class AutoSchemaResult:
 class AutoSchemaKGService:
     """AutoSchemaKG integration service for automatic knowledge graph construction"""
     
-    def __init__(self, 
-                 neo4j_uri: str = "bolt://localhost:7687",
-                 neo4j_username: str = "neo4j", 
-                 neo4j_password: str = "thoughtseed",
-                 memory_system: Optional[MultiTierMemorySystem] = None):
-        self.neo4j_uri = neo4j_uri
-        self.neo4j_username = neo4j_username
-        self.neo4j_password = neo4j_password
-        self.driver = None
+    def __init__(self,
+                 memory_system: Optional[MultiTierMemorySystem] = None,
+                 graph_channel=None):
+        """
+        Initialize AutoSchemaKG service with Graph Channel integration.
+
+        Args:
+            memory_system: Optional multi-tier memory system
+            graph_channel: Optional Graph Channel instance (if None, uses singleton)
+        """
+        self.graph_channel = graph_channel or (get_graph_channel() if GRAPH_CHANNEL_AVAILABLE else None)
         self.memory_system = memory_system
-        
+
         # Schema generation parameters
         self.confidence_threshold = 0.7
         self.max_relations_per_node = 50
         self.semantic_similarity_threshold = 0.8
-        
+
         # Concept extraction service
         self.concept_extractor = None
         if SERVICES_AVAILABLE:
@@ -136,32 +138,37 @@ class AutoSchemaKGService:
     
     async def initialize(self):
         """Initialize the AutoSchemaKG service"""
-        if NEO4J_AVAILABLE:
+        if GRAPH_CHANNEL_AVAILABLE and self.graph_channel:
             try:
-                self.driver = AsyncGraphDatabase.driver(
-                    self.neo4j_uri,
-                    auth=(self.neo4j_username, self.neo4j_password)
-                )
-                
-                # Test connection and create constraints
-                async with self.driver.session() as session:
-                    await session.run("RETURN 1")
-                    await self._create_graph_constraints(session)
-                
-                logger.info("✅ AutoSchemaKG Neo4j connection established")
-                
+                # Connect to Graph Channel
+                await self.graph_channel.connect()
+
+                # Test connection
+                health = await self.graph_channel.health_check()
+                if not health.get('connected'):
+                    raise RuntimeError(f"Graph Channel health check failed: {health}")
+
+                # Create constraints through Graph Channel
+                await self._create_graph_constraints()
+
+                logger.info("✅ AutoSchemaKG Graph Channel connection established")
+
             except Exception as e:
-                logger.error(f"❌ Failed to connect to Neo4j: {e}")
-                self.driver = None
-        
+                logger.error(f"❌ Failed to connect via Graph Channel: {e}")
+                self.graph_channel = None
+
         # Initialize concept extractor
         if self.concept_extractor and hasattr(self.concept_extractor, 'initialize'):
             await self.concept_extractor.initialize()
-        
+
         logger.info("🧠 AutoSchemaKG service initialized")
     
-    async def _create_graph_constraints(self, session):
-        """Create Neo4j constraints for knowledge graph"""
+    async def _create_graph_constraints(self):
+        """Create Neo4j constraints for knowledge graph using Graph Channel"""
+        if not self.graph_channel:
+            logger.warning("Graph Channel not available, skipping constraint creation")
+            return
+
         constraints = [
             "CREATE CONSTRAINT kg_node_id IF NOT EXISTS FOR (n:KGNode) REQUIRE n.id IS UNIQUE",
             "CREATE CONSTRAINT kg_relation_id IF NOT EXISTS FOR (r:KGRelation) REQUIRE r.id IS UNIQUE",
@@ -169,10 +176,16 @@ class AutoSchemaKGService:
             "CREATE INDEX kg_node_name IF NOT EXISTS FOR (n:KGNode) ON (n.name)",
             "CREATE INDEX kg_relation_type IF NOT EXISTS FOR ()-[r:KGRelation]-() ON (r.type)"
         ]
-        
+
         for constraint in constraints:
             try:
-                await session.run(constraint)
+                result = await self.graph_channel.execute_schema(
+                    operation=constraint,
+                    caller_service="autoschemakg",
+                    caller_function="_create_graph_constraints"
+                )
+                if not result.get('success'):
+                    logger.debug(f"Constraint creation note: {result.get('error', 'already exists')}")
             except Exception as e:
                 # Constraint might already exist
                 logger.debug(f"Constraint creation: {e}")
@@ -215,8 +228,8 @@ class AutoSchemaKGService:
         # Step 3: Infer relationships between concepts
         await self._infer_concept_relationships(extraction_result, nodes, relations, doc_id)
         
-        # Step 4: Store in Neo4j knowledge graph
-        if self.driver:
+        # Step 4: Store in Neo4j knowledge graph via Graph Channel
+        if self.graph_channel:
             await self._store_knowledge_graph(nodes, relations)
         
         # Step 5: Store in multi-tier memory system
@@ -458,28 +471,23 @@ class AutoSchemaKGService:
                 )
                 relations.append(relation)
     
-    async def _store_knowledge_graph(self, 
+    async def _store_knowledge_graph(self,
                                    nodes: List[KnowledgeGraphNode],
                                    relations: List[KnowledgeGraphRelation]):
-        """Store knowledge graph in Neo4j"""
-        if not self.driver:
-            logger.warning("Neo4j not available, skipping graph storage")
+        """Store knowledge graph in Neo4j using Graph Channel batch operations"""
+        if not self.graph_channel:
+            logger.warning("Graph Channel not available, skipping graph storage")
             return
-        
-        async with self.driver.session() as session:
-            # Store nodes
-            for node in nodes:
-                query = """
-                MERGE (n:KGNode {id: $id})
-                SET n.type = $type,
-                    n.name = $name,
-                    n.properties = $properties,
-                    n.confidence = $confidence,
-                    n.created_at = $created_at,
-                    n.last_updated = $last_updated,
-                    n.source_document = $source_document
-                """
-                await session.run(query, {
+
+        # Batch store nodes for efficiency (following GRAPH_CHANNEL_USAGE.md pattern)
+        batch_size = 100
+        for i in range(0, len(nodes), batch_size):
+            batch = nodes[i:i+batch_size]
+
+            # Prepare batch data
+            batch_data = []
+            for node in batch:
+                batch_data.append({
                     "id": node.id,
                     "type": node.type.value,
                     "name": node.name,
@@ -489,19 +497,38 @@ class AutoSchemaKGService:
                     "last_updated": node.last_updated.isoformat(),
                     "source_document": node.source_document
                 })
-            
-            # Store relationships
-            for relation in relations:
-                query = """
-                MATCH (a:KGNode {id: $source_id}), (b:KGNode {id: $target_id})
-                MERGE (a)-[r:KGRelation {id: $id}]->(b)
-                SET r.type = $type,
-                    r.properties = $properties,
-                    r.confidence = $confidence,
-                    r.created_at = $created_at,
-                    r.source_document = $source_document
-                """
-                await session.run(query, {
+
+            # Batch write via Graph Channel
+            query = """
+                UNWIND $batch as node
+                MERGE (n:KGNode {id: node.id})
+                SET n.type = node.type,
+                    n.name = node.name,
+                    n.properties = node.properties,
+                    n.confidence = node.confidence,
+                    n.created_at = node.created_at,
+                    n.last_updated = node.last_updated,
+                    n.source_document = node.source_document
+            """
+
+            result = await self.graph_channel.execute_write(
+                query=query,
+                parameters={"batch": batch_data},
+                caller_service="autoschemakg",
+                caller_function="_store_knowledge_graph"
+            )
+
+            if not result.get('success'):
+                logger.error(f"Failed to store node batch: {result.get('error')}")
+
+        # Batch store relationships
+        for i in range(0, len(relations), batch_size):
+            batch = relations[i:i+batch_size]
+
+            # Prepare batch data
+            batch_data = []
+            for relation in batch:
+                batch_data.append({
                     "id": relation.id,
                     "source_id": relation.source_id,
                     "target_id": relation.target_id,
@@ -511,8 +538,30 @@ class AutoSchemaKGService:
                     "created_at": relation.created_at.isoformat(),
                     "source_document": relation.source_document
                 })
-        
-        logger.info(f"✅ Stored {len(nodes)} nodes and {len(relations)} relations in Neo4j")
+
+            # Batch write via Graph Channel
+            query = """
+                UNWIND $batch as rel
+                MATCH (a:KGNode {id: rel.source_id}), (b:KGNode {id: rel.target_id})
+                MERGE (a)-[r:KGRelation {id: rel.id}]->(b)
+                SET r.type = rel.type,
+                    r.properties = rel.properties,
+                    r.confidence = rel.confidence,
+                    r.created_at = rel.created_at,
+                    r.source_document = rel.source_document
+            """
+
+            result = await self.graph_channel.execute_write(
+                query=query,
+                parameters={"batch": batch_data},
+                caller_service="autoschemakg",
+                caller_function="_store_knowledge_graph"
+            )
+
+            if not result.get('success'):
+                logger.error(f"Failed to store relation batch: {result.get('error')}")
+
+        logger.info(f"✅ Stored {len(nodes)} nodes and {len(relations)} relations via Graph Channel")
     
     async def _store_in_memory_system(self, 
                                     nodes: List[KnowledgeGraphNode],
@@ -644,62 +693,175 @@ class AutoSchemaKGService:
         
         return mapping.get(rel_type.lower(), RelationType.RELATES_TO)
     
-    async def query_knowledge_graph(self, 
+    async def query_knowledge_graph(self,
                                   query_params: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Query the knowledge graph with semantic search"""
-        if not self.driver:
-            logger.warning("Neo4j not available for querying")
+        """Query the knowledge graph with semantic search using Graph Channel"""
+        if not self.graph_channel:
+            logger.warning("Graph Channel not available for querying")
             return []
-        
+
         results = []
-        
-        async with self.driver.session() as session:
-            # Basic node query
-            if "node_type" in query_params:
-                query = "MATCH (n:KGNode {type: $type}) RETURN n LIMIT 100"
-                result = await session.run(query, {"type": query_params["node_type"]})
-                
-                async for record in result:
-                    node = record["n"]
+
+        # Basic node query
+        if "node_type" in query_params:
+            query = "MATCH (n:KGNode {type: $type}) RETURN n LIMIT 100"
+
+            result = await self.graph_channel.execute_read(
+                query=query,
+                parameters={"type": query_params["node_type"]},
+                caller_service="autoschemakg",
+                caller_function="query_knowledge_graph"
+            )
+
+            if result.get('success'):
+                for record in result.get('records', []):
+                    node = record.get("n", {})
                     results.append({
-                        "id": node["id"],
-                        "type": node["type"],
-                        "name": node["name"],
+                        "id": node.get("id"),
+                        "type": node.get("type"),
+                        "name": node.get("name"),
                         "properties": json.loads(node.get("properties", "{}")),
                         "confidence": node.get("confidence", 0)
                     })
-            
-            # Semantic search by name
-            if "search_term" in query_params:
-                query = """
-                MATCH (n:KGNode) 
-                WHERE n.name CONTAINS $term 
-                RETURN n, 
-                       [(n)-[r:KGRelation]-(connected) | {relation: r, node: connected}] as connections
-                LIMIT 50
-                """
-                result = await session.run(query, {"term": query_params["search_term"]})
-                
-                async for record in result:
-                    node = record["n"]
-                    connections = record["connections"]
-                    
+
+        # Semantic search by name
+        if "search_term" in query_params:
+            query = """
+            MATCH (n:KGNode)
+            WHERE n.name CONTAINS $term
+            RETURN n,
+                   [(n)-[r:KGRelation]-(connected) | {relation: r, node: connected}] as connections
+            LIMIT 50
+            """
+
+            result = await self.graph_channel.execute_read(
+                query=query,
+                parameters={"term": query_params["search_term"]},
+                caller_service="autoschemakg",
+                caller_function="query_knowledge_graph"
+            )
+
+            if result.get('success'):
+                for record in result.get('records', []):
+                    node = record.get("n", {})
+                    connections = record.get("connections", [])
+
                     results.append({
-                        "id": node["id"],
-                        "type": node["type"],
-                        "name": node["name"],
+                        "id": node.get("id"),
+                        "type": node.get("type"),
+                        "name": node.get("name"),
                         "properties": json.loads(node.get("properties", "{}")),
                         "confidence": node.get("confidence", 0),
                         "connections": len(connections)
                     })
-        
+
         return results
     
+    async def process_document_concepts(self,
+                                      concepts: Dict[str, List[Any]],
+                                      document_id: str) -> Dict[str, Any]:
+        """
+        Process extracted concepts into knowledge graph structure.
+        This method is called by DocumentProcessingGraph.
+
+        Args:
+            concepts: Dictionary with keys: atomic, relationship, composite, context, narrative
+            document_id: Unique identifier for the source document
+
+        Returns:
+            Dictionary with 'nodes' and 'relationships' keys
+        """
+        nodes = []
+        relationships = []
+
+        # Create document node
+        document_node = KnowledgeGraphNode(
+            id=document_id,
+            type=NodeType.DOCUMENT,
+            name=f"Document_{document_id}",
+            properties={
+                "processing_date": datetime.now().isoformat()
+            }
+        )
+        nodes.append(document_node)
+
+        # Process atomic concepts
+        for atomic in concepts.get('atomic', []):
+            concept_name = atomic if isinstance(atomic, str) else atomic.get('concept', str(atomic))
+            node = KnowledgeGraphNode(
+                id=f"atomic_{hashlib.md5(concept_name.encode()).hexdigest()[:8]}",
+                type=NodeType.ATOMIC_CONCEPT,
+                name=concept_name,
+                properties={
+                    "level": 1,
+                    "category": atomic.get('category', 'unknown') if isinstance(atomic, dict) else 'unknown'
+                },
+                confidence=atomic.get('confidence', 0.8) if isinstance(atomic, dict) else 0.8,
+                source_document=document_id
+            )
+            nodes.append(node)
+
+            # Link to document
+            relationships.append(KnowledgeGraphRelation(
+                id=f"rel_{uuid.uuid4().hex[:8]}",
+                source_id=node.id,
+                target_id=document_id,
+                type=RelationType.DERIVED_FROM,
+                confidence=1.0,
+                source_document=document_id
+            ))
+
+        # Process composite concepts
+        for composite in concepts.get('composite', []):
+            concept_name = composite if isinstance(composite, str) else composite.get('concept', str(composite))
+            node = KnowledgeGraphNode(
+                id=f"comp_{hashlib.md5(concept_name.encode()).hexdigest()[:8]}",
+                type=NodeType.COMPOSITE_CONCEPT,
+                name=concept_name,
+                properties={
+                    "level": 3,
+                    "components": composite.get('components', []) if isinstance(composite, dict) else []
+                },
+                confidence=composite.get('confidence', 0.75) if isinstance(composite, dict) else 0.75,
+                source_document=document_id
+            )
+            nodes.append(node)
+
+            # Link to document
+            relationships.append(KnowledgeGraphRelation(
+                id=f"rel_{uuid.uuid4().hex[:8]}",
+                source_id=node.id,
+                target_id=document_id,
+                type=RelationType.DERIVED_FROM,
+                confidence=1.0,
+                source_document=document_id
+            ))
+
+        # Process contexts
+        for context in concepts.get('context', []):
+            context_name = context if isinstance(context, str) else context.get('context', str(context))
+            node = KnowledgeGraphNode(
+                id=f"ctx_{hashlib.md5(context_name.encode()).hexdigest()[:8]}",
+                type=NodeType.CONTEXT,
+                name=context_name,
+                properties={"level": 4},
+                confidence=context.get('confidence', 0.7) if isinstance(context, dict) else 0.7,
+                source_document=document_id
+            )
+            nodes.append(node)
+
+        # Store in knowledge graph
+        if self.graph_channel and len(nodes) > 1:  # More than just document node
+            await self._store_knowledge_graph(nodes, relationships)
+
+        return {
+            "nodes": [self._serialize_node(n) for n in nodes],
+            "relationships": [self._serialize_relation(r) for r in relationships]
+        }
+
     async def close(self):
-        """Close the AutoSchemaKG service"""
-        if self.driver:
-            await self.driver.close()
-        
+        """Close the AutoSchemaKG service - Graph Channel manages its own lifecycle"""
+        # Graph Channel is singleton, no need to close
         logger.info("🔄 AutoSchemaKG service closed")
 
 # Testing and demonstration

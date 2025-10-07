@@ -1,43 +1,70 @@
 """
 Neo4j Graph Searcher - Knowledge graph search for query engine
 Per Spec 006 FR-002: Search Neo4j graph database
+Per Spec 040 M2: Uses Daedalus Graph Channel (no direct neo4j imports)
+
+Constitutional Compliance:
+- Section 2.1: Daedalus Gateway Requirements - ENFORCED
+- Section 2.2: Database Abstraction Requirements - ENFORCED
 """
 
 from typing import List, Dict, Any, Optional
-from neo4j import Driver
 import logging
 from datetime import datetime
 
 from models.response import SearchResult, SearchSource
-from config.neo4j_config import get_neo4j_driver
+
+try:
+    from daedalus_gateway import get_graph_channel, DaedalusGraphChannel
+    GRAPH_CHANNEL_AVAILABLE = True
+except ImportError:
+    GRAPH_CHANNEL_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
 
 class Neo4jSearcher:
     """
-    Search Neo4j graph database for relevant knowledge.
+    Search Neo4j graph database for relevant knowledge via Daedalus Graph Channel.
 
     Performs graph traversal and full-text search to find
     relevant documents, concepts, and relationships.
+
+    Per Spec 040 M2: All Neo4j operations go through Graph Channel.
     """
 
-    def __init__(self, driver: Optional[Driver] = None):
-        """Initialize with Neo4j driver."""
-        self._driver = driver
-        self._driver_initialized = driver is not None
+    def __init__(self, graph_channel: Optional[DaedalusGraphChannel] = None):
+        """
+        Initialize with Daedalus Graph Channel.
+
+        Args:
+            graph_channel: Optional DaedalusGraphChannel instance (uses singleton if not provided)
+        """
+        self._graph_channel = graph_channel
+        self._channel_initialized = False
+        self.caller_service = "neo4j_searcher"
 
     @property
-    def driver(self) -> Driver:
-        """Lazy-load Neo4j driver."""
-        if not self._driver_initialized:
+    def graph_channel(self) -> Optional[DaedalusGraphChannel]:
+        """Lazy-load Graph Channel singleton."""
+        if not self._channel_initialized:
+            if not GRAPH_CHANNEL_AVAILABLE:
+                logger.warning("Graph Channel not available - searches will return empty results")
+                self._graph_channel = None
+                self._channel_initialized = True
+                return None
+
             try:
-                self._driver = get_neo4j_driver()
-                self._driver_initialized = True
+                if self._graph_channel is None:
+                    self._graph_channel = get_graph_channel()
+                self._channel_initialized = True
+                logger.info("Connected to Neo4j via Graph Channel")
             except Exception as e:
-                logger.error(f"Failed to get Neo4j driver: {e}")
-                raise
-        return self._driver
+                logger.error(f"Failed to get Graph Channel: {e}")
+                self._graph_channel = None
+                self._channel_initialized = True
+
+        return self._graph_channel
 
     async def search(self, query: str, limit: int = 10) -> List[SearchResult]:
         """
@@ -78,7 +105,11 @@ class Neo4jSearcher:
             return []
 
     async def _fulltext_search(self, query: str, limit: int) -> List[SearchResult]:
-        """Full-text search across document content."""
+        """Full-text search across document content via Graph Channel."""
+        if not self.graph_channel:
+            logger.warning("Graph Channel unavailable - returning empty results")
+            return []
+
         cypher_query = """
         CALL db.index.fulltext.queryNodes('document_content_index', $query)
         YIELD node, score
@@ -101,22 +132,38 @@ class Neo4jSearcher:
         """
 
         results = []
-        with self.driver.session() as session:
-            records = session.run(cypher_query, query=query, limit=limit)
-            for record in records:
-                results.append(SearchResult(
-                    result_id=record["result_id"],
-                    source=SearchSource.NEO4J,
-                    content=record["content"] or "",
-                    relevance_score=min(float(record["relevance"]), 1.0),  # Normalize to [0,1]
-                    metadata=record["metadata"],
-                    relationships=record["relationships"] or []
-                ))
+        try:
+            response = await self.graph_channel.execute_read(
+                query=cypher_query,
+                parameters={"query": query, "limit": limit},
+                caller_service=self.caller_service,
+                caller_function="_fulltext_search"
+            )
+
+            if response["success"]:
+                for record in response.get("records", []):
+                    results.append(SearchResult(
+                        result_id=record["result_id"],
+                        source=SearchSource.NEO4J,
+                        content=record["content"] or "",
+                        relevance_score=min(float(record["relevance"]), 1.0),  # Normalize to [0,1]
+                        metadata=record["metadata"],
+                        relationships=record["relationships"] or []
+                    ))
+            else:
+                logger.error(f"Fulltext search failed: {response.get('error')}")
+
+        except Exception as e:
+            logger.error(f"Error during fulltext search: {e}")
 
         return results
 
     async def _graph_pattern_search(self, query: str, limit: int) -> List[SearchResult]:
-        """Search for graph patterns and concepts."""
+        """Search for graph patterns and concepts via Graph Channel."""
+        if not self.graph_channel:
+            logger.warning("Graph Channel unavailable - returning empty results")
+            return []
+
         # Extract key terms for pattern matching
         query_terms = self._extract_key_terms(query)
 
@@ -143,23 +190,39 @@ class Neo4jSearcher:
         """
 
         results = []
-        with self.driver.session() as session:
-            records = session.run(cypher_query, terms=query_terms, limit=limit)
-            for record in records:
-                results.append(SearchResult(
-                    result_id=record["result_id"],
-                    source=SearchSource.NEO4J,
-                    content=record["content"][:500],  # Limit content length
-                    relevance_score=min(float(record["relevance"]), 1.0),
-                    metadata=record["metadata"],
-                    relationships=record["relationships"] or []
-                ))
+        try:
+            response = await self.graph_channel.execute_read(
+                query=cypher_query,
+                parameters={"terms": query_terms, "limit": limit},
+                caller_service=self.caller_service,
+                caller_function="_graph_pattern_search"
+            )
+
+            if response["success"]:
+                for record in response.get("records", []):
+                    results.append(SearchResult(
+                        result_id=record["result_id"],
+                        source=SearchSource.NEO4J,
+                        content=record["content"][:500],  # Limit content length
+                        relevance_score=min(float(record["relevance"]), 1.0),
+                        metadata=record["metadata"],
+                        relationships=record["relationships"] or []
+                    ))
+            else:
+                logger.error(f"Graph pattern search failed: {response.get('error')}")
+
+        except Exception as e:
+            logger.error(f"Error during graph pattern search: {e}")
 
         return results
 
     async def _find_related_nodes(self, seed_results: List[SearchResult], limit: int) -> List[SearchResult]:
-        """Find nodes related to high-relevance results via graph traversal."""
+        """Find nodes related to high-relevance results via graph traversal via Graph Channel."""
         if not seed_results:
+            return []
+
+        if not self.graph_channel:
+            logger.warning("Graph Channel unavailable - returning empty results")
             return []
 
         # Extract node IDs from seed results
@@ -185,17 +248,29 @@ class Neo4jSearcher:
         """
 
         results = []
-        with self.driver.session() as session:
-            records = session.run(cypher_query, seed_ids=seed_ids, limit=limit)
-            for record in records:
-                results.append(SearchResult(
-                    result_id=record["result_id"],
-                    source=SearchSource.NEO4J,
-                    content=record["content"][:500],
-                    relevance_score=min(float(record["relevance"]), 0.8),  # Cap related nodes lower
-                    metadata=record["metadata"],
-                    relationships=record["relationships"] or []
-                ))
+        try:
+            response = await self.graph_channel.execute_read(
+                query=cypher_query,
+                parameters={"seed_ids": seed_ids, "limit": limit},
+                caller_service=self.caller_service,
+                caller_function="_find_related_nodes"
+            )
+
+            if response["success"]:
+                for record in response.get("records", []):
+                    results.append(SearchResult(
+                        result_id=record["result_id"],
+                        source=SearchSource.NEO4J,
+                        content=record["content"][:500],
+                        relevance_score=min(float(record["relevance"]), 0.8),  # Cap related nodes lower
+                        metadata=record["metadata"],
+                        relationships=record["relationships"] or []
+                    ))
+            else:
+                logger.error(f"Find related nodes failed: {response.get('error')}")
+
+        except Exception as e:
+            logger.error(f"Error during find related nodes: {e}")
 
         return results
 
