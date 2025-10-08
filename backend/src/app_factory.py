@@ -20,6 +20,7 @@ if str(BACKEND_SRC) not in sys.path:
 from .api.routes import (  # noqa: E402  — import after sys.path adjustment
     documents,
     document_persistence,  # Spec 054 - Neo4j-backed persistence
+    document_citations,  # Spec 058 - Citation trust interaction
     curiosity,
     visualization,
     stats,
@@ -99,6 +100,7 @@ def create_app() -> FastAPI:
     # Include API routes
     app.include_router(documents.router, prefix="/api/v1", tags=["documents"])
     app.include_router(document_persistence.router, tags=["document_persistence"])  # Spec 054 - Neo4j persistence
+    app.include_router(document_citations.router, tags=["citations"])  # Spec 058 - Citation trust interaction
     app.include_router(curiosity.router, prefix="/api/v1", tags=["curiosity"])
     app.include_router(visualization.router, prefix="/ws/v1", tags=["visualization"])
     app.include_router(stats.router, tags=["stats"])
