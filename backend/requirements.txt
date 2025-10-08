@@ -33,6 +33,7 @@ httpx
 # Code quality
 black
 flake8
+ruff
 mypy
 pre-commit
 
@@ -53,3 +54,6 @@ python-docx
 
 # Modular components
 daedalus-gateway>=1.0.0
+
+# Cloud storage (Spec 054 - cold tier archival)
+boto3  # AWS S3 for document archival
