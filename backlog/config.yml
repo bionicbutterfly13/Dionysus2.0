@@ -1,0 +1,28 @@
+project_name: "Dionysus 2.0"
+default_status: "To Do"
+statuses: ["To Do", "In Progress", "Blocked", "Done"]
+labels:
+  - spec-055
+  - spec-056
+  - spec-057
+  - spec-058
+  - frontend
+  - backend
+  - governance
+milestones:
+  - id: spec-058
+    title: "Citation Trust UI"
+    description: "Deliver Flux citation trust interaction per Spec 058"
+    status: In Progress
+    target_date: 2025-10-21
+date_format: yyyy-mm-dd HH:MM
+max_column_width: 24
+default_editor: "code"
+auto_open_browser: false
+default_port: 6420
+remote_operations: false
+auto_commit: false
+zero_padded_ids: 5
+bypass_git_hooks: false
+check_active_branches: true
+active_branch_days: 7
