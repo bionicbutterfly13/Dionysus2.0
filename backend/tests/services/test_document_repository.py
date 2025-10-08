@@ -6,9 +6,11 @@ Tests for DocumentRepository including:
 - SHA-256 content hash computation
 - Content hash validation
 - Duplicate detection via content_hash
+- Summary generation with extractive fallback (Agent 055A)
 
 Author: Spec 054 + Spec 055 Agent 1 Implementation
 Created: 2025-10-07
+Updated: 2025-10-07 - Added Agent 055A extractive fallback tests
 """
 
 import pytest
@@ -290,3 +292,92 @@ class TestDocumentNodeContentHashValidation:
         )
 
         assert doc.content_hash == valid_hash
+
+
+class TestSummaryFallback:
+    """Test summary generation with local LLM and extractive fallback."""
+
+    @pytest.mark.asyncio
+    async def test_summary_generated_with_extractive_fallback(self):
+        """Summary MUST be generated even when local LLM is unavailable."""
+        with patch('src.services.document_summarizer.OllamaModelManager') as mock_manager_cls:
+            mock_manager = MagicMock()
+            mock_manager.generate_text = AsyncMock(side_effect=RuntimeError("Ollama offline"))
+            mock_manager_cls.return_value = mock_manager
+
+            repo = DocumentRepository()
+
+            # Mock the graph channel to avoid actual Neo4j writes
+            repo.graph_channel = AsyncMock()
+            repo.graph_channel.execute_read = AsyncMock(return_value={"records": []})
+            repo.graph_channel.execute_write = AsyncMock(return_value={
+                "records": [],
+                "summary": {"counters": {"nodes_created": 1}}
+            })
+
+            final_output = {
+                "quality": {"scores": {"overall": 0.85}},
+                "research": {"curiosity_triggers": 3},
+                "concepts": {},
+                "basins": [],
+                "thoughtseeds": []
+            }
+
+            metadata = {
+                "document_id": "doc_test_fallback",
+                "filename": "test.pdf",
+                "file_size": 1000,
+                "mime_type": "application/pdf",
+                "document_body": "This is a test document with important content. " * 20,
+                "tags": ["test"]
+            }
+
+            result = await repo.persist_document(final_output, metadata)
+
+            assert "summary" in result
+            assert result["summary"]
+            assert result["summary_metadata"]["method"] == "extractive"
+            assert "llm_unavailable" in result["summary_metadata"]["error"]
+
+    @pytest.mark.asyncio
+    async def test_summary_uses_local_llm_when_available(self):
+        """Test that local Ollama summary is used when available."""
+        with patch('src.services.document_summarizer.OllamaModelManager') as mock_manager_cls:
+            mock_manager = MagicMock()
+            mock_manager.generate_text = AsyncMock(return_value={
+                "success": True,
+                "response": "Local Ollama generated summary.",
+                "eval_count": 120
+            })
+            mock_manager_cls.return_value = mock_manager
+
+            repo = DocumentRepository()
+
+            repo.graph_channel = AsyncMock()
+            repo.graph_channel.execute_read = AsyncMock(return_value={"records": []})
+            repo.graph_channel.execute_write = AsyncMock(return_value={
+                "records": [],
+                "summary": {"counters": {"nodes_created": 1}}
+            })
+
+            final_output = {
+                "quality": {"scores": {"overall": 0.85}},
+                "research": {},
+                "concepts": {},
+                "basins": [],
+                "thoughtseeds": []
+            }
+
+            metadata = {
+                "document_id": "doc_test_llm",
+                "filename": "test.pdf",
+                "file_size": 1500,
+                "mime_type": "application/pdf",
+                "document_body": "Content for LLM summarization. " * 50,
+                "tags": ["test"]
+            }
+
+            result = await repo.persist_document(final_output, metadata)
+
+            assert result["summary_metadata"]["method"] == "llm"
+            assert "Local Ollama generated summary." in result["summary"]

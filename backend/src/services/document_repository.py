@@ -171,21 +171,27 @@ class DocumentRepository:
         """Initialize repository with Graph Channel and DocumentSummarizer."""
         self.graph_channel = get_graph_channel()
 
-        # Spec 055 Agent 3: Initialize DocumentSummarizer
+        # Spec 055 Agent 3: Initialize DocumentSummarizer (local-first)
         try:
             from .document_summarizer import DocumentSummarizer, SummarizerConfig
             config = SummarizerConfig(
-                model="gpt-3.5-turbo",
+                model="qwen2.5:14b",
                 max_tokens=150,
                 temperature=0.3
             )
             self.summarizer = DocumentSummarizer(config)
             self.summarizer_available = True
-            logger.info("DocumentSummarizer initialized")
+            if getattr(self.summarizer, "llm_available", False):
+                logger.info("DocumentSummarizer ready with local LLM support (%s)", config.model)
+            else:
+                logger.warning(
+                    "DocumentSummarizer initialized without local LLM support; extractive fallback only."
+                )
         except Exception as e:
+            # This should never happen now, but keep as safety fallback
             self.summarizer = None
             self.summarizer_available = False
-            logger.warning(f"DocumentSummarizer not available: {e}")
+            logger.error(f"CRITICAL: DocumentSummarizer failed to initialize: {e}")
 
         # Redis for basin evolution tracking (optional, with fallback)
         try:
@@ -249,7 +255,10 @@ class DocumentRepository:
 
             # T025: Create Document node
             nodes_created = 1
-            await self._create_document_node(final_output, metadata)
+            # Agent 055A Fix: Capture summary from _create_document_node
+            summary_data = await self._create_document_node(final_output, metadata)
+            summary = summary_data["summary"]
+            summary_metadata = summary_data["summary_metadata"]
 
             # T026: Persist 5-level concepts
             concepts_count = await self._persist_concepts(
@@ -276,6 +285,7 @@ class DocumentRepository:
             persistence_duration_ms = (time.time() - start_time) * 1000
             met_target = persistence_duration_ms < 2000  # <2s target
 
+            # Agent 055A Fix: Always include summary fields in result
             result = {
                 "status": "success",
                 "document_id": metadata["document_id"],
@@ -283,6 +293,8 @@ class DocumentRepository:
                 "tier": "warm",
                 "nodes_created": nodes_created,
                 "relationships_created": concepts_count + basins_count + seeds_count,
+                "summary": summary,  # Agent 055A: Always present (LLM or extractive)
+                "summary_metadata": summary_metadata,  # Agent 055A: Includes method, tokens, etc.
                 "performance": {
                     "persistence_duration_ms": round(persistence_duration_ms, 2),
                     "met_target": met_target
@@ -855,6 +867,9 @@ class DocumentRepository:
 
         logger.info(f"✅ Created Document node: {metadata['document_id']}")
 
+        # Agent 055A Fix: Return summary for use in persist_document response
+        return {"summary": summary, "summary_metadata": summary_metadata}
+
     async def _persist_concepts(
         self,
         concepts_data: Dict[str, List[Dict]],
@@ -1223,17 +1238,52 @@ class DocumentRepository:
 
         logger.info(f"Created {len(chunks)} chunks for document {document_id}")
 
-        # Step 5: Process through Daedalus (if available)
-        # For now, create minimal Daedalus output
-        # TODO: Integrate with actual Daedalus processing
-        final_output = {
-            "quality": {"scores": {"overall": 0.75}},
-            "concepts": {"atomic": []},
-            "basins": [],
-            "thoughtseeds": [],
-            "research": {"curiosity_triggers": 0, "research_questions": 0},
-            "processing_duration_ms": 0
-        }
+        # Step 5: Process through Daedalus
+        # Agent 056C: Integrate real Daedalus processing pipeline
+        try:
+            from .daedalus import Daedalus
+            import io
+
+            # Create file-like object from downloaded content
+            content_file = io.BytesIO(download_result["content"])
+            content_file.name = filename
+
+            # Process through Daedalus LangGraph workflow
+            daedalus = Daedalus()
+            final_output = daedalus.receive_perceptual_information(
+                data=content_file,
+                tags=metadata.get("tags", []),
+                max_iterations=3,
+                quality_threshold=0.7
+            )
+
+            logger.info(
+                f"Daedalus processing complete: quality={final_output.get('quality', {}).get('scores', {}).get('overall', 0):.2f}"
+            )
+
+        except ImportError as e:
+            # Fallback if Daedalus not available
+            logger.warning(f"Daedalus not available ({e}), using minimal processing")
+            final_output = {
+                "quality": {"scores": {"overall": 0.75}},
+                "concepts": {"atomic": []},
+                "basins": [],
+                "thoughtseeds": [],
+                "research": {"curiosity_triggers": 0, "research_questions": 0},
+                "processing_duration_ms": 0
+            }
+        except Exception as e:
+            # Log error but continue with minimal processing
+            logger.error(f"Daedalus processing failed: {e}", exc_info=True)
+            final_output = {
+                "quality": {"scores": {"overall": 0.75}},
+                "concepts": {"atomic": []},
+                "basins": [],
+                "thoughtseeds": [],
+                "research": {"curiosity_triggers": 0, "research_questions": 0},
+                "processing_duration_ms": 0,
+                "processing_error": str(e)
+            }
 
         # Step 6: Prepare metadata
         filename = url.split("/")[-1] or "downloaded_document"

@@ -1,49 +1,50 @@
 #!/usr/bin/env python3
 """
-Document Summarizer Service - Spec 055 Agent 3
+Document Summarizer Service - Spec 055 Agent 3 (Local-First Revision)
 
-Generates token-budgeted LLM summaries with extractive fallback.
+Generates token-budgeted summaries using local Ollama models with
+deterministic extractive fallback when the LLM is unavailable.
 
 CONSTITUTIONAL COMPLIANCE (Spec 040):
-- No Neo4j access required (pure LLM service)
-- Integrates with DocumentRepository via persist_document()
+- No Neo4j access required (pure summarization utility)
+- Prefers local inference (Ollama) with graceful degradation
 
 Features:
 - Token-aware summarization with configurable limits
-- OpenAI API integration (gpt-3.5-turbo, gpt-4)
-- Extractive fallback when LLM unavailable
+- Local Ollama integration by default (no external API dependency)
+- Extractive fallback when LLM generation fails
 - Comprehensive metadata tracking
 
 Author: Spec 055 Agent 3 Implementation
-Created: 2025-10-07
+Updated: 2025-10-10 (Local-first summarization)
 """
 
-import os
 import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 from pydantic import BaseModel, Field
 import tiktoken
-import openai
-from openai import AsyncOpenAI
+
+try:  # pragma: no cover - allow import flexibility during testing
+    from services.ollama_integration import OllamaModelManager
+except ImportError:  # pragma: no cover - fallback for relative imports
+    from ..services.ollama_integration import OllamaModelManager  # type: ignore
 
 logger = logging.getLogger(__name__)
 
 
 class SummarizerConfig(BaseModel):
     """Configuration for DocumentSummarizer."""
-    model: str = Field(default="gpt-3.5-turbo", description="OpenAI model to use")
+    model: str = Field(default="qwen2.5:14b", description="Local Ollama model to use")
     max_tokens: int = Field(default=150, ge=10, le=500, description="Maximum tokens for summary")
     temperature: float = Field(default=0.3, ge=0.0, le=1.0, description="Sampling temperature")
-    api_key: Optional[str] = Field(default=None, description="OpenAI API key")
 
     class Config:
         json_schema_extra = {
             "example": {
-                "model": "gpt-3.5-turbo",
+                "model": "qwen2.5:14b",
                 "max_tokens": 150,
-                "temperature": 0.3,
-                "api_key": "sk-..."
+                "temperature": 0.3
             }
         }
 
@@ -60,7 +61,7 @@ class SummaryMetadata(BaseModel):
         json_schema_extra = {
             "example": {
                 "method": "llm",
-                "model": "gpt-3.5-turbo",
+                "model": "qwen2.5:14b",
                 "tokens_used": 165,
                 "generated_at": "2025-10-07T10:00:00Z"
             }
@@ -72,48 +73,49 @@ class DocumentSummarizer:
     Token-budgeted document summarizer with LLM and extractive methods.
 
     Workflow:
-    1. Try LLM summarization (OpenAI API)
+    1. Try local Ollama summarization
     2. Fallback to extractive summarization on error
     3. Return summary + comprehensive metadata
     """
 
-    def __init__(self, config: Optional[SummarizerConfig] = None):
+    def __init__(
+        self,
+        config: Optional[SummarizerConfig] = None,
+        model_manager: Optional[OllamaModelManager] = None
+    ):
         """
         Initialize DocumentSummarizer.
 
         Args:
             config: Summarizer configuration
-
-        Raises:
-            ValueError: If API key not found
+            model_manager: Optional injected Ollama model manager (primarily for testing)
         """
         self.config = config or SummarizerConfig()
 
-        # Get API key from config or environment
-        if self.config.api_key is None:
-            self.config.api_key = os.getenv("OPENAI_API_KEY")
-
-        if not self.config.api_key:
-            raise ValueError(
-                "OpenAI API key not found. Set OPENAI_API_KEY environment variable "
-                "or pass api_key in config."
+        try:
+            self.model_manager = model_manager or OllamaModelManager()
+            self.llm_available = True
+            logger.info(
+                "DocumentSummarizer initialized with local Ollama model '%s'",
+                self.config.model
             )
-
-        # Initialize OpenAI client
-        self.client = AsyncOpenAI(api_key=self.config.api_key)
+        except Exception as exc:  # pragma: no cover - defensive fallback
+            self.model_manager = None
+            self.llm_available = False
+            logger.warning(
+                "Ollama model manager unavailable (%s). Falling back to extractive summaries only.",
+                exc
+            )
 
         # Initialize tokenizer for token counting
         try:
             self.encoding = tiktoken.encoding_for_model(self.config.model)
         except KeyError:
-            # Fallback to cl100k_base for unknown models
-            logger.warning(f"Unknown model {self.config.model}, using cl100k_base encoding")
+            logger.warning(
+                "Unknown model '%s', falling back to cl100k_base encoding",
+                self.config.model
+            )
             self.encoding = tiktoken.get_encoding("cl100k_base")
-
-        logger.info(
-            f"DocumentSummarizer initialized: model={self.config.model}, "
-            f"max_tokens={self.config.max_tokens}"
-        )
 
     def count_tokens(self, text: str) -> int:
         """
@@ -130,9 +132,8 @@ class DocumentSummarizer:
 
         try:
             return len(self.encoding.encode(text))
-        except Exception as e:
-            logger.warning(f"Token counting failed: {e}, using character approximation")
-            # Fallback: approximate as chars/4
+        except Exception as exc:
+            logger.warning("Token counting failed (%s). Approximating.", exc)
             return len(text) // 4
 
     def truncate_to_token_limit(self, text: str, max_tokens: int) -> str:
@@ -156,7 +157,6 @@ class DocumentSummarizer:
         if current_tokens <= max_tokens:
             return text
 
-        # Truncate by sentences to preserve coherence
         sentences = text.split('. ')
         truncated = ""
 
@@ -167,7 +167,6 @@ class DocumentSummarizer:
             else:
                 break
 
-        # If no full sentences fit, truncate by words
         if not truncated:
             words = text.split()
             truncated = ""
@@ -180,170 +179,99 @@ class DocumentSummarizer:
 
         return truncated.strip()
 
-    async def _call_openai_api(
-        self,
-        prompt: str,
-        max_completion_tokens: int
-    ) -> Any:
-        """
-        Call OpenAI API with error handling.
-
-        Args:
-            prompt: System + user prompt
-            max_completion_tokens: Max tokens for completion
-
-        Returns:
-            OpenAI API response
-
-        Raises:
-            Exception: On API error
-        """
-        try:
-            response = await self.client.chat.completions.create(
-                model=self.config.model,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are a precise document summarizer. Create concise, "
-                                   "informative summaries that capture the key points."
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
-                max_tokens=max_completion_tokens,
-                temperature=self.config.temperature
-            )
-            return response
-
-        except openai.RateLimitError as e:
-            logger.error(f"OpenAI rate limit exceeded: {e}")
-            raise
-        except openai.APIError as e:
-            logger.error(f"OpenAI API error: {e}")
-            raise
-        except Exception as e:
-            logger.error(f"Unexpected error calling OpenAI API: {e}")
-            raise
-
     async def generate_llm_summary(
         self,
         document_content: str,
-        max_tokens: Optional[int] = None
+        max_tokens: int
     ) -> Dict[str, Any]:
         """
-        Generate summary using LLM (OpenAI API).
-
-        Token budget allocation:
-        - Input: Up to 3000 tokens (truncate if needed)
-        - Output: max_tokens parameter
-        - Overhead: ~50 tokens for system message
+        Generate summary via local Ollama model.
 
         Args:
-            document_content: Document text to summarize
-            max_tokens: Maximum tokens for summary (defaults to config)
+            document_content: Document text
+            max_tokens: Max tokens for completion
 
         Returns:
-            {
-                "summary": str,
-                "method": "llm",
-                "model": str,
-                "tokens_used": int,
-                "generated_at": str (ISO 8601)
-            }
+            Dictionary with summary, tokens used, metadata
 
         Raises:
-            Exception: On API error (caller should handle)
+            RuntimeError: If local LLM is not available or fails to generate a summary.
         """
-        max_tokens = max_tokens or self.config.max_tokens
+        if not self.llm_available or not self.model_manager:
+            raise RuntimeError("Local LLM summarization unavailable")
 
-        # Budget: 3000 tokens for input (leave room for system message)
-        input_token_budget = 3000
-        truncated_content = self.truncate_to_token_limit(document_content, input_token_budget)
+        prompt = (
+            "You are the Dionysus Flux document summarizer. Create a concise, factual summary "
+            "that captures the primary findings, key data points, and conclusions from the "
+            "provided document.\n\n"
+            "Requirements:\n"
+            "- Keep the summary under the requested token budget.\n"
+            "- Maintain objective tone (no speculation).\n"
+            "- Preserve critical numbers, dates, or named entities when present.\n"
+            "- Return plain text without bullet lists.\n\n"
+            f"Document:\n{document_content}"
+        )
 
-        # Create prompt
-        prompt = f"""Summarize the following document in {max_tokens} tokens or less.
-Focus on the main ideas, key findings, and core concepts.
+        result = await self.model_manager.generate_text(
+            self.config.model,
+            prompt,
+            max_tokens=max_tokens,
+            temperature=self.config.temperature
+        )
 
-Document:
-{truncated_content}
+        if not result.get("success"):
+            raise RuntimeError(result.get("error", "Local LLM summarization failed"))
 
-Summary:"""
+        summary_text = (result.get("response") or "").strip()
+        if not summary_text:
+            raise RuntimeError("Local LLM returned empty summary")
 
-        # Call API
-        response = await self._call_openai_api(prompt, max_tokens)
-
-        # Extract summary
-        summary = response.choices[0].message.content.strip()
-
-        # Extract token usage
-        tokens_used = response.usage.total_tokens
+        tokens_used = result.get("eval_count") or self.count_tokens(summary_text)
 
         return {
-            "summary": summary,
+            "summary": summary_text,
             "method": "llm",
             "model": self.config.model,
             "tokens_used": tokens_used,
-            "generated_at": datetime.utcnow().isoformat() + "Z"
+            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "error": None
         }
 
     def generate_extractive_summary(
         self,
         document_content: str,
-        max_tokens: Optional[int] = None
+        max_tokens: int
     ) -> Dict[str, Any]:
         """
-        Generate extractive summary (fallback method).
-
-        Strategy:
-        1. Take first N sentences that fit within token budget
-        2. Preserve sentence boundaries for coherence
+        Generate extractive summary by selecting key sentences.
 
         Args:
-            document_content: Document text to summarize
-            max_tokens: Maximum tokens for summary (defaults to config)
+            document_content: Document text
+            max_tokens: Max tokens for summary (approximate)
 
         Returns:
-            {
-                "summary": str,
-                "method": "extractive",
-                "model": None,
-                "tokens_used": int,
-                "generated_at": str (ISO 8601)
-            }
+            Dictionary with summary and metadata
         """
-        max_tokens = max_tokens or self.config.max_tokens
-
-        # Clean up text
-        content = document_content.strip()
-
-        if not content:
+        if not document_content:
             return {
                 "summary": "",
                 "method": "extractive",
                 "model": None,
                 "tokens_used": 0,
-                "generated_at": datetime.utcnow().isoformat() + "Z"
+                "generated_at": datetime.utcnow().isoformat() + "Z",
+                "error": None
             }
 
-        # Extract first sentences within token limit
-        sentences = content.split('. ')
+        sentences = document_content.split('. ')
         summary = ""
 
         for sentence in sentences:
-            # Check if sentence already ends with period
-            if sentence.endswith('.'):
-                candidate = summary + sentence + " "
-            else:
-                candidate = summary + sentence + ". "
-
+            candidate = summary + sentence
             if self.count_tokens(candidate) <= max_tokens:
-                summary = candidate
+                summary = candidate + ". "
             else:
                 break
 
-        # If no full sentences fit, take first sentence truncated
         if not summary and sentences:
             summary = self.truncate_to_token_limit(sentences[0], max_tokens)
             if not summary.endswith('.'):
@@ -357,7 +285,8 @@ Summary:"""
             "method": "extractive",
             "model": None,
             "tokens_used": tokens_used,
-            "generated_at": datetime.utcnow().isoformat() + "Z"
+            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "error": None
         }
 
     async def generate_summary(
@@ -368,83 +297,40 @@ Summary:"""
         """
         Generate document summary with automatic fallback.
 
-        Workflow:
-        1. Try LLM summarization
-        2. On error, fallback to extractive summarization
-        3. Return summary + metadata
-
         Args:
             document_content: Document text to summarize
             max_tokens: Maximum tokens for summary (defaults to config)
 
         Returns:
-            {
-                "summary": str,
-                "method": "llm" | "extractive",
-                "model": str | None,
-                "tokens_used": int,
-                "generated_at": str (ISO 8601),
-                "error": str | None  (only if fallback occurred)
-            }
+            Summary dictionary with method, tokens, metadata
         """
         max_tokens = max_tokens or self.config.max_tokens
 
         try:
-            # Try LLM summarization
             result = await self.generate_llm_summary(document_content, max_tokens)
             logger.info(
-                f"LLM summary generated: {result['tokens_used']} tokens, "
-                f"model={result['model']}"
+                "Local LLM summary generated using %s (%d tokens)",
+                result.get("model"),
+                result.get("tokens_used", 0)
             )
             return result
 
-        except Exception as e:
-            # Log error and fallback to extractive
+        except Exception as exc:
             logger.warning(
-                f"LLM summarization failed ({type(e).__name__}: {e}), "
-                f"falling back to extractive method"
+                "Local LLM summarization failed (%s). Falling back to extractive summary.",
+                exc
             )
-
             result = self.generate_extractive_summary(document_content, max_tokens)
-            result["error"] = f"LLM failed: {type(e).__name__}: {str(e)}"
-
-            logger.info(
-                f"Extractive summary generated (fallback): {result['tokens_used']} tokens"
-            )
-
+            result["error"] = f"llm_unavailable: {type(exc).__name__}: {exc}"
             return result
 
 
-# Convenience function for quick summarization
 async def summarize_document(
     document_content: str,
-    max_tokens: int = 150,
-    model: str = "gpt-3.5-turbo",
-    api_key: Optional[str] = None
+    max_tokens: Optional[int] = None
 ) -> Dict[str, Any]:
     """
-    Quick document summarization with default settings.
-
-    Args:
-        document_content: Document text to summarize
-        max_tokens: Maximum tokens for summary
-        model: OpenAI model to use
-        api_key: OpenAI API key (defaults to env var)
-
-    Returns:
-        Summary result dict
-
-    Example:
-        >>> result = await summarize_document("Long document text...", max_tokens=100)
-        >>> print(result["summary"])
-        "Brief summary of the document."
+    Convenience wrapper for one-off summarization requests.
     """
-    config = SummarizerConfig(
-        model=model,
-        max_tokens=max_tokens,
-        temperature=0.3,
-        api_key=api_key
-    )
-
-    summarizer = DocumentSummarizer(config)
-    return await summarizer.generate_summary(document_content)
+    summarizer = DocumentSummarizer()
+    return await summarizer.generate_summary(document_content, max_tokens)
