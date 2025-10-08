@@ -107,6 +107,27 @@ dionysus-migration migrate /path/to/legacy/codebase --quality-threshold 0.8
 dionysus-migration migrate /path/to/legacy/codebase --dry-run
 ```
 
+### Optional: Audio feedback for Claude Code
+
+```bash
+./scripts/install_claudio.sh
+```
+
+This installs [Claudio](https://claudio.click), wiring a light soundtrack into Claude
+Code tool hooks. Configure custom soundpacks via `docs/CLAUDIO_INTEGRATION.md`.
+
+### Linting
+
+```bash
+# Backend (Python)
+cd backend
+ruff check .
+
+# Frontend (TypeScript/React)
+cd ../frontend
+npm run lint
+```
+
 #### 3. Monitor Progress
 ```bash
 # Check pipeline status

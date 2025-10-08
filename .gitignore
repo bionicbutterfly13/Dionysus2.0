@@ -67,6 +67,12 @@ docker-compose.override.yml
 *.log
 logs/
 
+# Local runtime artifacts
+.docker/
+backend/uploads/
+uploads/
+document_cognition_knowledge.json
+
 # Database
 *.db
 *.sqlite3
