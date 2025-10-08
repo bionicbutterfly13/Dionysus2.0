@@ -183,27 +183,37 @@ class TestURLIngestionErrorHandling:
             "download_duration_ms": 200.0
         }
 
-        with patch('src.services.url_downloader.URLDownloader.download_url',
-                   return_value=mock_download_result):
-            with patch('src.services.document_repository.DocumentRepository.find_duplicate_by_hash') as mock_dup:
-                # Second attempt finds duplicate
-                mock_dup.return_value = {
-                    "document_id": "doc_existing",
-                    "filename": "doc.pdf",
-                    "upload_timestamp": "2025-10-07T12:00:00",
-                    "quality_overall": 0.85,
-                    "tier": "warm"
-                }
+        # Agent 056B: Mock PyPDF2 to avoid PDF parsing errors
+        with patch('PyPDF2.PdfReader') as mock_pdf_reader:
+            # Mock PDF extraction
+            mock_reader_instance = MagicMock()
+            mock_reader_instance.pages = [MagicMock()]
+            mock_reader_instance.pages[0].extract_text = MagicMock(
+                return_value="Extracted text from PDF"
+            )
+            mock_pdf_reader.return_value = mock_reader_instance
 
-                repo = DocumentRepository()
+            with patch('src.services.url_downloader.URLDownloader.download_url',
+                       return_value=mock_download_result):
+                with patch('src.services.document_repository.DocumentRepository.find_duplicate_by_hash') as mock_dup:
+                    # Second attempt finds duplicate
+                    mock_dup.return_value = {
+                        "document_id": "doc_existing",
+                        "filename": "doc.pdf",
+                        "upload_timestamp": "2025-10-07T12:00:00",
+                        "quality_overall": 0.85,
+                        "tier": "warm"
+                    }
 
-                with pytest.raises(ValueError) as exc_info:
-                    await repo.persist_document_from_url(
-                        url="https://example.com/doc.pdf",
-                        metadata={"tags": ["test"]}
-                    )
+                    repo = DocumentRepository()
 
-                assert "duplicate" in str(exc_info.value).lower()
+                    with pytest.raises(ValueError) as exc_info:
+                        await repo.persist_document_from_url(
+                            url="https://example.com/doc.pdf",
+                            metadata={"tags": ["test"]}
+                        )
+
+                    assert "duplicate" in str(exc_info.value).lower()
 
 
 class TestChunkStorage:
@@ -324,7 +334,7 @@ class TestURLMetadataTracking:
         """Test that download metadata (status, duration) is stored."""
 
         mock_download_result = {
-            "content": b"Content",
+            "content": b"Content for plain text file",
             "mime_type": "text/plain",
             "status_code": 200,
             "url": "https://example.com/file.txt",
@@ -333,24 +343,31 @@ class TestURLMetadataTracking:
             "download_duration_ms": 150.0
         }
 
+        # Agent 056B: Mock graph channel and persist_document to capture metadata
         with patch('src.services.url_downloader.URLDownloader.download_url',
                    return_value=mock_download_result):
-            with patch('src.services.document_repository.DocumentRepository.persist_document_from_url') as mock_persist:
-                # Verify download_metadata is passed through
-                async def check_metadata(*args, **kwargs):
-                    metadata = kwargs.get('metadata', {})
-                    assert 'download_metadata' in metadata
-                    assert metadata['download_metadata']['status_code'] == 200
-                    assert metadata['download_metadata']['download_duration_ms'] == 150.0
-                    return {"status": "success", "document_id": "doc_123"}
-
-                mock_persist.side_effect = check_metadata
+            with patch('src.services.document_repository.DocumentRepository.persist_document') as mock_persist:
+                # Capture the metadata passed to persist_document
+                mock_persist.return_value = {"status": "success", "document_id": "doc_123"}
 
                 repo = DocumentRepository()
-                await repo.persist_document_from_url(
+                result = await repo.persist_document_from_url(
                     url="https://example.com/file.txt",
                     metadata={"tags": ["test"]}
                 )
+
+                # Verify persist_document was called
+                assert mock_persist.called
+
+                # Extract metadata from the call
+                call_args = mock_persist.call_args
+                metadata_arg = call_args[0][1] if len(call_args[0]) > 1 else call_args[1]['metadata']
+
+                # Agent 056B: Verify download_metadata is present and correct
+                assert 'download_metadata' in metadata_arg
+                assert metadata_arg['download_metadata']['status_code'] == 200
+                assert metadata_arg['download_metadata']['download_duration_ms'] == 150.0
+                assert metadata_arg['download_metadata']['redirected_url'] == "https://cdn.example.com/file.txt"
 
 
 class TestChunkIDStability:

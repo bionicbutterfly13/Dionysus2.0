@@ -129,10 +129,13 @@ class URLDownloader:
         max_retries: int = 3,
         initial_delay: float = 1.0,
         timeout: int = 30,
-        user_agent: Optional[str] = None
+        user_agent: Optional[str] = None,
+        session_factory: Optional[callable] = None
     ):
         """
         Initialize URL downloader.
+
+        Agent 056A: Added session_factory parameter for testability.
 
         Args:
             allowed_mime_types: List of allowed MIME types (default: PDF, HTML, plain text)
@@ -140,12 +143,14 @@ class URLDownloader:
             initial_delay: Initial retry delay in seconds (default: 1.0)
             timeout: Request timeout in seconds (default: 30)
             user_agent: Custom User-Agent header (default: Dionysus bot)
+            session_factory: Callable that returns aiohttp.ClientSession (for testing)
         """
         self.allowed_mime_types = allowed_mime_types or self.DEFAULT_ALLOWED_MIME_TYPES
         self.max_retries = max_retries
         self.initial_delay = initial_delay
         self.timeout = timeout
         self.user_agent = user_agent or self.DEFAULT_USER_AGENT
+        self.session_factory = session_factory  # Agent 056A: Injectable session factory
 
         logger.info(
             f"URLDownloader initialized: "
@@ -301,7 +306,14 @@ class URLDownloader:
 
         timeout_config = aiohttp.ClientTimeout(total=timeout)
 
-        async with aiohttp.ClientSession(timeout=timeout_config) as session:
+        # Agent 056A: Use injected session factory if provided, otherwise create default session
+        if self.session_factory:
+            # Session factory is sync and returns session object
+            session = self.session_factory(timeout=timeout_config)
+        else:
+            session = aiohttp.ClientSession(timeout=timeout_config)
+
+        async with session:
             async with session.get(url, headers=headers, allow_redirects=True) as response:
                 # Check HTTP status
                 if response.status >= 400:
