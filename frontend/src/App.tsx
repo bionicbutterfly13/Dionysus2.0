@@ -8,6 +8,7 @@ import KnowledgeBase from './pages/KnowledgeBase'
 import CuriosityMissions from './pages/CuriosityMissions'
 import ThoughtSeedMonitor from './pages/ThoughtSeedMonitor'
 import Settings from './pages/Settings'
+import DebugPipeline from './pages/DebugPipeline'
 import VisualizationStream from './components/VisualizationStream'
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
           <Route path="/knowledge-graph" element={<KnowledgeGraph />} />
           <Route path="/thoughtseed" element={<ThoughtSeedMonitor />} />
           <Route path="/curiosity" element={<CuriosityMissions />} />
+          <Route path="/debug/pipeline" element={<DebugPipeline />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </Layout>
