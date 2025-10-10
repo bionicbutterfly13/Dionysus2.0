@@ -28,11 +28,11 @@ interface StateLogEntry {
 }
 
 const ThoughtSeedDebugPanel: React.FC = () => {
-  const [isWatching, setIsWatching] = useState(false);
   const [stateLogs, setStateLogs] = useState<StateLogEntry[]>([]);
   const [selectedWorkspace, setSelectedWorkspace] = useState<string>('');
   const [watchedWorkspaces, setWatchedWorkspaces] = useState<string[]>([]);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [workspaceInput, setWorkspaceInput] = useState('');
 
   // Mock API endpoints - replace with actual backend calls
   const API_BASE = 'http://localhost:8001';
@@ -62,14 +62,15 @@ const ThoughtSeedDebugPanel: React.FC = () => {
   };
 
   const toggleWatching = async (workspaceId: string) => {
+    if (!workspaceId) return;
     try {
-      const method = isWatching ? 'DELETE' : 'POST';
+      const watching = watchedWorkspaces.includes(workspaceId);
+      const method = watching ? 'DELETE' : 'POST';
       await fetch(`${API_BASE}/api/thoughtseed/watch/${workspaceId}`, {
         method,
         headers: { 'Content-Type': 'application/json' }
       });
 
-      setIsWatching(!isWatching);
       await fetchWatchedWorkspaces();
     } catch (error) {
       console.error('Failed to toggle watching:', error);
@@ -100,6 +101,26 @@ const ThoughtSeedDebugPanel: React.FC = () => {
     fetchWatchedWorkspaces();
     fetchStateLogs();
   }, []);
+
+  // Ensure a selected workspace when logs or watched list change
+  useEffect(() => {
+    if (!selectedWorkspace) {
+      const fromLogs = stateLogs[0]?.state.workspace_id;
+      if (fromLogs) {
+        setSelectedWorkspace(fromLogs);
+        return;
+      }
+    }
+
+    if (selectedWorkspace && !watchedWorkspaces.includes(selectedWorkspace)) {
+      const fallback = watchedWorkspaces[0] ?? '';
+      setSelectedWorkspace(fallback);
+    }
+  }, [selectedWorkspace, stateLogs, watchedWorkspaces]);
+
+  const isCurrentlyWatching = selectedWorkspace
+    ? watchedWorkspaces.includes(selectedWorkspace)
+    : false;
 
   const renderThoughtCard = (thought: Thought, isDominant: boolean) => (
     <Card key={thought.id} className={`mb-2 ${isDominant ? 'border-green-500 bg-green-50' : ''}`}>
@@ -191,12 +212,75 @@ const ThoughtSeedDebugPanel: React.FC = () => {
               </Button>
             </div>
 
+            <div className="flex items-center space-x-3">
+              <label className="text-sm text-gray-600">Workspace:</label>
+              <select
+                value={selectedWorkspace}
+                onChange={(event) => setSelectedWorkspace(event.target.value)}
+                className="bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm"
+              >
+                <option value="">Select workspace</option>
+                {watchedWorkspaces.map(id => (
+                  <option key={id} value={id}>
+                    {id}
+                  </option>
+                ))}
+              </select>
+              <Button
+                onClick={() => toggleWatching(selectedWorkspace)}
+                size="sm"
+                disabled={!selectedWorkspace}
+                variant={isCurrentlyWatching ? 'secondary' : 'default'}
+              >
+                {isCurrentlyWatching ? 'Stop Watching' : 'Watch Workspace'}
+              </Button>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                value={workspaceInput}
+                onChange={(event) => setWorkspaceInput(event.target.value)}
+                placeholder="Add workspace id..."
+                className="flex-1 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm"
+              />
+              <Button
+                onClick={() => {
+                  toggleWatching(workspaceInput.trim());
+                  setWorkspaceInput('');
+                }}
+                size="sm"
+                disabled={!workspaceInput.trim()}
+              >
+                Add & Watch
+              </Button>
+            </div>
+
             <div className="flex items-center space-x-2">
               <label className="text-sm">Watched Workspaces:</label>
               <div className="flex space-x-2">
                 {watchedWorkspaces.length > 0 ? (
                   watchedWorkspaces.map(id => (
-                    <Badge key={id} variant="default">{id}</Badge>
+                    <Badge
+                      key={id}
+                      variant={selectedWorkspace === id ? 'default' : 'secondary'}
+                      className="flex items-center space-x-1"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setSelectedWorkspace(id)}
+                        className="text-xs"
+                      >
+                        {id}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleWatching(id)}
+                        className="text-xs text-red-200 hover:text-red-100"
+                        aria-label={`Stop watching ${id}`}
+                      >
+                        ✕
+                      </button>
+                    </Badge>
                   ))
                 ) : (
                   <span className="text-sm text-gray-500">None</span>

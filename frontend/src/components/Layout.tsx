@@ -11,7 +11,6 @@ import {
   Zap,
   FileText,
   ChevronDown,
-  ChevronRight,
   X
 } from 'lucide-react'
 
@@ -40,6 +39,7 @@ const navigation = [
   { name: 'Knowledge Graph', href: '/knowledge-graph', icon: Network },
   { name: 'ThoughtSeed', href: '/thoughtseed', icon: Zap },
   { name: 'Curiosity Missions', href: '/curiosity', icon: Search },
+  { name: 'Debug Pipeline', href: '/debug/pipeline', icon: Activity },
 ]
 
 export default function Layout({ children }: LayoutProps) {

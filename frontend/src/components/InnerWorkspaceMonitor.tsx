@@ -33,7 +33,7 @@ const InnerWorkspaceMonitor: React.FC = () => {
   const [cycles, setCycles] = useState<CompetitionCycle[]>([]);
   const [currentCycle, setCurrentCycle] = useState<CompetitionCycle | null>(null);
   const [selectedThought, setSelectedThought] = useState<string | null>(null);
-  const [workspaces, setWorkspaces] = useState<string[]>(['demo_workspace', 'researcher_workspace']);
+  const workspaces = ['demo_workspace', 'researcher_workspace'];
   const [selectedWorkspace, setSelectedWorkspace] = useState('demo_workspace');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 

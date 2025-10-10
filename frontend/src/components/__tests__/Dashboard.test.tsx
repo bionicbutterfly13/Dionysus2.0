@@ -23,17 +23,35 @@ const renderWithQueryClient = (component: React.ReactElement) => {
 };
 
 describe('Dashboard Component', () => {
+  const mockFetch = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        documentsProcessed: 12,
+        conceptsExtracted: 45,
+        curiosityMissions: 7,
+      }),
+    } as Response);
+
+    global.fetch = mockFetch as unknown as typeof fetch;
   });
 
-  it('should render dashboard title', () => {
+  afterEach(() => {
+    mockFetch.mockReset();
+  });
+
+  it('should render dashboard title', async () => {
     renderWithQueryClient(<Dashboard />);
-    expect(screen.getByText(/dashboard/i)).toBeInTheDocument();
+    const heading = await screen.findByRole('heading', { level: 1, name: /dashboard/i });
+    expect(heading).toBeInTheDocument();
   });
 
   it('should display stat cards', async () => {
     renderWithQueryClient(<Dashboard />);
+    await waitFor(() => expect(mockFetch).toHaveBeenCalled());
     
     await waitFor(() => {
       expect(screen.getByText(/documents processed/i)).toBeInTheDocument();
@@ -44,16 +62,16 @@ describe('Dashboard Component', () => {
 
   it('should handle loading state', async () => {
     renderWithQueryClient(<Dashboard />);
-    // Should show mock data warning when API fails
+    await waitFor(() => expect(mockFetch).toHaveBeenCalled());
     await waitFor(() => {
       expect(screen.getByText(/development mode/i) || screen.getByText(/simulated data/i)).toBeInTheDocument();
     });
   });
 
-  it('should be accessible', () => {
+  it('should be accessible', async () => {
     renderWithQueryClient(<Dashboard />);
-    // Should have proper heading structure
-    const mainHeading = screen.getByRole('heading', { level: 1 });
+    await waitFor(() => expect(mockFetch).toHaveBeenCalled());
+    const mainHeading = await screen.findByRole('heading', { level: 1 });
     expect(mainHeading).toBeInTheDocument();
   });
 });

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { AlertTriangle, CheckCircle, Loader, XCircle } from 'lucide-react'
 
 interface ServiceStatus {
@@ -23,11 +23,7 @@ export default function StartupScreen({ onReady }: StartupScreenProps) {
 
   const [showKillDialog, setShowKillDialog] = useState<ServiceStatus | null>(null)
 
-  useEffect(() => {
-    checkServices()
-  }, [])
-
-  const checkServices = async () => {
+  const checkServices = useCallback(async () => {
     for (const service of services) {
       try {
         setServices(prev =>
@@ -70,12 +66,19 @@ export default function StartupScreen({ onReady }: StartupScreenProps) {
 
     // Check if all services are ready
     setTimeout(() => {
-      const allReady = services.every(s => s.status === 'connected')
-      if (allReady) {
-        onReady()
-      }
+      setServices(prev => {
+        const allReady = prev.every(s => s.status === 'connected')
+        if (allReady) {
+          onReady()
+        }
+        return prev
+      })
     }, 500)
-  }
+  }, [onReady, services])
+
+  useEffect(() => {
+    checkServices()
+  }, [checkServices])
 
   const checkPortBusy = async (port: number): Promise<boolean> => {
     try {

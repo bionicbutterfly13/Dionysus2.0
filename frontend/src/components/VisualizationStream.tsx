@@ -4,7 +4,7 @@ import { Activity, Brain, Zap, Eye } from 'lucide-react'
 interface VisualizationMessage {
   type: 'graph_update' | 'card_stack_update' | 'curiosity_signal' | 'evaluation_frame' | 'mosaic_state'
   timestamp: string
-  data: any
+  data: unknown
   mockData: boolean
 }
 
