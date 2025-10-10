@@ -1,6 +1,6 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, FileText, Link, AlertCircle, CheckCircle, Globe, Brain, XCircle } from 'lucide-react'
+import { Upload, FileText, AlertCircle, CheckCircle, Globe, Brain, XCircle } from 'lucide-react'
 
 interface UploadedFile {
   id: string
@@ -13,12 +13,12 @@ interface UploadedFile {
   extraction?: {
     concepts: string[]
     chunks: number
-    summary?: any
+    summary?: string
   }
   consciousness?: {
     basins_created: number
     thoughtseeds_generated: number
-    active_inference?: any
+    active_inference?: Record<string, unknown>
   }
   research?: {
     curiosity_triggers: Array<{
@@ -26,7 +26,7 @@ interface UploadedFile {
       prediction_error: number
       priority: string
     }>
-    exploration_plan?: any
+    exploration_plan?: Record<string, unknown>
   }
   quality?: {
     scores: {
@@ -34,7 +34,7 @@ interface UploadedFile {
       concept_extraction?: number
       consciousness_integration?: number
     }
-    insights?: any[]
+    insights?: Array<Record<string, unknown>>
   }
   workflow?: {
     iterations: number
@@ -224,6 +224,11 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
 
     console.log('[HEALTH] ✅ All systems healthy, proceeding with crawl')
 
+    setIsCrawling(true)
+
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+
     // Close modal immediately
     if (onClose) {
       onClose()
@@ -240,6 +245,7 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
         max_depth: crawlDepth,
         tags: ['web_crawl', `depth_${crawlDepth}`]
       }),
+      signal: controller.signal
     }).then(response => {
       if (response.ok) {
         console.log('[CRAWL] Started successfully - check sidebar for progress')
@@ -248,6 +254,8 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
       }
     }).catch(error => {
       console.error('[CRAWL] Error:', error)
+    }).finally(() => {
+      setIsCrawling(false)
     })
   }
 
@@ -281,6 +289,8 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
         return <CheckCircle className="h-4 w-4 text-green-600" />
       case 'error':
         return <AlertCircle className="h-4 w-4 text-red-600" />
+      default:
+        return <div className="h-4 w-4 bg-gray-500 rounded"></div>
     }
   }
 
@@ -294,8 +304,16 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
         return 'Processed and stored in knowledge graph'
       case 'error':
         return 'Processing failed'
+      default:
+        return 'Pending'
     }
   }
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort()
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -517,13 +535,7 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
                               )}
                             </div>
                             <div className="ml-2 flex items-center">
-                              {file.status === 'completed' ? (
-                                <CheckCircle className="h-4 w-4 text-green-400" />
-                              ) : file.status === 'error' ? (
-                                <AlertCircle className="h-4 w-4 text-red-400" />
-                              ) : (
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
-                              )}
+                              {getStatusIcon(file.status)}
                               {/* Only show delete button when file is done (completed or error) */}
                               {(file.status === 'completed' || file.status === 'error') && (
                                 <button
@@ -535,6 +547,11 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
                                 </button>
                               )}
                             </div>
+                          </div>
+
+                          <div className="flex items-center justify-between text-xs text-gray-400 mt-1">
+                            <span>{getStatusText(file.status)}</span>
+                            <span>{formatFileSize(file.size)}</span>
                           </div>
 
                           {/* Processing results - ONLY show when we have REAL data */}
@@ -620,6 +637,7 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
               {/* Close Button - can close even while uploading */}
               <button
                 onClick={() => {
+                  abortControllerRef.current?.abort()
                   if (onClose) {
                     onClose()
                   }

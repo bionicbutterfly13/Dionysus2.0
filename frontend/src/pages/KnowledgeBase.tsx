@@ -30,10 +30,10 @@ interface CrawlOperation {
 export default function KnowledgeBase() {
   const [showAddKnowledgeModal, setShowAddKnowledgeModal] = useState(false)
   // REMOVED FAKE CRAWL OPERATIONS - will fetch real data from backend
-  const [crawlOperations, setCrawlOperations] = useState<CrawlOperation[]>([])
+  const [crawlOperations] = useState<CrawlOperation[]>([])
 
   // REMOVED FAKE FILES - will fetch real uploads from backend
-  const [knowledgeItems, setKnowledgeItems] = useState<KnowledgeItem[]>([])
+  const [knowledgeItems] = useState<KnowledgeItem[]>([])
 
   return (
     <div className="min-h-screen bg-black text-white p-6">

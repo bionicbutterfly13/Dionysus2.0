@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Brain, Play, Pause, RotateCcw, Target, Eye, Cpu, Zap, Activity } from 'lucide-react'
 
 interface ThoughtSeed {
@@ -36,7 +36,7 @@ interface ConsciousnessState {
   mac_analysis: MACAnalysis[]
   processing_time: number
   iwmt_metrics: IWMTMetrics
-  pipeline_summary: any
+  pipeline_summary: Record<string, unknown>
   error?: string
 }
 
@@ -53,8 +53,9 @@ export default function ThoughtSeedMonitor() {
   const [isRunning, setIsRunning] = useState(false)
   const [currentCycle, setCurrentCycle] = useState<CompetitionCycle | null>(null)
   const [cycles, setCycles] = useState<CompetitionCycle[]>([])
+  const cycleCountRef = useRef(0)
   const [selectedThought, setSelectedThought] = useState<string | null>(null)
-  const [consciousnessStatus, setConsciousnessStatus] = useState<any>(null)
+  const [consciousnessStatus, setConsciousnessStatus] = useState<ConsciousnessState | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -62,19 +63,19 @@ export default function ThoughtSeedMonitor() {
   const API_BASE = '/api/consciousness'
 
   // Fetch consciousness status
-  const fetchConsciousnessStatus = async () => {
+  const fetchConsciousnessStatus = useCallback(async (): Promise<ConsciousnessState | null> => {
     try {
       const response = await fetch(`${API_BASE}/status`)
       const data = await response.json()
-      return data
+      return data as ConsciousnessState
     } catch (error) {
       console.error('Error fetching consciousness status:', error)
       return null
     }
-  }
+  }, [])
 
   // Process consciousness with sample content
-  const processConsciousness = async () => {
+  const processConsciousness = useCallback(async (): Promise<ConsciousnessState | null> => {
     try {
       const response = await fetch(`${API_BASE}/process`, {
         method: 'POST',
@@ -86,15 +87,15 @@ export default function ThoughtSeedMonitor() {
         })
       })
       const data = await response.json()
-      return data
+      return data as ConsciousnessState
     } catch (error) {
       console.error('Error processing consciousness:', error)
       return null
     }
-  }
+  }, [])
 
   // Generate thoughts from consciousness response
-  const generateThoughtsFromConsciousness = (consciousnessData: any): Record<string, ThoughtSeed> => {
+  const generateThoughtsFromConsciousness = (consciousnessData: ConsciousnessState): Record<string, ThoughtSeed> => {
     const thoughts: Record<string, ThoughtSeed> = {}
     
     if (consciousnessData?.mac_analysis) {
@@ -128,7 +129,7 @@ export default function ThoughtSeedMonitor() {
     return thoughts
   }
 
-  const generateRealCycle = async (): Promise<CompetitionCycle | null> => {
+  const generateRealCycle = useCallback(async (cycleNumber: number): Promise<CompetitionCycle | null> => {
     setIsLoading(true)
     setError(null)
     
@@ -160,7 +161,7 @@ export default function ThoughtSeedMonitor() {
       }
 
       return {
-        cycle: cycles.length + 1,
+        cycle: cycleNumber,
         timestamp,
         consciousness_state,
         thoughts,
@@ -174,15 +175,19 @@ export default function ThoughtSeedMonitor() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [processConsciousness])
 
-  const runCycle = async () => {
-    const newCycle = await generateRealCycle()
+  const runCycle = useCallback(async () => {
+    const nextCycleNumber = cycleCountRef.current + 1
+    const newCycle = await generateRealCycle(nextCycleNumber)
     if (newCycle) {
-      setCycles(prev => [...prev.slice(-9), newCycle])
+      setCycles(prev => {
+        const next = [...prev.slice(-9), newCycle]
+        return next
+      })
       setCurrentCycle(newCycle)
     }
-  }
+  }, [generateRealCycle])
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
@@ -194,7 +199,11 @@ export default function ThoughtSeedMonitor() {
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isRunning, cycles.length])
+  }, [isRunning, runCycle])
+
+  useEffect(() => {
+    cycleCountRef.current = cycles.length
+  }, [cycles.length])
 
   // Fetch consciousness status on component mount
   useEffect(() => {
@@ -203,7 +212,7 @@ export default function ThoughtSeedMonitor() {
       setConsciousnessStatus(status)
     }
     loadConsciousnessStatus()
-  }, [])
+  }, [fetchConsciousnessStatus])
 
   const getThoughtTypeColor = (type: ThoughtSeed['type']) => {
     switch (type) {
