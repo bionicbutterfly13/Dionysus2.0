@@ -12,7 +12,7 @@ export default defineConfig({
   },
   server: {
     port: 9243,
-    open: true, // Automatically open browser when dev server starts
+    open: false, // Don't auto-open browser (open manually at http://localhost:9243)
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:9127',  // Backend is on 9127
