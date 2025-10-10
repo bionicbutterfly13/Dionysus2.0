@@ -1,127 +1,167 @@
-# BMAD Workflow Instructions for Flux UI Hardening
+# BMAD v6-alpha Workflow Instructions for Flux UI Hardening
 
 ## Story: flux-ui-hardening.md
 
-This document provides the complete BMAD workflow commands to execute the Flux UI hardening story using the BMAD Method agents.
+This document provides the complete BMAD v6-alpha workflow commands to execute the Flux UI hardening story using the BMad Method Module (BMM).
 
 ## Prerequisites
 
 1. **Feature Branch**: `feature/flux-ui-hardening-bmad` (already created)
 2. **Story File**: `docs/stories/flux-ui-hardening.md` (already exists)
-3. **BMAD Agents Required**:
-   - Scrum Master (SM)
-   - Developer (Dev)
-   - QA/Test Architect (QA)
+3. **BMAD v6-alpha Installed**: Version 6.0.0-alpha.0
+4. **BMM Agents Required**:
+   - SM (Scrum Master)
+   - DEV (Developer)
+   - SR (Senior Reviewer)
 
-## BMAD Agent Workflow
+## BMAD v6-alpha Workflow
 
-### Phase 1: Scrum Master - Story Approval
+BMAD v6-alpha uses the **4-Phase Scale-Adaptive Workflow**. For this UI hardening task (Level 1 complexity - focused bug fix/cleanup), we'll use the **Implementation Phase** directly.
 
-Load the **Scrum Master agent** from `BMAD-METHOD/bmad-core/agents/sm.md` or `BMAD-METHOD/dist/agents/sm.txt`
+### Phase 4: Implementation Phase
 
-**Commands to execute:**
+#### Step 1: SM - Create Story
 
+The Scrum Master creates and prepares the story for development.
+
+**Command:**
+```bash
+bmad sm create-story
 ```
-*load docs/stories/flux-ui-hardening.md
 
-*approve-story docs/stories/flux-ui-hardening.md
+**In the SM chat session:**
+- Point SM to `docs/stories/flux-ui-hardening.md`
+- SM will validate story structure and acceptance criteria
+- SM will ensure story is ready for implementation
+
+---
+
+#### Step 2: SM - Generate Story Context
+
+**NEW in v6**: Story-context provides just-in-time expertise injection for the developer.
+
+**Command:**
+```bash
+bmad sm story-context
 ```
 
 **Expected Output:**
-- SM will review the story for completeness
-- SM will validate acceptance criteria are clear
-- SM will update story status to "Approved"
-- SM will provide implementation guidance
+- SM generates specialized technical context for this story
+- Context includes relevant patterns, dependencies, and guidance
+- Prepares optimized context for DEV agent
 
 ---
 
-### Phase 2: Developer - Story Implementation
+#### Step 3: DEV - Implement Story
 
-Load the **Developer agent** from `BMAD-METHOD/bmad-core/agents/dev.md` or `BMAD-METHOD/dist/agents/dev.txt`
+The Developer implements the story using the generated context.
 
-**Commands to execute:**
-
-```
-*develop-story docs/stories/flux-ui-hardening.md
+**Command:**
+```bash
+bmad dev dev-story
 ```
 
 **Expected Actions:**
-- Dev will read the approved story
-- Dev will implement the following tasks:
-  1. Remove unused variables/components surfaced by ESLint
-  2. Replace `any` types with explicit types or shared interfaces
-  3. Audit and fix hook dependency arrays (`useEffect`, `useCallback`)
-  4. Add/repair Jest unit coverage for linted components
-  5. Document follow-up issues as new stories
-- Dev will ensure `npm run lint` passes with no warnings
-- Dev will update the story with implementation notes
+- DEV reads story and injected context
+- DEV implements all tasks:
+  1. Remove unused variables/components (ESLint)
+  2. Replace `any` types with explicit types
+  3. Fix hook dependency arrays (`useEffect`, `useCallback`)
+  4. Add/repair Jest unit tests
+  5. Document follow-up issues
+- DEV ensures `npm run lint` passes with no warnings
+- DEV updates story with implementation notes
 
 ---
 
-### Phase 3: QA/Test Architect - Review and Gate
+#### Step 4: SR - Review Implementation
 
-Load the **QA agent** from `BMAD-METHOD/bmad-core/agents/qa.md` or `BMAD-METHOD/dist/agents/qa.txt`
+The Senior Reviewer validates code quality and adherence to standards.
 
-**Commands to execute:**
-
-```
-*review docs/stories/flux-ui-hardening.md
-
-*gate docs/stories/flux-ui-hardening.md
+**Command:**
+```bash
+bmad sr review-story
 ```
 
 **Expected Actions:**
-- QA will verify all acceptance criteria:
+- SR performs code review against acceptance criteria:
   1. ✅ `npm run lint` passes with no warnings
-  2. ✅ `npm test` (Jest) executes without failure
+  2. ✅ `npm test` (Jest) executes successfully
   3. ✅ Key Playwright smoke flows pass
   4. ✅ Debug/Document pages load without console errors
-- QA will run automated tests
-- QA will document any issues found
-- QA will approve the story or request fixes
+  5. ✅ TypeScript types are properly defined
+  6. ✅ Hook dependencies are correct
+- SR documents any issues found
+- SR approves story or requests corrections
+
+---
+
+#### Step 5: Course Correction (If Needed)
+
+If SR finds issues, use the correct-course workflow.
+
+**Command:**
+```bash
+bmad dev correct-course
+```
+
+**Expected Actions:**
+- DEV addresses SR feedback
+- DEV re-runs tests and validation
+- DEV updates story with corrections
 
 ---
 
 ## Final Steps
 
-Once QA approval is complete:
+Once SR approval is complete:
 
 1. **Update Project Log**:
    ```bash
-   # Add entry to docs/flux-project-log.md
-   echo "## $(date +%Y-%m-%d) - Flux UI Hardening Complete" >> docs/flux-project-log.md
-   echo "- Achieved lint-zero status" >> docs/flux-project-log.md
+   echo "## $(date +%Y-%m-%d) - Flux UI Hardening Complete (BMAD v6-alpha)" >> docs/flux-project-log.md
+   echo "- Achieved lint-zero status via BMAD v6-alpha workflow" >> docs/flux-project-log.md
    echo "- Added smoke test coverage" >> docs/flux-project-log.md
    echo "- Fixed ESLint warnings (unused vars, any types, hook deps)" >> docs/flux-project-log.md
+   echo "- SR review passed all quality gates" >> docs/flux-project-log.md
    ```
 
 2. **Merge Feature Branch**:
    ```bash
    git add .
-   git commit -m "feat: Flux UI hardening - lint cleanup and test coverage"
+   git commit -m "feat: Flux UI hardening - BMAD v6-alpha workflow execution
+
+   - Lint-zero achieved (no ESLint warnings)
+   - TypeScript types properly defined
+   - Hook dependencies corrected
+   - Jest unit tests passing
+   - SR review approved"
    git checkout main
    git merge feature/flux-ui-hardening-bmad
    ```
 
-## BMAD Agent Loading Instructions
+## BMAD v6-alpha Installation
 
-### Option 1: Web UI (ChatGPT/Claude/Gemini)
+If BMAD v6-alpha is not installed, run:
 
-1. Load the full-stack team file: `BMAD-METHOD/dist/teams/team-fullstack.txt`
-2. Or load individual agents from `BMAD-METHOD/dist/agents/`
-3. Use commands: `*sm`, `*dev`, `*qa` to switch between agents
+```bash
+cd /path/to/Dionysus-2.0
+npm run install:bmad
+```
 
-### Option 2: IDE Integration
+Follow the installer prompts to configure BMad for your project.
 
-Follow the BMAD user guide for IDE integration:
-- [BMAD User Guide](../BMAD-METHOD/docs/user-guide.md)
+## v6-alpha Workflow Reference
+
+- **[BMM Module README](../../BMAD-METHOD/src/modules/bmm/README.md)** - BMad Method overview
+- **[v6 Workflows Guide](../../BMAD-METHOD/src/modules/bmm/workflows/README.md)** - Complete workflow documentation
+- **[Scale Levels](../../BMAD-METHOD/src/modules/bmm/README.md#scale-levels)** - Understanding project complexity levels
 
 ## Notes
 
-- The BMAD commands (`*approve-story`, `*develop-story`, `*review`, `*gate`) work within AI chat interfaces
-- Each agent maintains context through the story file
-- Story file acts as the source of truth for all agents
-- Agents pass notes to each other through story updates
+- BMAD v6-alpha uses **CLI commands** (`bmad sm create-story`) instead of chat commands
+- Each agent maintains state through workflow files in `bmad/` directory
+- Story context is dynamically generated for each implementation
+- SR replaces the separate QA role from v4
 
 ## Alternative: Manual Execution
 
