@@ -16,11 +16,11 @@ import sys
 
 sys.path.insert(0, '/Volumes/Asylum/dev/Dionysus-2.0/backend/src')
 
-from services.demo.in_memory_graph import get_demo_graph, get_demo_embedder
-from services.clause.path_navigator import PathNavigator
-from services.clause.context_curator import ContextCurator
-from services.clause.coordinator import LCMAPPOCoordinator
-from models.clause.coordinator_models import (
+from ...services.demo.in_memory_graph import get_demo_graph, get_demo_embedder
+from ...services.clause.path_navigator import PathNavigator
+from ...services.clause.context_curator import ContextCurator
+from ...services.clause.coordinator import LCMAPPOCoordinator
+from ...models.clause.coordinator_models import (
     CoordinationRequest,
     BudgetAllocation,
     LambdaParameters,

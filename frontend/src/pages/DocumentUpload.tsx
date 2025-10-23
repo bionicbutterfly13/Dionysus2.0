@@ -1,6 +1,14 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, FileText, AlertCircle, CheckCircle, Globe, Brain, XCircle } from 'lucide-react'
+import { Upload, FileText, CheckCircle, Globe, Brain, XCircle } from 'lucide-react'
+
+export const MAX_FILES_PER_BATCH = 10
+
+export const limitFilesForBatch = (files: File[], limit: number = MAX_FILES_PER_BATCH) => {
+  const batch = files.slice(0, limit)
+  const overflow = files.length > limit ? files.length - limit : 0
+  return { batch, overflow }
+}
 
 interface UploadedFile {
   id: string
@@ -9,6 +17,7 @@ interface UploadedFile {
   status: 'uploading' | 'processing' | 'completed' | 'error'
   mockData: boolean
   progress?: number
+  errorMessage?: string
   // Consciousness processing results
   extraction?: {
     concepts: string[]
@@ -55,7 +64,26 @@ interface HealthStatus {
     name: string
     status: string
     message: string
+    required_for: string[]
   }>
+}
+
+export const deriveHealthBlocker = (health: HealthStatus | null): string | null => {
+  if (!health) {
+    return '⚠️ Unable to reach local services. Please ensure the backend is running.'
+  }
+
+  const daedalusStatus = health.services?.daedalus?.status
+  if (daedalusStatus !== 'healthy') {
+    return 'Local processing is offline. Please try again later.'
+  }
+
+  if (!health.can_upload) {
+    const errorText = health.errors?.join('\n') || 'Uploads are currently disabled.'
+    return errorText
+  }
+
+  return null
 }
 
 export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
@@ -65,10 +93,12 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
   const [crawlDepth, setCrawlDepth] = useState(2)
   const [isCrawling, setIsCrawling] = useState(false)
   const [healthError, setHealthError] = useState<string | null>(null)
+  const [batchMessage, setBatchMessage] = useState<string | null>(null)
+  const [modeMessage, setModeMessage] = useState<string | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
   // Check system health before upload
-  const checkSystemHealth = async (): Promise<HealthStatus | null> => {
+  const checkSystemHealth = useCallback(async (): Promise<HealthStatus | null> => {
     try {
       const response = await fetch('/api/health')
       if (!response.ok) {
@@ -80,33 +110,31 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
       console.error('[HEALTH] Check failed:', error)
       return null
     }
-  }
+  }, [])
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    // Clear previous health errors
     setHealthError(null)
+    if (!acceptedFiles || acceptedFiles.length === 0) {
+      return
+    }
 
-    // Check system health BEFORE starting upload
     console.log('[HEALTH] Checking system health before upload...')
     const health = await checkSystemHealth()
-
-    if (!health) {
-      setHealthError('⚠️ Cannot connect to backend health check. Backend may be down.')
+    const blocker = deriveHealthBlocker(health)
+    if (blocker) {
+      setHealthError(blocker)
+      console.error('[HEALTH] Upload blocked:', blocker)
       return
     }
 
-    if (!health.can_upload) {
-      // Show specific error messages from health check
-      const errorMsg = health.errors.join('\n')
-      setHealthError(errorMsg)
-      console.error('[HEALTH] Upload blocked:', health.errors)
-      return
+    const { batch: filesToProcess, overflow } = limitFilesForBatch(acceptedFiles)
+    if (overflow > 0) {
+      setBatchMessage(`Limited to the first ${MAX_FILES_PER_BATCH} files. ${overflow} file(s) queued for later.`)
+    } else {
+      setBatchMessage(null)
     }
 
-    console.log('[HEALTH] ✅ All systems healthy, proceeding with upload')
-
-    // Create file entries with uploading status
-    const newFiles: UploadedFile[] = acceptedFiles.map((file) => ({
+    const newFiles: UploadedFile[] = filesToProcess.map((file) => ({
       id: Math.random().toString(36).substr(2, 9),
       name: file.name,
       size: file.size,
@@ -117,84 +145,108 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
 
     setUploadedFiles(prev => [...prev, ...newFiles])
 
-    // Upload files individually to show individual progress
-    for (const file of acceptedFiles) {
+    for (const file of filesToProcess) {
       const fileEntry = newFiles.find(f => f.name === file.name)
       if (!fileEntry) continue
 
+      if (file.size === 0) {
+        setUploadedFiles(prev =>
+          prev.map(f => f.id === fileEntry.id
+            ? { ...f, status: 'error', progress: 0, errorMessage: 'File was empty' }
+            : f
+          )
+        )
+        continue
+      }
+
       try {
         const formData = new FormData()
-        formData.append('files', file)  // Backend expects 'files' array
+        formData.append('files', file)
 
-        // Simulate upload progress
-        const progressInterval = setInterval(() => {
-          setUploadedFiles(prev =>
-            prev.map(f => f.id === fileEntry.id ?
-              { ...f, progress: Math.min((f.progress || 0) + Math.random() * 30, 95) } : f
-            )
+        setUploadedFiles(prev =>
+          prev.map(f => f.id === fileEntry.id
+            ? { ...f, progress: 10 }
+            : f
           )
-        }, 200)
+        )
 
-        const response = await fetch('/api/v1/documents', {
+        const response = await fetch('/api/v1/documents?mode=local', {
           method: 'POST',
           body: formData,
         })
 
-        clearInterval(progressInterval)
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.statusText}`)
+        }
 
-        if (response.ok) {
-          const result = await response.json()
-          console.log('[UPLOAD] Backend response:', result)
-          console.log('[DAEDALUS] Processing result:', result.documents?.[0])
+        const result = await response.json()
+        console.log('[UPLOAD] Backend response:', result)
+        const doc = result.documents?.[0]
+        if (!doc) {
+          throw new Error('No document in response')
+        }
 
-          const doc = result.documents?.[0]
-          if (!doc) throw new Error('No document in response')
+        const uploadData = {
+          extraction: doc.extraction || { concepts: [], chunks: 0 },
+          consciousness: doc.consciousness || { basins_created: 0, thoughtseeds_generated: 0 },
+          research: doc.research || { curiosity_triggers: [] },
+          quality: doc.quality || { scores: { overall: 0 } },
+          workflow: doc.workflow || { iterations: 0, messages: [] }
+        }
 
-          // Map backend response to UI format
-          const uploadData = {
-            extraction: doc.extraction || { concepts: [], chunks: 0 },
-            consciousness: doc.consciousness || { basins_created: 0, thoughtseeds_generated: 0 },
-            research: doc.research || { curiosity_triggers: [] },
-            quality: doc.quality || { scores: { overall: 0 } },
-            workflow: doc.workflow || { iterations: 0, messages: [] }
+        setUploadedFiles(prev =>
+          prev.map(f => f.id === fileEntry.id
+            ? {
+                ...f,
+                progress: 100,
+                status: 'completed',
+                extraction: uploadData.extraction,
+                consciousness: uploadData.consciousness,
+                research: uploadData.research,
+                quality: uploadData.quality,
+                workflow: uploadData.workflow
+              }
+            : f
+          )
+        )
+
+        // Cache document metadata in localStorage for sidebar refresh
+        try {
+          const cacheKey = 'flux:recent-documents'
+          const cachedDocs = JSON.parse(localStorage.getItem(cacheKey) || '[]')
+          const newDoc = {
+            id: doc.id,
+            title: doc.title || file.name,
+            type: doc.type || 'file',
+            uploaded_at: doc.uploaded_at || new Date().toISOString(),
+            extraction: uploadData.extraction,
+            quality: uploadData.quality
           }
 
-          // Complete upload progress and move to processing
-          setUploadedFiles(prev =>
-            prev.map(f => f.id === fileEntry.id ?
-              { ...f, progress: 100, status: 'processing' } : f
-            )
-          )
-
-          // Complete processing with upload data
-          setTimeout(() => {
-            setUploadedFiles(prev =>
-              prev.map(f => f.id === fileEntry.id ?
-                {
-                  ...f,
-                  status: 'completed',
-                  extraction: uploadData.extraction,
-                  consciousness: uploadData.consciousness,
-                  research: uploadData.research,
-                  quality: uploadData.quality,
-                  workflow: uploadData.workflow
-                } : f
-              )
-            )
-          }, 1500)
-        } else {
-          throw new Error(`Upload failed: ${response.statusText}`)
+          // Add to cache, keep last 50 documents
+          const updatedCache = [newDoc, ...cachedDocs.filter((d: any) => d.id !== doc.id)].slice(0, 50)
+          localStorage.setItem(cacheKey, JSON.stringify(updatedCache))
+          console.log('[UPLOAD] Cached document metadata:', doc.id)
+        } catch (cacheError) {
+          console.warn('[UPLOAD] Failed to cache document:', cacheError)
         }
       } catch (error) {
         console.error('Upload error:', error)
-        setUploadedFiles(prev => 
-          prev.map(f => f.id === fileEntry.id ? 
-            { ...f, status: 'error', progress: 0 } : f
+        setUploadedFiles(prev =>
+          prev.map(f => f.id === fileEntry.id ?
+            {
+              ...f,
+              status: 'error',
+              progress: 0,
+              errorMessage: error instanceof Error ? error.message : 'Upload failed'
+            } : f
           )
         )
       }
     }
-  }, [])
+
+    window.dispatchEvent(new CustomEvent('flux:documents-updated'))
+  }, [checkSystemHealth])
 
   // Handle web crawl
   const handleStartCrawl = async () => {
@@ -271,6 +323,10 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
     multiple: true
   })
 
+  const handleCloudAttempt = () => {
+    setModeMessage('Cloud processing is disabled for this release. Staying on local pipeline.')
+  }
+
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes'
     const k = 1024
@@ -288,7 +344,7 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
       case 'completed':
         return <CheckCircle className="h-4 w-4 text-green-600" />
       case 'error':
-        return <AlertCircle className="h-4 w-4 text-red-600" />
+        return <XCircle className="h-4 w-4 text-red-500" />
       default:
         return <div className="h-4 w-4 bg-gray-500 rounded"></div>
     }
@@ -316,11 +372,11 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
   }, [])
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center">
-      {/* Modal-style container exactly like Archon */}
-      <div className="w-full max-w-2xl bg-gray-900 border border-blue-500 rounded-lg">
-        {/* Header with blue gradient border */}
-        <div className="border-b border-blue-500 p-6">
+    <div className="min-h-screen text-white flex items-center justify-center">
+      {/* Modal-style container with panel-glow styling */}
+      <div className="w-full max-w-2xl panel-glow">
+        {/* Header */}
+        <div className="border-b border-blue-500/30 p-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-medium text-blue-400 mb-2">Add Knowledge</h1>
@@ -343,10 +399,10 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
             {/* Crawl Website */}
             <button
               onClick={() => setSelectedMode('crawl')}
-              className={`p-6 bg-gray-800 rounded-lg text-left transition-all ${
+              className={`p-6 rounded-lg text-left transition-all ${
                 selectedMode === 'crawl'
-                  ? 'border-2 border-blue-500'
-                  : 'border border-gray-600 hover:border-gray-500'
+                  ? 'panel-glow'
+                  : 'bg-gray-900/50 border border-gray-700 hover:border-blue-500/50'
               }`}
             >
               <div className="flex items-center mb-2">
@@ -359,10 +415,10 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
             {/* Upload Document */}
             <button
               onClick={() => setSelectedMode('upload')}
-              className={`p-6 bg-gray-800 rounded-lg text-left transition-all ${
+              className={`p-6 rounded-lg text-left transition-all ${
                 selectedMode === 'upload'
-                  ? 'border-2 border-blue-500'
-                  : 'border border-gray-600 hover:border-gray-500'
+                  ? 'panel-glow'
+                  : 'bg-gray-900/50 border border-gray-700 hover:border-blue-500/50'
               }`}
             >
               <div className="flex items-center mb-2">
@@ -404,7 +460,7 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
                   value={crawlUrl}
                   onChange={(e) => setCrawlUrl(e.target.value)}
                   placeholder="https://docs.example.com or https://github.com/..."
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:border-blue-400 focus:outline-none"
+                  className="w-full px-4 py-3 bg-black/50 border border-blue-500/30 rounded-lg text-white placeholder-gray-500 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   disabled={isCrawling}
                 />
                 <p className="text-gray-500 text-xs mt-2">Enter the URL of a website you want to crawl for knowledge</p>
@@ -422,10 +478,10 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
                       key={depth}
                       onClick={() => setCrawlDepth(depth)}
                       disabled={isCrawling}
-                      className={`p-3 bg-gray-800 rounded text-center transition-all ${
+                      className={`p-3 rounded text-center transition-all ${
                         crawlDepth === depth
-                          ? 'border-2 border-blue-500'
-                          : 'border border-gray-600 hover:border-gray-500'
+                          ? 'panel-glow'
+                          : 'bg-gray-900/50 border border-gray-700 hover:border-blue-500/50'
                       } ${isCrawling ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <div className={`font-medium ${crawlDepth === depth ? 'text-blue-400' : 'text-white'}`}>
@@ -478,6 +534,35 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
                 </div>
               )}
 
+              {batchMessage && (
+                <div className="mb-4 p-3 bg-blue-900/30 border border-blue-500 rounded-lg flex items-start gap-2">
+                  <span className="text-blue-400 text-sm font-medium">ℹ️</span>
+                  <span className="text-blue-200 text-sm flex-1">{batchMessage}</span>
+                </div>
+              )}
+              {modeMessage && (
+                <div className="mb-4 p-3 bg-yellow-900/30 border border-yellow-500 rounded-lg flex items-start gap-2">
+                  <span className="text-yellow-400 text-sm font-medium">⚠️</span>
+                  <span className="text-yellow-200 text-sm flex-1">{modeMessage}</span>
+                </div>
+              )}
+
+              <div className="mb-4 flex items-center justify-between text-xs text-gray-400">
+                <span className="uppercase tracking-wide">Processing Mode</span>
+                <div className="flex items-center space-x-2">
+                  <span className="px-2 py-1 bg-blue-900/40 border border-blue-500 rounded text-blue-200 text-xs font-medium">
+                    Local (default)
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleCloudAttempt}
+                    className="text-gray-500 hover:text-gray-300 text-xs underline"
+                  >
+                    Cloud (disabled)
+                  </button>
+                </div>
+              </div>
+
               {/* Upload Document Interface */}
               <div className="mb-8">
                 {uploadedFiles.length === 0 ? (
@@ -519,29 +604,30 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
                     </div>
                     <div className="space-y-3">
                       {uploadedFiles.map((file) => (
-                        <div key={file.id} className="bg-gray-800 rounded-lg p-3">
+                        <div key={file.id} className="flux-card">
                           {/* File header */}
                           <div className="flex items-center mb-2">
                             <FileText className="h-4 w-4 text-blue-400 mr-2 flex-shrink-0" />
                             <div className="flex-1 min-w-0">
                               <p className="text-white text-sm truncate">{file.name}</p>
-                              {file.status === 'uploading' && file.progress !== undefined && (
-                                <div className="w-full bg-gray-700 rounded-full h-1 mt-1">
+                              {file.progress !== undefined && (
+                                <div className="w-full bg-gray-700 rounded-full h-1.5 mt-1.5 overflow-hidden">
                                   <div
-                                    className="bg-blue-600 h-1 rounded-full transition-all duration-300"
+                                    className="bg-blue-500 h-1.5 rounded-full transition-all duration-500 ease-out"
                                     style={{ width: `${file.progress}%` }}
                                   ></div>
                                 </div>
                               )}
                             </div>
-                            <div className="ml-2 flex items-center">
+                            <div className="ml-2 flex items-center gap-1">
                               {getStatusIcon(file.status)}
                               {/* Only show delete button when file is done (completed or error) */}
                               {(file.status === 'completed' || file.status === 'error') && (
                                 <button
                                   onClick={() => setUploadedFiles(prev => prev.filter(f => f.id !== file.id))}
-                                  className="ml-1 text-red-400 hover:text-red-300"
+                                  className="ml-1 text-gray-400 hover:text-red-400 transition-colors"
                                   title="Remove from list"
+                                  aria-label={`Remove ${file.name}`}
                                 >
                                   ✕
                                 </button>
@@ -549,10 +635,22 @@ export default function DocumentUpload({ onClose }: DocumentUploadProps = {}) {
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between text-xs text-gray-400 mt-1">
-                            <span>{getStatusText(file.status)}</span>
-                            <span>{formatFileSize(file.size)}</span>
+                          <div className="flex items-center justify-between text-xs mt-1">
+                            <span className={`${
+                              file.status === 'completed' ? 'text-green-400' :
+                              file.status === 'error' ? 'text-red-400' :
+                              file.status === 'uploading' ? 'text-blue-400' :
+                              'text-gray-400'
+                            }`}>{getStatusText(file.status)}</span>
+                            <span className="text-gray-500">{formatFileSize(file.size)}</span>
                           </div>
+
+                          {/* Error details */}
+                          {file.status === 'error' && file.errorMessage && (
+                            <div className="mt-2 p-2 bg-red-900/20 border border-red-500/30 rounded text-xs text-red-300">
+                              {file.errorMessage}
+                            </div>
+                          )}
 
                           {/* Processing results - ONLY show when we have REAL data */}
                           {file.status === 'completed' && (

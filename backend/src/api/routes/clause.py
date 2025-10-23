@@ -20,7 +20,7 @@ from typing import Optional
 import logging
 import time
 
-from services.clause.models import (
+from ...services.clause.models import (
     SubgraphRequest,
     SubgraphResponse,
     BasinStrengtheningRequest,
@@ -29,26 +29,26 @@ from services.clause.models import (
     EdgeScoringRequest,
     EdgeScoringResponse,
 )
-from services.clause.graph_loader import GraphLoader
+from ...services.clause.graph_loader import GraphLoader
 # Note: BasinTracker, EdgeScorer, SubgraphArchitect have import issues
 # Will be fixed when their absolute imports are converted to relative
 
 # Phase 2 imports (T050-T052)
-from models.clause.path_models import (
+from ...models.clause.path_models import (
     PathNavigationRequest,
     PathNavigationResponse,
 )
-from models.clause.curator_models import (
+from ...models.clause.curator_models import (
     ContextCurationRequest,
     ContextCurationResponse,
 )
-from models.clause.coordinator_models import (
+from ...models.clause.coordinator_models import (
     CoordinationRequest,
     CoordinationResponse,
 )
-from services.clause.path_navigator import PathNavigator
-from services.clause.context_curator import ContextCurator
-from services.clause.coordinator import LCMAPPOCoordinator
+from ...services.clause.path_navigator import PathNavigator
+from ...services.clause.context_curator import ContextCurator
+from ...services.clause.coordinator import LCMAPPOCoordinator
 
 logger = logging.getLogger(__name__)
 

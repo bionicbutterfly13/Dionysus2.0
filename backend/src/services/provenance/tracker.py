@@ -15,7 +15,7 @@ import logging
 from typing import Optional
 from datetime import datetime
 
-from models.clause.provenance_models import ProvenanceMetadata, TrustSignals
+from ...models.clause.provenance_models import ProvenanceMetadata, TrustSignals
 
 logger = logging.getLogger(__name__)
 

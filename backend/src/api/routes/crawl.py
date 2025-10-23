@@ -11,7 +11,7 @@ import asyncio
 from crawl4ai import AsyncWebCrawler, BrowserConfig, CacheMode, CrawlerRunConfig
 from datetime import datetime
 
-from services.daedalus import Daedalus
+from ...services.daedalus import Daedalus
 
 logger = logging.getLogger(__name__)
 

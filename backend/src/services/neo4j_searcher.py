@@ -12,7 +12,7 @@ from typing import List, Dict, Any, Optional
 import logging
 from datetime import datetime
 
-from models.response import SearchResult, SearchSource
+from ..models.response import SearchResult, SearchSource
 
 try:
     from daedalus_gateway import get_graph_channel, DaedalusGraphChannel

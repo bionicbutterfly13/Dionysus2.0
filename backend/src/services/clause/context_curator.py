@@ -20,12 +20,12 @@ from datetime import datetime
 import time
 import tiktoken
 
-from models.clause.curator_models import (
+from ...models.clause.curator_models import (
     ContextCurationRequest,
     SelectedEvidence,
     ContextCurationResponse,
 )
-from models.clause.provenance_models import (
+from ...models.clause.provenance_models import (
     ProvenanceMetadata,
     TrustSignals,
 )

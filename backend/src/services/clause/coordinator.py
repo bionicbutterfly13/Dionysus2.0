@@ -16,13 +16,13 @@ import logging
 from typing import Dict, Any, List, Optional
 import time
 
-from models.clause.coordinator_models import (
+from ...models.clause.coordinator_models import (
     CoordinationRequest,
     AgentHandoff,
     CoordinationResponse,
     BudgetAllocation,
 )
-from models.clause.shared_models import BudgetUsage
+from ...models.clause.shared_models import BudgetUsage
 
 logger = logging.getLogger(__name__)
 

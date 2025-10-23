@@ -114,7 +114,8 @@ async def list_documents(topic: Optional[str] = None):
 
 @router.post("/documents")
 async def ingest_documents(
-    files: List[UploadFile] = File(...),
+    files: Optional[List[UploadFile]] = File(None),
+    file: Optional[UploadFile] = File(None),
     tags: Optional[str] = Form(None)
 ):
     """
@@ -122,10 +123,28 @@ async def ingest_documents(
 
     Updated per Spec 021: Uses simplified Daedalus as perceptual information gateway.
     Daedalus receives uploads and creates LangGraph agents for processing.
+
+    Accepts both single file (`file`) and multiple files (`files`) for flexibility.
     """
     try:
+        # Support both single file and multiple files
+        if file and files:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Provide either 'file' or 'files', not both"
+            )
+
+        if not file and not files:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Either 'file' or 'files' is required"
+            )
+
+        # Normalize to list
+        file_list = files if files else [file]
+
         results = []
-        for file in files:
+        for file in file_list:
             # Read file content
             content = await file.read()
 

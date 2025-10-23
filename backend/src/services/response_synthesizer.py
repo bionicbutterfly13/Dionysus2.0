@@ -9,9 +9,9 @@ from typing import List, Dict, Any, Optional, Protocol, runtime_checkable
 import logging
 from datetime import datetime
 
-from models.response import SearchResult, QueryResponse
-from models.query import Query
-from services.ollama_integration import OllamaModelManager
+from ..models.response import SearchResult, QueryResponse
+from ..models.query import Query
+from .ollama_integration import OllamaModelManager
 
 logger = logging.getLogger(__name__)
 

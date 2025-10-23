@@ -16,7 +16,7 @@ from typing import Optional
 from datetime import datetime
 import json
 
-from models.clause.curiosity_models import CuriosityTrigger
+from ...models.clause.curiosity_models import CuriosityTrigger
 
 logger = logging.getLogger(__name__)
 

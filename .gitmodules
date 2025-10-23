@@ -1,0 +1,23 @@
+[submodule "dionysus-source"]
+	path = dionysus-source
+	url = https://github.com/Asylum-Mayhem/dionysis-agent.git
+
+[submodule "ai-mri-analysis"]
+	path = ai-mri-analysis
+	url = https://github.com/davidkimai/ai-mri.git
+
+[submodule "cognitive-tools-analysis"]
+	path = cognitive-tools-analysis
+	url = https://github.com/davidkimai/Cognitive-Tools.git
+
+[submodule "external/AI-Researcher"]
+	path = external/AI-Researcher
+	url = https://github.com/HKUDS/AI-Researcher.git
+
+[submodule "external/open_deep_research"]
+	path = external/open_deep_research
+	url = https://github.com/langchain-ai/open_deep_research.git
+
+[submodule "resources/ASI-GO-2"]
+	path = resources/ASI-GO-2
+	url = https://github.com/bionicbutterfly13/Dionysus2.0.git

@@ -17,8 +17,8 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 from fastapi import HTTPException
 
-from models.clause.coordinator_models import AgentHandoff
-from services.clause.conflict_monitor import ConflictMonitor
+from ...models.clause.coordinator_models import AgentHandoff
+from .clause.conflict_monitor import ConflictMonitor
 
 logger = logging.getLogger(__name__)
 

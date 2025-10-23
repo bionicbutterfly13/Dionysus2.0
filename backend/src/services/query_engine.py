@@ -15,10 +15,10 @@ import time
 import logging
 from datetime import datetime
 
-from models.query import Query
-from models.response import QueryResponse
-from services.neo4j_searcher import Neo4jSearcher
-from services.response_synthesizer import ResponseSynthesizer
+from ..models.query import Query
+from ..models.response import QueryResponse
+from .neo4j_searcher import Neo4jSearcher
+from .response_synthesizer import ResponseSynthesizer
 
 logger = logging.getLogger(__name__)
 

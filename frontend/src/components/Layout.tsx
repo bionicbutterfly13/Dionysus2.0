@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect } from 'react'
+import { ReactNode, useState, useEffect, useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Home,
@@ -53,25 +53,39 @@ export default function Layout({ children }: LayoutProps) {
     ? location.pathname.split('/document/')[1]
     : null
 
-  // Fetch documents from backend
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        const response = await fetch('/api/v1/documents')
-        if (response.ok) {
-          const data = await response.json()
-          setDocuments(data.documents || [])
-        }
-      } catch (error) {
-        console.error('[DOCUMENTS] Failed to fetch:', error)
+  // Load documents from local cache (NO external API calls)
+  const loadDocumentsFromCache = useCallback(() => {
+    try {
+      const cacheKey = 'flux:recent-documents'
+      const cachedDocs = localStorage.getItem(cacheKey)
+      if (cachedDocs) {
+        const docs = JSON.parse(cachedDocs)
+        setDocuments(docs)
+        console.log('[SIDEBAR] Loaded', docs.length, 'documents from cache')
+      } else {
+        setDocuments([])
+        console.log('[SIDEBAR] No cached documents found')
       }
+    } catch (error) {
+      console.error('[SIDEBAR] Failed to load cache:', error)
+      setDocuments([])
     }
-
-    fetchDocuments()
-    // Poll every 10 seconds for new documents
-    const interval = setInterval(fetchDocuments, 10000)
-    return () => clearInterval(interval)
   }, [])
+
+  // Initial load from cache
+  useEffect(() => {
+    loadDocumentsFromCache()
+  }, [loadDocumentsFromCache])
+
+  // Listen for upload completion events and refresh from cache
+  useEffect(() => {
+    const handleRefresh = () => {
+      console.log('[SIDEBAR] Refresh triggered by upload batch')
+      loadDocumentsFromCache()
+    }
+    window.addEventListener('flux:documents-updated', handleRefresh)
+    return () => window.removeEventListener('flux:documents-updated', handleRefresh)
+  }, [loadDocumentsFromCache])
 
   const toggleDocument = (docId: string) => {
     const newExpanded = new Set(expandedDocs)
@@ -98,6 +112,17 @@ export default function Layout({ children }: LayoutProps) {
       if (response.ok) {
         // Remove from local state immediately
         setDocuments(documents.filter(d => d.id !== docId))
+
+        // Remove from cache
+        try {
+          const cacheKey = 'flux:recent-documents'
+          const cachedDocs = JSON.parse(localStorage.getItem(cacheKey) || '[]')
+          const updatedCache = cachedDocs.filter((d: any) => d.id !== docId)
+          localStorage.setItem(cacheKey, JSON.stringify(updatedCache))
+          console.log(`[DELETE] Removed from cache: ${docId}`)
+        } catch (cacheError) {
+          console.warn('[DELETE] Failed to update cache:', cacheError)
+        }
 
         // If viewing this document, navigate away
         if (activeDocId === docId) {

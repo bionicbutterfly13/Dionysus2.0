@@ -1,0 +1,58 @@
+# FastAPI and ASGI server
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Database and caching
+redis
+neo4j
+qdrant-client
+
+# Scientific computing (constitutional compliance: NumPy 2.x)
+numpy==2.2.6
+
+# Graph processing (CLAUSE Phase 1)
+networkx>=3.0
+
+# Machine Learning and AI
+openai
+scikit-learn
+# sentence-transformers  # Optional: NumPy 2.0 incompatibility, use hash-based embeddings for Phase 1
+
+# Data processing
+pandas
+pydantic
+pydantic-settings
+
+# Testing
+pytest
+pytest-asyncio
+pytest-cov
+httpx
+
+# Code quality
+black
+flake8
+ruff
+mypy
+pre-commit
+
+# Utilities
+python-jose[cryptography]
+python-dotenv
+aiofiles
+websockets
+PyJWT
+
+# Mathematical processing
+scipy
+sympy
+
+# Document processing
+PyMuPDF
+python-docx
+
+# Modular components
+
+# Cloud storage (Spec 054 - cold tier archival)
+boto3  # AWS S3 for document archival

@@ -16,7 +16,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 import uuid
 
-from models.clause.thoughtseed_models import ThoughtSeed, BasinContext
+from ...models.clause.thoughtseed_models import ThoughtSeed, BasinContext
 
 logger = logging.getLogger(__name__)
 

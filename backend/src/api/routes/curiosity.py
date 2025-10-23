@@ -12,8 +12,8 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
-from models.curiosity_mission import CuriosityMission, CuriosityType, MissionStatus
-from services.curiosity.mission_service import (
+from ...models.curiosity_mission import CuriosityMission, CuriosityType, MissionStatus
+from ...services.curiosity.mission_service import (
     CuriosityMissionService,
     get_curiosity_mission_service,
 )

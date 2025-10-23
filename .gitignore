@@ -98,3 +98,32 @@ wandb/
 tmp/
 temp/
 .cache/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+test-files/
+
+# Build artifacts
+dist/
+.next/
+out/
+
+# Vite
+.vite/
+*.local
+
+# Temporary build files
+deps_temp_*/
+
+# Artifacts
+=*

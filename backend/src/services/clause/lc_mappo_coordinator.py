@@ -10,13 +10,13 @@ import time
 from typing import List, Dict, Any, Optional
 import asyncio
 
-from models.clause.coordinator_models import (
+from ...models.clause.coordinator_models import (
     CoordinationRequest,
     CoordinationResponse,
     AgentHandoff,
 )
-from models.clause.shared_models import BudgetUsage
-from services.clause.centralized_critic import compute_shaped_return
+from ...models.clause.shared_models import BudgetUsage
+from .clause.centralized_critic import compute_shaped_return
 
 logger = logging.getLogger(__name__)
 

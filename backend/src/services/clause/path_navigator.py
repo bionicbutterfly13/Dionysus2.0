@@ -22,13 +22,13 @@ from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime
 import time
 
-from models.clause.path_models import (
+from ...models.clause.path_models import (
     PathNavigationRequest,
     PathStep,
     PathNavigationResponse,
 )
-from models.clause.shared_models import StateEncoding
-from services.causal.causal_queue import CausalQueue, CausalQueueItem
+from ...models.clause.shared_models import StateEncoding
+from .causal.causal_queue import CausalQueue, CausalQueueItem
 
 logger = logging.getLogger(__name__)
 
