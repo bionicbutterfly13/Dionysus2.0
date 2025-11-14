@@ -1,7 +1,3 @@
-[submodule "dionysus-source"]
-	path = dionysus-source
-	url = https://github.com/Asylum-Mayhem/dionysis-agent.git
-
 [submodule "ai-mri-analysis"]
 	path = ai-mri-analysis
 	url = https://github.com/davidkimai/ai-mri.git
