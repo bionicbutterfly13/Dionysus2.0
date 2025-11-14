@@ -1,16 +1,19 @@
 """
 Database Health Service for Dionysus
-Handles health checks for Neo4j, Redis, and Qdrant databases.
+Handles health checks for Neo4j and Redis databases.
 
 Constitutional Compliance (Spec 040 M2):
 - Uses DaedalusGraphChannel for Neo4j health checks
 - No direct neo4j imports (constitutional violation)
 - Maintains existing API for backwards compatibility
 
+Architecture Update (2025-10-01):
+- Neo4j-only unified storage (graph + vector + full-text)
+- Qdrant removed from architecture
+
 Migration Status:
 - Neo4j health checks: MIGRATED to Graph Channel
 - Redis health checks: No changes (not graph database)
-- Qdrant health checks: No changes (not graph database)
 """
 import asyncio
 import logging
@@ -45,12 +48,6 @@ try:
 except ImportError:
     REDIS_AVAILABLE = False
 
-try:
-    from qdrant_client import QdrantClient
-    QDRANT_AVAILABLE = True
-except ImportError:
-    QDRANT_AVAILABLE = False
-
 logger = logging.getLogger(__name__)
 
 
@@ -69,13 +66,16 @@ class DatabaseHealthService:
     Service for checking database health and connectivity.
 
     Provides health checks for:
-    - Neo4j (graph database) - via DaedalusGraphChannel (CONSTITUTIONAL)
+    - Neo4j (graph database + vector + full-text) - via DaedalusGraphChannel (CONSTITUTIONAL)
     - Redis (caching and streams) - direct connection (not graph database)
-    - Qdrant (vector embeddings) - direct connection (not graph database)
 
     Constitutional Compliance:
     - Neo4j health checks use Graph Channel exclusively
     - Legacy direct neo4j access deprecated and will be removed
+
+    Architecture (2025-10-01):
+    - Neo4j-only unified storage
+    - Qdrant removed from system
     """
 
     def __init__(
@@ -86,8 +86,6 @@ class DatabaseHealthService:
         redis_host: str = "localhost",
         redis_port: int = 6379,
         redis_db: int = 0,
-        qdrant_host: str = "localhost",
-        qdrant_port: int = 6333,
         timeout: float = 5.0
     ):
         self.neo4j_uri = neo4j_uri
@@ -96,8 +94,6 @@ class DatabaseHealthService:
         self.redis_host = redis_host
         self.redis_port = redis_port
         self.redis_db = redis_db
-        self.qdrant_host = qdrant_host
-        self.qdrant_port = qdrant_port
         self.timeout = timeout
 
         # Graph Channel instance (lazy initialized)
@@ -291,57 +287,6 @@ class DatabaseHealthService:
             'response_time_ms': round(response_time, 2)
         }
 
-    def check_qdrant_health(self) -> Dict[str, Any]:
-        """
-        Check Qdrant database health.
-
-        Returns:
-            Dict with status, message, timestamp, and response time
-        """
-        start_time = time.time()
-        timestamp = datetime.now()
-
-        if not QDRANT_AVAILABLE:
-            return {
-                'status': 'unavailable',
-                'message': 'Qdrant client not installed',
-                'timestamp': timestamp.isoformat(),
-                'response_time_ms': None
-            }
-
-        try:
-            client = QdrantClient(
-                host=self.qdrant_host,
-                port=self.qdrant_port,
-                timeout=self.timeout
-            )
-
-            # Test connection by getting cluster info
-            cluster_info = client.get_cluster_info()
-
-            if cluster_info:
-                response_time = (time.time() - start_time) * 1000
-
-                return {
-                    'status': 'healthy',
-                    'message': 'Qdrant connection successful',
-                    'timestamp': timestamp.isoformat(),
-                    'response_time_ms': round(response_time, 2),
-                    'additional_info': {
-                        'peer_id': cluster_info.peer_id if hasattr(cluster_info, 'peer_id') else None
-                    }
-                }
-
-        except Exception as e:
-            logger.warning(f"Qdrant health check failed: {e}")
-
-        response_time = (time.time() - start_time) * 1000
-        return {
-            'status': 'unavailable',
-            'message': 'Qdrant connection failed',
-            'timestamp': timestamp.isoformat(),
-            'response_time_ms': round(response_time, 2)
-        }
 
     async def check_all_databases_async(self) -> Dict[str, Any]:
         """
@@ -354,16 +299,14 @@ class DatabaseHealthService:
         """
         timestamp = datetime.now()
 
-        # Check each database (Neo4j via Graph Channel, others direct)
+        # Check each database (Neo4j via Graph Channel, Redis direct)
         neo4j_health = await self.check_neo4j_health_async()
         redis_health = self.check_redis_health()
-        qdrant_health = self.check_qdrant_health()
 
         # Determine overall status
         all_statuses = [
             neo4j_health['status'],
-            redis_health['status'],
-            qdrant_health['status']
+            redis_health['status']
         ]
 
         if all(status == 'healthy' for status in all_statuses):
@@ -376,7 +319,6 @@ class DatabaseHealthService:
         return {
             'neo4j': neo4j_health,
             'redis': redis_health,
-            'qdrant': qdrant_health,
             'overall_status': overall_status,
             'timestamp': timestamp.isoformat(),
             'healthy_count': len([s for s in all_statuses if s == 'healthy']),
@@ -408,13 +350,11 @@ class DatabaseHealthService:
         # Check each database
         neo4j_health = self.check_neo4j_health()
         redis_health = self.check_redis_health()
-        qdrant_health = self.check_qdrant_health()
 
         # Determine overall status
         all_statuses = [
             neo4j_health['status'],
-            redis_health['status'],
-            qdrant_health['status']
+            redis_health['status']
         ]
 
         if all(status == 'healthy' for status in all_statuses):
@@ -427,7 +367,6 @@ class DatabaseHealthService:
         return {
             'neo4j': neo4j_health,
             'redis': redis_health,
-            'qdrant': qdrant_health,
             'overall_status': overall_status,
             'timestamp': timestamp.isoformat(),
             'healthy_count': len([s for s in all_statuses if s == 'healthy']),
@@ -495,8 +434,6 @@ async def is_database_healthy_async(database_name: str) -> bool:
         health = await service.check_neo4j_health_async()
     elif database_name == 'redis':
         health = service.check_redis_health()
-    elif database_name == 'qdrant':
-        health = service.check_qdrant_health()
     else:
         return False
 
@@ -523,8 +460,6 @@ def is_database_healthy(database_name: str) -> bool:
         health = service.check_neo4j_health()
     elif database_name == 'redis':
         health = service.check_redis_health()
-    elif database_name == 'qdrant':
-        health = service.check_qdrant_health()
     else:
         return False
 

@@ -5,7 +5,11 @@ Multi-Tier Memory System for Ultra-Granular Document Processing
 Implements a three-tier memory architecture for decades-long knowledge persistence:
 - Hot Memory (Redis): Current session + 24 hours - immediate access
 - Warm Memory (Neo4j): Knowledge graphs for months/years - semantic relationships
-- Cold Memory (Vector DB): Embeddings + file system for decades - long-term storage
+- Cold Memory (Neo4j): Vector embeddings + file system for decades - long-term storage
+
+Architecture Update (2025-10-01):
+- Neo4j-only unified storage (graph + vector + full-text)
+- Removed Qdrant dependency
 
 Features hierarchical memory compression, automatic migration, and efficient retrieval.
 Implements Spec-022 Task 2.3 requirements.
@@ -35,13 +39,6 @@ try:
     GRAPH_CHANNEL_AVAILABLE = True
 except ImportError:
     GRAPH_CHANNEL_AVAILABLE = False
-
-try:
-    import qdrant_client
-    from qdrant_client.models import VectorParams, Distance, PointStruct
-    QDRANT_AVAILABLE = True
-except ImportError:
-    QDRANT_AVAILABLE = False
 
 import numpy as np
 from pathlib import Path
@@ -498,119 +495,78 @@ class WarmMemoryManager:
         return results[:20]  # Limit results
 
 class ColdMemoryManager:
-    """Vector database + file system for decades-long storage"""
-    
-    def __init__(self, storage_path: str = "/tmp/cold_memory", qdrant_url: str = "http://localhost:6333"):
+    """
+    Neo4j vector storage + file system for decades-long storage.
+
+    TODO (2025-10-01): Migrate to Neo4j vector capabilities.
+    Currently using file-based fallback until Neo4j vector integration complete.
+    """
+
+    def __init__(self, storage_path: str = "/tmp/cold_memory"):
         self.storage_path = Path(storage_path)
-        self.qdrant_url = qdrant_url
-        self.qdrant_client = None
+        self.vector_store = {}  # In-memory fallback until Neo4j vector migration
         self.connected = False
-        
+
         # Ensure storage directory exists
         self.storage_path.mkdir(parents=True, exist_ok=True)
         
     async def connect(self):
-        """Connect to vector database"""
-        if not QDRANT_AVAILABLE:
-            logger.warning("Qdrant not available - using file-based fallback")
-            self.vector_store = {}
-            self.connected = True
-            return
-        
-        try:
-            self.qdrant_client = qdrant_client.QdrantClient(url=self.qdrant_url)
-            
-            # Create collection if it doesn't exist
-            try:
-                await self.qdrant_client.create_collection(
-                    collection_name="cold_memory",
-                    vectors_config=VectorParams(size=768, distance=Distance.COSINE)
-                )
-            except Exception:
-                pass  # Collection might already exist
-            
-            self.connected = True
-            logger.info("Connected to Qdrant cold memory")
-        except Exception as e:
-            logger.error(f"Failed to connect to Qdrant: {e}")
-            self.vector_store = {}
-            self.connected = True
+        """
+        Connect to vector storage.
+
+        TODO: Integrate with Neo4j vector capabilities when implemented.
+        Currently using in-memory fallback.
+        """
+        logger.info("Using file-based cold memory storage (Neo4j vector migration pending)")
+        self.connected = True
     
     async def store_with_embedding(self, item: MemoryItem, embedding: np.ndarray) -> bool:
-        """Store item with vector embedding for semantic search"""
+        """
+        Store item with vector embedding for semantic search.
+
+        TODO: Use Neo4j vector index instead of in-memory store.
+        """
         try:
             # Store full item data in file system
             file_path = self.storage_path / f"{item.item_id}.pkl"
             with open(file_path, 'wb') as f:
                 pickle.dump(item, f)
-            
-            # Store embedding in vector database
-            if self.qdrant_client:
-                point = PointStruct(
-                    id=item.item_id,
-                    vector=embedding.tolist(),
-                    payload={
-                        "type": item.memory_type.value,
-                        "created_at": item.created_at.isoformat(),
-                        "importance": item.importance_score,
-                        "tags": item.tags,
-                        "domain_tags": item.domain_tags,
-                        "file_path": str(file_path)
-                    }
-                )
-                
-                await self.qdrant_client.upsert(
-                    collection_name="cold_memory",
-                    points=[point]
-                )
-            else:
-                # Fallback to in-memory vector store
-                self.vector_store[item.item_id] = {
-                    "embedding": embedding,
-                    "item": item,
-                    "file_path": str(file_path)
-                }
-            
+
+            # Store embedding in in-memory vector store (TODO: migrate to Neo4j)
+            self.vector_store[item.item_id] = {
+                "embedding": embedding,
+                "item": item,
+                "file_path": str(file_path)
+            }
+
             logger.debug(f"Stored item {item.item_id} in cold memory")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to store item in cold memory: {e}")
             return False
     
-    async def semantic_search(self, query_embedding: np.ndarray, limit: int = 10, 
+    async def semantic_search(self, query_embedding: np.ndarray, limit: int = 10,
                             min_similarity: float = 0.7) -> List[Tuple[MemoryItem, float]]:
-        """Perform semantic search using vector similarity"""
+        """
+        Perform semantic search using vector similarity.
+
+        TODO: Use Neo4j vector index for better performance.
+        """
         try:
             results = []
-            
-            if self.qdrant_client:
-                search_results = await self.qdrant_client.search(
-                    collection_name="cold_memory",
-                    query_vector=query_embedding.tolist(),
-                    limit=limit,
-                    score_threshold=min_similarity
-                )
-                
-                for result in search_results:
-                    # Load full item from file system
-                    file_path = Path(result.payload["file_path"])
-                    if file_path.exists():
-                        with open(file_path, 'rb') as f:
-                            item = pickle.load(f)
-                        results.append((item, result.score))
-            else:
-                # Fallback to in-memory similarity search
-                for item_id, data in self.vector_store.items():
-                    similarity = self._cosine_similarity(query_embedding, data["embedding"])
-                    if similarity >= min_similarity:
-                        results.append((data["item"], similarity))
-                
-                results.sort(key=lambda x: x[1], reverse=True)
-                results = results[:limit]
-            
+
+            # In-memory similarity search (TODO: migrate to Neo4j vector index)
+            for item_id, data in self.vector_store.items():
+                similarity = self._cosine_similarity(query_embedding, data["embedding"])
+                if similarity >= min_similarity:
+                    results.append((data["item"], similarity))
+
+            results.sort(key=lambda x: x[1], reverse=True)
+            results = results[:limit]
+
             return results
-            
+
         except Exception as e:
             logger.error(f"Failed to perform semantic search: {e}")
             return []
@@ -651,14 +607,13 @@ class ColdMemoryManager:
             # Calculate total size
             total_size = sum(f.stat().st_size for f in self.storage_path.glob("*.pkl"))
             stats.total_size_bytes = total_size
-            
-            if self.qdrant_client:
-                collection_info = await self.qdrant_client.get_collection("cold_memory")
-                stats.archived_documents = collection_info.vectors_count
-        
+
+            # Count archived documents from vector store
+            stats.archived_documents = len(self.vector_store)
+
         except Exception as e:
             logger.error(f"Failed to get cold memory stats: {e}")
-        
+
         return stats
     
     def _cosine_similarity(self, a: np.ndarray, b: np.ndarray) -> float:
@@ -809,8 +764,7 @@ class MultiTierMemorySystem:
         )
         
         self.cold_manager = ColdMemoryManager(
-            storage_path=config.get("cold_storage_path", "/tmp/cold_memory"),
-            qdrant_url=config.get("qdrant_url", "http://localhost:6333")
+            storage_path=config.get("cold_storage_path", "/tmp/cold_memory")
         )
         
         # Migration manager
