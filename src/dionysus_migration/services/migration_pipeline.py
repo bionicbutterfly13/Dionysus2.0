@@ -12,7 +12,7 @@ from uuid import uuid4
 
 from ..config import get_migration_config
 from ..logging_config import get_migration_logger
-from ..models.legacy_component import LegacyComponent
+from ..models.consciousness_component import ConsciousnessComponent
 from ..models.migration_task import MigrationTask, TaskStatus
 from ..models.quality_assessment import QualityAssessment
 from .component_discovery import ComponentDiscoveryService
@@ -170,7 +170,7 @@ class MigrationPipelineService:
         self,
         codebase_path: str,
         pipeline_id: str
-    ) -> List[LegacyComponent]:
+    ConsciousnessComponent
         """
         Discover components in the legacy codebase
 
@@ -208,7 +208,7 @@ class MigrationPipelineService:
 
     async def _assess_components(
         self,
-        components: List[LegacyComponent],
+        components: List[ConsciousnessComponent],
         assessor_id: str,
         pipeline_id: str
     ) -> List[QualityAssessment]:

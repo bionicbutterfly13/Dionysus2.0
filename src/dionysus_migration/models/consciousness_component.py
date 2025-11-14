@@ -68,9 +68,9 @@ class StrategicValue(BaseModel):
         ) / 3.0
 
 
-class LegacyComponent(BaseModel):
+class ConsciousnessComponent(BaseModel):
     """
-    Legacy component model representing individual code modules
+    Consciousness component model representing individual code modules
     from the legacy Dionysus consciousness system
     """
 
@@ -156,8 +156,10 @@ class LegacyComponent(BaseModel):
         path = Path(v)
         if not path.is_absolute():
             raise ValueError("File path must be absolute")
-        # Note: In production, would check if file exists
-        # For testing, we allow non-existent paths
+        if not path.exists():
+            raise ValueError(f"File path does not exist: {v}")
+        if not path.is_file():
+            raise ValueError(f"Path is not a file: {v}")
         return str(path)
 
     @field_validator("quality_score")
@@ -238,11 +240,11 @@ class LegacyComponent(BaseModel):
         return self.dict()
 
     def __str__(self) -> str:
-        return f"LegacyComponent(id={self.component_id[:8]}..., name={self.name}, quality={self.quality_score:.3f})"
+        return f"ConsciousnessComponent(id={self.component_id[:8]}..., name={self.name}, quality={self.quality_score:.3f})"
 
     def __repr__(self) -> str:
         return (
-            f"LegacyComponent("
+            f"ConsciousnessComponent("
             f"component_id='{self.component_id}', "
             f"name='{self.name}', "
             f"quality_score={self.quality_score}, "

@@ -11,7 +11,7 @@ from typing import Dict, List, Optional
 from uuid import uuid4
 
 from .connection import DatabaseConnection
-from ..models.legacy_component import LegacyComponent, ConsciousnessFunctionality, StrategicValue
+from ..models.consciousness_component import ConsciousnessComponent, ConsciousnessFunctionality, StrategicValue
 from ..models.migration_task import MigrationTask, TaskStatus
 from ..models.quality_assessment import QualityAssessment
 from ..models.rollback_checkpoint import RollbackCheckpoint, CheckpointStatus

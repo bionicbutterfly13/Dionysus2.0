@@ -16,7 +16,7 @@ from uuid import uuid4
 from ..config import get_migration_config
 from ..logging_config import get_migration_logger
 from ..models.rollback_checkpoint import RollbackCheckpoint, CheckpointStatus
-from ..models.legacy_component import LegacyComponent
+from ..models.consciousness_component import ConsciousnessComponent
 
 
 class RollbackService:
@@ -30,7 +30,7 @@ class RollbackService:
 
     async def create_rollback_checkpoint(
         self,
-        component: LegacyComponent,
+        component: ConsciousnessComponent,
         migration_state: Dict,
         checkpoint_config: Optional[Dict] = None
     ) -> str:
@@ -112,7 +112,7 @@ class RollbackService:
 
     async def _backup_component_files(
         self,
-        component: LegacyComponent,
+        component: ConsciousnessComponent,
         checkpoint_dir: Path
     ) -> Dict[str, Dict]:
         """
@@ -172,7 +172,7 @@ class RollbackService:
 
     async def _backup_component_metadata(
         self,
-        component: LegacyComponent,
+        component: ConsciousnessComponent,
         migration_state: Dict,
         checkpoint_dir: Path
     ) -> str:
@@ -205,7 +205,7 @@ class RollbackService:
 
     async def _backup_database_state(
         self,
-        component: LegacyComponent,
+        component: ConsciousnessComponent,
         checkpoint_dir: Path
     ) -> Dict[str, str]:
         """
@@ -248,7 +248,7 @@ class RollbackService:
 
         return database_backups
 
-    async def _discover_related_files(self, component: LegacyComponent) -> List[str]:
+    async def _discover_related_files(self, component: ConsciousnessComponent) -> List[str]:
         """
         Discover files related to the component
 

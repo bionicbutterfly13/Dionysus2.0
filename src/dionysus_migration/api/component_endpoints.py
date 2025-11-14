@@ -12,7 +12,7 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
 from ..services import RollbackService
-from ..models.legacy_component import LegacyComponent
+from ..models.consciousness_component import ConsciousnessComponent, ConsciousnessFunctionality, StrategicValue
 from ..models.rollback_checkpoint import RollbackCheckpoint
 
 
@@ -21,7 +21,7 @@ component_router = APIRouter(prefix="/api/v1/components", tags=["components"])
 
 class ComponentResponse(BaseModel):
     """Response model for component data"""
-    component: LegacyComponent
+    component: ConsciousnessComponent
     analysis_metadata: Dict
     migration_status: str
 
@@ -75,9 +75,8 @@ async def get_component(component_id: str) -> ComponentResponse:
     """
     # In a real implementation, would retrieve from database
     # For now, return mock data for demonstration
-    from ..models.legacy_component import ConsciousnessFunctionality, StrategicValue
 
-    mock_component = LegacyComponent(
+    mock_component = ConsciousnessComponent(
         component_id=component_id,
         name=f"component_{component_id[:8]}",
         file_path=f"/legacy/components/{component_id}.py",
@@ -135,7 +134,6 @@ async def list_components(
     for i in range(skip, min(skip + limit, skip + 10)):  # Mock 10 components
         component_id = f"comp_{i:04d}"
 
-        from ..models.legacy_component import ConsciousnessFunctionality, StrategicValue
         import random
 
         consciousness_score = random.uniform(0.3, 0.9)
@@ -147,7 +145,7 @@ async def list_components(
         if strategic_threshold and strategic_score < strategic_threshold:
             continue
 
-        mock_component = LegacyComponent(
+        mock_component = ConsciousnessComponent(
             component_id=component_id,
             name=f"legacy_component_{i}",
             file_path=f"/legacy/components/component_{i}.py",
@@ -199,9 +197,8 @@ async def create_rollback_checkpoint(
     """
     try:
         # In a real implementation, would retrieve component from database
-        from ..models.legacy_component import ConsciousnessFunctionality, StrategicValue
 
-        mock_component = LegacyComponent(
+        mock_component = ConsciousnessComponent(
             component_id=component_id,
             name=f"component_{component_id[:8]}",
             file_path=f"/legacy/components/{component_id}.py",

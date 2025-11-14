@@ -10,7 +10,7 @@ from typing import List, Optional
 
 from ..config import get_migration_config
 from ..logging_config import get_consciousness_logger
-from ..models.legacy_component import LegacyComponent
+from ..models.consciousness_component import ConsciousnessComponent
 from ..models.quality_assessment import (
     ConsciousnessImpactAnalysis,
     QualityAssessment,
@@ -27,14 +27,14 @@ class QualityAssessmentService:
 
     def assess_component(
         self,
-        component: LegacyComponent,
+        component: ConsciousnessComponent,
         assessor_agent_id: str
     ) -> QualityAssessment:
         """
         Perform comprehensive quality assessment of a component
 
         Args:
-            component: Legacy component to assess
+            component: Consciousness component to assess
             assessor_agent_id: ID of the DAEDALUS agent performing assessment
 
         Returns:
@@ -90,7 +90,7 @@ class QualityAssessmentService:
 
     def _analyze_consciousness_impact(
         self,
-        component: LegacyComponent
+        component: ConsciousnessComponent
     ) -> ConsciousnessImpactAnalysis:
         """Analyze consciousness functionality impact"""
         consciousness_func = component.consciousness_functionality
@@ -106,7 +106,7 @@ class QualityAssessmentService:
 
     def _analyze_strategic_value(
         self,
-        component: LegacyComponent
+        component: ConsciousnessComponent
     ) -> StrategicValueAnalysis:
         """Analyze strategic value for migration"""
         strategic = component.strategic_value
@@ -120,7 +120,7 @@ class QualityAssessmentService:
             business_value_impact=strategic.framework_alignment_score
         )
 
-    def _extract_awareness_patterns(self, component: LegacyComponent) -> List[str]:
+    def _extract_awareness_patterns(self, component: ConsciousnessComponent) -> List[str]:
         """Extract awareness processing patterns"""
         patterns = []
         for pattern in component.consciousness_patterns:
@@ -128,7 +128,7 @@ class QualityAssessmentService:
                 patterns.append(pattern)
         return patterns
 
-    def _extract_inference_capabilities(self, component: LegacyComponent) -> List[str]:
+    def _extract_inference_capabilities(self, component: ConsciousnessComponent) -> List[str]:
         """Extract inference capabilities"""
         capabilities = []
         for pattern in component.consciousness_patterns:
@@ -136,7 +136,7 @@ class QualityAssessmentService:
                 capabilities.append(pattern)
         return capabilities
 
-    def _extract_memory_methods(self, component: LegacyComponent) -> List[str]:
+    def _extract_memory_methods(self, component: ConsciousnessComponent) -> List[str]:
         """Extract memory integration methods"""
         methods = []
         for pattern in component.consciousness_patterns:
@@ -144,7 +144,7 @@ class QualityAssessmentService:
                 methods.append(pattern)
         return methods
 
-    def _assess_complexity(self, component: LegacyComponent) -> str:
+    def _assess_complexity(self, component: ConsciousnessComponent) -> str:
         """Assess consciousness flow complexity"""
         pattern_count = len(component.consciousness_patterns)
         if pattern_count >= 5:
@@ -154,7 +154,7 @@ class QualityAssessmentService:
         else:
             return "low"
 
-    def _extract_metacognitive_features(self, component: LegacyComponent) -> List[str]:
+    def _extract_metacognitive_features(self, component: ConsciousnessComponent) -> List[str]:
         """Extract meta-cognitive features"""
         features = []
         for pattern in component.consciousness_patterns:
@@ -162,11 +162,11 @@ class QualityAssessmentService:
                 features.append(pattern)
         return features
 
-    def _has_state_management(self, component: LegacyComponent) -> bool:
+    def _has_state_management(self, component: ConsciousnessComponent) -> bool:
         """Check if component manages consciousness state"""
         return 'state_management' in component.consciousness_patterns
 
-    def _extract_reusability_factors(self, component: LegacyComponent) -> List[str]:
+    def _extract_reusability_factors(self, component: ConsciousnessComponent) -> List[str]:
         """Extract factors contributing to reusability"""
         factors = []
         if component.strategic_value.reusability_score > 0.7:
@@ -175,7 +175,7 @@ class QualityAssessmentService:
             factors.extend(['moderate_modularity', 'basic_interfaces'])
         return factors
 
-    def _find_integration_points(self, component: LegacyComponent) -> List[str]:
+    def _find_integration_points(self, component: ConsciousnessComponent) -> List[str]:
         """Find potential integration points with Dionysus 2.0"""
         integration_points = []
         if component.strategic_value.framework_alignment_score > 0.6:
@@ -187,13 +187,13 @@ class QualityAssessmentService:
             ])
         return integration_points
 
-    def _assess_dependency_burden(self, component: LegacyComponent) -> float:
+    def _assess_dependency_burden(self, component: ConsciousnessComponent) -> float:
         """Assess legacy dependency burden"""
         dependency_count = len(component.dependencies)
         # More dependencies = higher burden
         return min(1.0, dependency_count / 10.0)
 
-    def _estimate_migration_effort(self, component: LegacyComponent) -> str:
+    def _estimate_migration_effort(self, component: ConsciousnessComponent) -> str:
         """Estimate migration effort level"""
         if component.file_size_bytes and component.file_size_bytes > 5000:
             return "high"
@@ -205,7 +205,7 @@ class QualityAssessmentService:
     def _identify_enhancement_opportunities(
         self,
         assessment: QualityAssessment,
-        component: LegacyComponent
+        component: ConsciousnessComponent
     ) -> None:
         """Identify ThoughtSeed enhancement opportunities"""
         if component.consciousness_functionality.awareness_score > 0.6:
@@ -223,7 +223,7 @@ class QualityAssessmentService:
     def _identify_risk_factors(
         self,
         assessment: QualityAssessment,
-        component: LegacyComponent
+        component: ConsciousnessComponent
     ) -> None:
         """Identify migration risk factors"""
         if len(component.dependencies) > 5:

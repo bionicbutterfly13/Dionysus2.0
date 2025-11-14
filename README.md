@@ -119,13 +119,8 @@ Code tool hooks. Configure custom soundpacks via `docs/CLAUDIO_INTEGRATION.md`.
 ### Linting
 
 ```bash
-# Backend (Python)
-cd backend
-ruff check .
-
-# Frontend (TypeScript/React)
-cd ../frontend
-npm run lint
+# Run the linter
+ruff check src
 ```
 
 #### 3. Monitor Progress

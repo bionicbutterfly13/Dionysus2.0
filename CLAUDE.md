@@ -23,366 +23,295 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **spec-driven consciousness enhancement implementation** for neural processing systems. The project implements consciousness-guided neural architecture discovery through active inference, consciousness framework integration, and unified database migration following formal specifications.
+Dionysus 2.0 is a **spec-driven consciousness-enhanced document processing system** implementing:
+- Multi-agent coordination via CLAUSE Phase 2 (SubgraphArchitect, CuratedPathNavigator, ProvenanceJournalist)
+- LangGraph-based document processing with consciousness integration
+- Neo4j-only unified storage (graph + vector + full-text)
+- OpenSpec + Archon workflow integration for formal change management
 
-## Recent Completions
+## Architecture
 
-### ✅ Document Processing System - LangGraph Synthesis (2025-10-01)
-**Status**: COMPLETE - Clean implementation with full source attribution
-
-**Implementation**: Clean synthesis of 6 external sources into unified LangGraph workflow
-- **Daedalus Gateway**: Single responsibility - receive perceptual information (118 lines)
-- **LangGraph Workflow**: 6-node consciousness-enhanced processing pipeline (400 lines)
-- **ASI-GO-2 Components**: Cognition Base, Researcher, Analyst (860 lines)
-- **SurfSense Patterns**: Content hash, markdown, chunking, summaries
-- **R-Zero Integration**: Curiosity-driven question generation, co-evolution
-- **Active Inference**: Prediction errors trigger exploration, hierarchical belief updating
-
-**Key Files**:
-- Gateway: `backend/src/services/daedalus.py` (118 lines)
-- Workflow: `backend/src/services/document_processing_graph.py` (400 lines)
-- Cognition Base: `backend/src/services/document_cognition_base.py` (250 lines)
-- Researcher: `backend/src/services/document_researcher.py` (280 lines)
-- Analyst: `backend/src/services/document_analyst.py` (330 lines)
-- Processor: `backend/src/services/consciousness_document_processor.py` (397 lines)
-- **Protected Archive**: `backup/clean_implementations/daedalus_langgraph_synthesis/`
-- **Source Attribution**: `SOURCES_AND_ATTRIBUTIONS.md`
-- **Implementation Summary**: `CLEAN_IMPLEMENTATION_SUMMARY.md`
-- **Architecture Diagram**: `ARCHITECTURE_DIAGRAM.md`
-
-**LangGraph Workflow** (6 nodes):
-1. Extract & Process (SurfSense patterns)
-2. Generate Research Plan (ASI-GO-2 + R-Zero)
-3. Consciousness Processing (Basins + ThoughtSeeds)
-4. Analyze Results (Quality + Insights + Meta-cognitive)
-5. Refine Processing (Iterative improvement)
-6. Finalize Output (Package results)
-
-**Testing**:
-```bash
-# Run all Daedalus tests
-pytest backend/tests/test_daedalus_spec_021.py backend/tests/integration/test_daedalus_integration.py -v
-
-# Test document upload through LangGraph workflow
-python -c "
-from backend.src.services.daedalus import Daedalus
-daedalus = Daedalus()
-with open('test.pdf', 'rb') as f:
-    result = daedalus.receive_perceptual_information(f, tags=['test'])
-    print(f\"Quality: {result['quality']['scores']['overall']:.2f}\")
-    print(f\"Curiosity triggers: {len(result['research']['curiosity_triggers'])}\")
-"
-
-# Get learning summary
-python -c "
-from backend.src.services.daedalus import Daedalus
-daedalus = Daedalus()
-summary = daedalus.get_cognition_summary()
-print(summary)
-"
+### High-Level Structure
+```
+Dionysus-2.0/
+├── backend/
+│   ├── src/
+│   │   ├── api/routes/          # FastAPI endpoints
+│   │   ├── services/
+│   │   │   ├── clause/          # Multi-agent coordination
+│   │   │   ├── asi_go_2/        # ASI-GO-2 integration
+│   │   │   └── daedalus.py      # Document processing gateway
+│   │   └── models/              # Pydantic models
+│   └── tests/
+│       ├── contract/            # API contract tests
+│       ├── integration/         # Component integration tests
+│       └── unit/                # Unit tests
+├── openspec/                    # OpenSpec change proposals and specs
+├── specs/                       # Legacy formal specifications (001-058+)
+└── dionysus-source/             # Legacy submodule (read-only)
 ```
 
-**External Sources Integrated**:
-- SurfSense (MIT) - Document extraction patterns
-- ASI-GO-2 (MIT) - 4-component learning architecture
-- R-Zero (Apache 2.0) - Curiosity-driven co-evolution
-- David Kimai's Context Engineering (MIT) - Token efficiency (12x reduction)
-- OpenNotebook (MIT) - LangGraph workflow patterns
-- Perplexica (MIT) - Text splitting validation
+### Core Systems
 
-### ✅ Unified Database Architecture - Neo4j Only (2025-10-01)
-**Status**: COMPLETE - Removed Qdrant, using Neo4j unified search
+**Document Processing Pipeline**:
+1. `daedalus.py` - Gateway receiving perceptual information
+2. `document_processing_graph.py` - 6-node LangGraph workflow
+3. ASI-GO-2 components - Cognition Base, Researcher, Analyst
+4. Neo4j persistence - Unified storage layer
 
-**Decision**: Neo4j + AutoSchemaKG provides complete solution for consciousness-enhanced document processing.
+**Multi-Agent Coordination (CLAUSE Phase 2)**:
+- SubgraphArchitect: Concept extraction and subgraph construction
+- CuratedPathNavigator: Knowledge graph path finding
+- ProvenanceJournalist: Evidence curation with source tracking
+- Located in: `backend/src/services/clause/`
 
-**Why Neo4j Only**:
-- ✅ **AutoSchemaKG Integration**: Automatic concept extraction and knowledge graph construction
-- ✅ **Native Vector Search**: 512-dimensional embeddings with cosine similarity
-- ✅ **Graph Relationships**: Critical for attractor basins, thoughtseeds, consciousness tracking
-- ✅ **Full-Text Search**: Built-in indexing for content search
-- ✅ **Hybrid Queries**: Graph + vector + full-text in single Cypher query
-- ✅ **Sufficient Performance**: <100ms for <100k documents
-- ✅ **Simpler Architecture**: One database instead of two
-
-**What Was Removed**:
-- ❌ Qdrant vector database (archived in `backup/deprecated/qdrant_vector_searcher/`)
-- ❌ `VectorSearcher` class
-- ❌ Parallel search to Qdrant in query engine
-- ❌ `QDRANT_URL` configuration setting
-
-**Storage Architecture**:
-```
-Document Upload
-    ↓
-DocumentProcessingGraph (concepts, basins, thoughtseeds)
-    ↓
-AutoSchemaKG (automatic concept + relationship extraction)
-    ↓
-Neo4j Unified Schema
-    ├─→ Graph: Relationships (ATTRACTED_TO, RESONATES_WITH, etc.)
-    ├─→ Vector: 512-dim embeddings (cosine similarity)
-    ├─→ Full-Text: Content indexes
-    └─→ Nodes: Document, Concept, Basin, ThoughtSeed, Episode
-```
-
-**When to Reconsider Qdrant**:
-- Only if exceeding 50k+ documents with consistent >100ms latency
-- Can be re-added as performance cache layer (Neo4j remains source of truth)
-
-**Key Files**:
-- Analysis: `HYBRID_STORAGE_ANALYSIS.md`
-- Schema: `extensions/context_engineering/neo4j_unified_schema.py`
-- Query Engine: `backend/src/services/query_engine.py` (Neo4j only)
-- Searcher: `backend/src/services/neo4j_searcher.py`
-- Archive: `backup/deprecated/qdrant_vector_searcher/`
+**Storage Architecture (Neo4j-Only)**:
+- ✅ Graph relationships (attractor basins, thoughtseeds)
+- ✅ Vector search (512-dim embeddings, cosine similarity)
+- ✅ Full-text search (built-in indexing)
+- ✅ Hybrid queries (single Cypher query)
+- Note: Qdrant removed, archived in `backup/deprecated/qdrant_vector_searcher/`
 
 ## Development Approach
 
-**Spec-Driven Development**: All implementation follows formal specifications in `spec-management/Consciousness-Specs/`:
-- `CLEAN_CONSCIOUSNESS_SPEC.md`: Core implementation specification
-- `UNIFIED_DATABASE_MIGRATION_SPEC.md`: Database architecture migration plan
-- `CONSCIOUSNESS_IMPLEMENTATION_SUMMARY.md`: Implementation status and results
+**Spec-Driven Development**: All implementation follows formal specifications using OpenSpec + Archon integration:
 
-## Core Implementation Commands
+### OpenSpec + Archon Workflow
 
-### Consciousness System Testing
-```bash
-# Test complete consciousness integration
-python test_complete_consciousness_implementation.py
+This project uses **OpenSpec** for specifications and **Archon MCP** for task management in an integrated workflow:
 
-# Test consciousness processing bridge
-python test_consciousness_integration.py
+**OpenSpec (Specifications & Change Management)**:
+- **Purpose**: Formal change proposals, specs, and design documentation
+- **Location**: `openspec/` directory
+- **Commands**:
+  - `/openspec:proposal` - Create new change proposal with spec deltas and tasks
+  - `/openspec:apply` - Implement approved change
+  - `/openspec:archive` - Archive completed change
+- **CLI**: `openspec list`, `openspec validate <id> --strict`, `openspec show <id>`
 
-# Test consciousness pipeline integration
-python test_consciousness_pipeline_integration.py
+**Archon MCP (Task Management)**:
+- **Purpose**: Project and task tracking, knowledge base integration
+- **Primary System**: All task management flows through Archon
+- **Tools**:
+  - `find_projects()` / `manage_project()` - Project management
+  - `find_tasks()` / `manage_task()` - Task lifecycle (todo → doing → review → done)
+  - `rag_search_knowledge_base()` - Research before implementation
+
+**Integration Workflow**:
+```
+1. OpenSpec Proposal → Create formal change specification
+   `/openspec:proposal` generates:
+   - proposal.md (what/why/how)
+   - tasks.md (implementation tasks)
+   - design.md (architecture decisions)
+   - specs/ (requirement deltas)
+
+2. Bridge to Archon → Create Archon project + tasks
+   - Create project: `manage_project("create", title="...")`
+   - Import tasks from OpenSpec tasks.md into Archon
+   - Assign task_order for priority/sequence
+
+3. Implementation → Work through Archon tasks
+   - Get task: `find_tasks(filter_by="status", filter_value="todo")`
+   - Start: `manage_task("update", task_id="...", status="doing")`
+   - Research: `rag_search_knowledge_base()`, `rag_search_code_examples()`
+   - Implement: Follow OpenSpec proposal and design
+   - Review: `manage_task("update", task_id="...", status="review")`
+   - Complete: `manage_task("update", task_id="...", status="done")`
+
+4. Archive → Complete OpenSpec change
+   - `/openspec:archive` moves to archive/ and updates main specs
+   - Archive Archon project when all tasks done
 ```
 
-### Consciousness Enhanced Pipeline
-```bash
-# Start Redis service (native installation)
-# macOS:   brew services start redis
-# Ubuntu:  systemctl start redis
-# Or use Redis Cloud with REDIS_URL environment variable
+**Best Practices**:
+- ✅ **Always check existing** OpenSpec specs and Archon tasks before implementing
+- ✅ **Research first**: Use Archon RAG to find relevant patterns/docs
+- ✅ **One task in progress**: Mark exactly one Archon task as "doing" at a time
+- ✅ **Update continuously**: Mark tasks complete immediately after finishing
+- ✅ **Validate strictly**: Run `openspec validate <id> --strict` before sharing proposals
 
-# Run enhanced pipeline with consciousness guidance
-python extensions/context_engineering/consciousness_enhanced_pipeline.py
+**Legacy Specs** (Pre-OpenSpec):
+- `spec-management/Consciousness-Specs/`:
+  - `CLEAN_CONSCIOUSNESS_SPEC.md`: Core implementation specification
+  - `UNIFIED_DATABASE_MIGRATION_SPEC.md`: Database architecture migration plan
+  - `CONSCIOUSNESS_IMPLEMENTATION_SUMMARY.md`: Implementation status and results
 
-# Run demo unified system
-python extensions/context_engineering/demo_unified_system.py
-```
+## Development Commands
 
-### Context Engineering System
-```bash
-# Start complete context engineering system with dashboard
-python start_context_engineering.py
-
-# Test mode with mock data
-python start_context_engineering.py --test
-
-# Without dashboard (command-line only)
-python start_context_engineering.py --no-dashboard
-```
-
-### Database Setup (Native Installation)
-```bash
-# Neo4j (required)
-# macOS:   brew install neo4j && brew services start neo4j
-# Ubuntu:  apt install neo4j && systemctl start neo4j
-# Or use Neo4j Aura cloud service
-
-# Redis (optional, for caching)
-# macOS:   brew install redis && brew services start redis
-# Ubuntu:  apt install redis-server && systemctl start redis
-# Or use Redis Cloud
-
-# Run database migration scripts
-python extensions/context_engineering/migration_scripts.py
-```
-
-## Consciousness Processing Architecture
-
-### Core Enhancement Layer
-The consciousness processing implementation provides advanced neural pattern analysis and consciousness-guided enhancements:
-
-```
-Consciousness Core Processing
-├── pipeline/evolve/     ← Enhanced with consciousness guidance
-├── pipeline/eval/       ← Augmented with consciousness detection
-├── pipeline/analyse/    ← Extended with meta-cognitive insights
-└── extensions/context_engineering/
-    ├── consciousness_active_inference.py      ← Core consciousness system
-    ├── flux_consciousness_interface.py        ← Processing interface bridge
-    ├── dionysus_consciousness_integration.py  ← Advanced active inference
-    ├── consciousness_enhanced_pipeline.py     ← Complete enhanced pipeline
-    └── unified_database.py                    ← Unified database system
-```
-
-### Key Components
-
-**Consciousness Core** (`consciousness_active_inference.py`):
-- Active inference engine with hierarchical beliefs
-- Neuronal packet processing system
-- Consciousness detection and measurement
-- Meta-cognitive awareness monitoring
-
-**Processing Interface** (`flux_consciousness_interface.py`):
-- Direct integration with consciousness processing pipeline
-- Context enhancement with conscious guidance
-- Real-time pattern evolution feedback
-- Fallback modes for graceful degradation
-
-**Enhanced Pipeline** (`consciousness_enhanced_pipeline.py`):
-- Complete evolution → evaluation → analysis cycle
-- Consciousness-guided pattern discovery
-- Meta-awareness tracking and optimization
-- Comprehensive performance analytics
-
-## Unified Database System
-
-### Database Migration Strategy
-Following `UNIFIED_DATABASE_MIGRATION_SPEC.md`, the system migrates from multiple database systems to a unified hybrid approach:
-
-- **From**: MongoDB (Legacy) + OpenSearch (Cognition) + FAISS (Vector)
-- **To**: Unified hybrid system (SQLite + JSON graph + Vector index)
-- **Benefit**: No data duplication, single relational graph database
-
-### Migration Commands
-```bash
-# Extend hybrid database schema for consciousness processing data
-python extensions/context_engineering/unified_database.py
-
-# Migrate existing data to unified system
-python extensions/context_engineering/migration_scripts.py
-
-# Test unified query interface
-python extensions/context_engineering/unified_query_interface.py
-```
-
-## Testing and Validation
-
-### Implementation Status
-✅ **100% SUCCESS RATE** - All core components implemented and tested:
-- Consciousness Core: PASS
-- Dionysus Integration: PASS
-- Enhanced Pipeline: PASS
-- Redis Connection: ACTIVE
-- Import Validation: ALL COMPONENTS AVAILABLE
-
-### Test Commands
-```bash
-# Run comprehensive integration test
-python test_complete_thoughtseed_implementation.py
-
-# Verify system setup
-python verify_setup.py
-
-# Test system integration
-python test_integration.py
-```
-
-## Key Features Delivered
-
-### Conscious Pattern Evolution
-- **Active Inference Guidance**: Evolution guided by prediction error minimization
-- **Consciousness Detection**: Real-time emergence pattern recognition
-- **Meta-Awareness**: Self-reflective pattern development
-- **Hierarchical Beliefs**: Multi-level cognitive modeling
-
-### Production Ready Features
-- **Docker Independent**: All services support native installation (brew, apt, managed cloud)
-- **Async Processing**: Non-blocking pipeline operations
-- **Configuration Management**: Environment-based setup
-- **Test Coverage**: Comprehensive validation suite
-- **Modular Design**: Each component operates independently
-- **Fallback Support**: Graceful degradation when components unavailable
-
-## Development Workflow
-
-1. **Spec-First Development**: All changes must follow specifications in `spec-management/`
-2. **Enhancement Strategy**: Extend and enhance core consciousness processing components
-3. **Testing Protocol**: Run test suite after any changes to ensure integration integrity
-4. **Database Migration**: Use unified system for all new data storage
-5. **Consciousness Tracking**: Monitor consciousness levels during pattern evolution
-
-## 🧮 NumPy 2.0 Frozen Environment (PERMANENT SOLUTION)
-
-### The Problem
-NumPy compatibility issues between 1.x and 2.x versions cause crashes with PyTorch and other ML libraries.
-
-### The Solution: Frozen Binary Environment
-We've created a **PERMANENT** NumPy 2.0 frozen environment that **NEVER** breaks:
+### Running the System
 
 ```bash
-# 🔒 Install frozen NumPy 2.0 environment (ONE TIME SETUP)
-bash install-numpy2-frozen-env.sh
+# Start backend API server
+cd backend
+uvicorn src.app_factory:app --host 127.0.0.1 --port 9127 --reload
 
-# 🧮 Activate NumPy 2.0 frozen environment (ALWAYS WORKS)
-source activate-numpy2-frozen.sh
+# Or use the main entry point
+cd backend/src
+python main.py
 
-# 🧪 Test consciousness processing with NumPy 2.0
-python numpy2_consciousness_processor.py
+# Check server health
+curl http://localhost:9127/health
 ```
 
-### What's Included in Frozen Environment
-- **NumPy 2.3.3**: Latest stable NumPy 2.0
-- **Pure Consciousness Processing**: No PyTorch dependency
-- **All Database Connections**: Redis, Neo4j, MongoDB, PostgreSQL
-- **Semantic Processing**: Hash-based embeddings (no PyTorch needed)
-- **Consciousness Features**: All 32 SurfSense features available
+### Testing (TDD Workflow)
 
-### Key Files
-- `numpy2-frozen-requirements.txt`: Locked dependency versions
-- `install-numpy2-frozen-env.sh`: One-time installer script
-- `activate-numpy2-frozen.sh`: Environment activator
-- `numpy2_consciousness_processor.py`: Pure NumPy 2.0 consciousness system
-
-### Benefits
-- ✅ **NEVER BREAKS**: Frozen dependencies guarantee compatibility
-- ✅ **No PyTorch Conflicts**: Pure NumPy implementation
-- ✅ **Full Consciousness Features**: All semantic processing available
-- ✅ **Database Integration**: Redis, Neo4j connections work perfectly
-- ✅ **Production Ready**: Tested and validated NumPy 2.0 environment
-
-## System Requirements
-
-### Core Requirements
-- Python 3.8+
-- NumPy 2.0+ (use frozen environment above)
-- Node.js 18+ (for frontend)
-- Minimum 16GB RAM, 32GB recommended
-
-### Services (Docker-Independent)
-**Note**: This project is Docker-independent. All services support native installation.
-
-#### Neo4j (Required for document processing)
-- **Native**: `brew install neo4j` (macOS), `apt install neo4j` (Ubuntu)
-- **Cloud**: Neo4j Aura (https://neo4j.com/cloud/aura/)
-- **Config**: Set `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD` in environment
-
-#### Redis (Optional for caching)
-- **Native**: `brew install redis` (macOS), `apt install redis-server` (Ubuntu)
-- **Cloud**: Redis Cloud (https://redis.com/try-free/)
-- **Config**: Set `REDIS_URL` in environment if using cloud
-
-#### PostgreSQL (Optional for structured data)
-- **Native**: `brew install postgresql` (macOS), `apt install postgresql` (Ubuntu)
-- **Cloud**: Supabase (https://supabase.com/)
-- **Config**: Set `DATABASE_URL` in environment
-
-### External Dependencies
-**ThoughtSeeds**, **Daedalus**, and **ASI-GO-2** are external projects:
 ```bash
-pip install thoughtseeds daedalus asi-go-2
+# Run all tests
+cd backend
+pytest
+
+# Run specific test categories
+pytest -m contract      # API contract tests
+pytest -m integration   # Integration tests
+pytest -m unit         # Unit tests
+
+# Run specific test file
+pytest tests/contract/test_documents_persist_post.py
+
+# Run with coverage
+pytest --cov=src --cov-report=html
 ```
-These are imported as packages, NOT implemented internally.
 
-## Important Notes
+**TDD Cycle (see TDD_RULES.md)**:
+1. RED: Write failing test first
+2. GREEN: Minimal code to pass test
+3. REFACTOR: Improve while keeping tests green
 
-- **Docker Independent**: This project does NOT require Docker. All services support native installation (brew, apt) or managed cloud alternatives
-- **External Dependencies**: ThoughtSeeds, Daedalus, and ASI-GO-2 are external packages, NOT internal implementations
-- **NumPy 2.0 ONLY**: Use the frozen environment to avoid compatibility issues FOREVER
-- **Preservation Principle**: Original ASI-Arch functionality is completely preserved
-- **Spec-Driven**: All implementation follows formal specifications
-- **ThoughtSeed Focus**: Primary enhancement is consciousness-guided architecture discovery
-- **Production Ready**: System has been fully implemented and tested
-- **Unified Database**: Migration strategy eliminates data duplication across multiple systems
+### Database Setup
+
+**Neo4j (Required)**:
+```bash
+# Native installation
+brew install neo4j && brew services start neo4j
+
+# Or use Neo4j Aura cloud: https://neo4j.com/cloud/aura/
+# Set environment variables:
+export NEO4J_URI=bolt://localhost:7687
+export NEO4J_USER=neo4j
+export NEO4J_PASSWORD=your_password
+```
+
+**Redis (Required for consciousness processing)**:
+```bash
+# Native installation
+brew install redis && brew services start redis
+
+# Or use Redis Cloud: https://redis.com/try-free/
+export REDIS_HOST=localhost
+export REDIS_PORT=6379
+```
+
+### Linting and Code Quality
+
+```bash
+# Run linter
+cd backend
+ruff check src
+
+# Auto-fix issues
+ruff check src --fix
+
+# Format code
+ruff format src
+
+# Type checking
+mypy src
+```
+
+## CLAUSE Multi-Agent System
+
+Access via: `POST /api/demo/process-document`
+
+```typescript
+// Upload document
+const formData = new FormData();
+formData.append('file', fileBlob, 'document.txt');
+
+const response = await fetch('http://localhost:8001/api/demo/process-document', {
+  method: 'POST',
+  body: formData
+});
+
+// Response includes:
+// - concepts_extracted: ["climate_change", ...]
+// - agent_handoffs: [{agent: "SubgraphArchitect", latency_ms: 0.02}]
+// - total_time_ms: 32.26
+```
+
+## Common Issues
+
+### NumPy Version Conflicts
+Backend requires NumPy < 2.0 (see `backend/pyproject.toml`). If you encounter NumPy 2.x issues:
+```bash
+pip install "numpy>=1.24.4,<2.0.0"
+```
+
+### Module Import Errors
+Backend uses `backend/src/` as the root. Ensure imports use:
+```python
+from services.daedalus import Daedalus  # NOT from src.services
+```
+
+### Database Connection Issues
+Check services are running:
+```bash
+# Neo4j
+neo4j status
+
+# Redis
+redis-cli ping  # Should return PONG
+```
+
+## Important Project Conventions
+
+1. **Spec-First Development**: All changes follow formal specifications in `specs/`
+2. **Docker-Independent**: Native installation preferred over Docker
+3. **Test-First**: Follow TDD cycle (see TDD_RULES.md)
+4. **Contract Tests**: API changes require contract tests in `tests/contract/`
+5. **Modular Components**: Some components extracted (e.g., daedalus-gateway)
+
+## File Reference Patterns
+
+When referencing code, use: `file_path:line_number`
+
+Example: "The gateway implementation is in `backend/src/services/daedalus.py:118`"
+
+## Consciousness Systems (New - 2025-11-13)
+
+### Skills Database
+Process your accumulated skills through the consciousness system:
+```bash
+# Check status
+python backend/check_consciousness_systems.py
+
+# Initialize skills database
+python backend/initialize_skills.py
+```
+
+**What it does**:
+- Scans `/Volumes/Asylum/skills-library/`
+- Processes each skill through Daedalus → DocumentProcessingGraph
+- Creates 5-level concepts, attractor basins, thoughtseeds
+- Stores in Neo4j knowledge graph
+- Builds searchable skill index at `~/.claude/skills/index.json`
+
+### Session Startup Check
+**Automatic Status Report**: Every session should start by checking consciousness systems:
+```bash
+python backend/check_consciousness_systems.py
+```
+
+Shows:
+- ✅ Skills database status (initialized/not initialized)
+- ✅ Neo4j health (node counts, consciousness nodes)
+
+---
+
+## Recent Major Changes
+
+- **Consciousness Systems Integration** (2025-11-13): Added Skills Manager for consciousness-enhanced knowledge management
+- **OpenSpec + Archon Integration**: Replaced BMAD framework with OpenSpec for change management, integrated with Archon MCP for task tracking
+- **CLAUSE Phase 2**: Multi-agent coordination system operational
+- **Neo4j Unified Storage**: Removed Qdrant, single database architecture
+- **LangGraph Integration**: 6-node consciousness-enhanced document processing

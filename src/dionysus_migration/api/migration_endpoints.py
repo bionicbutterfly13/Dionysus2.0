@@ -17,7 +17,7 @@ from ..services import (
     MigrationPipelineService,
     ThoughtSeedEnhancementService
 )
-from ..models.legacy_component import LegacyComponent
+from ..models.consciousness_component import ConsciousnessComponent, ConsciousnessFunctionality, StrategicValue
 from ..models.migration_task import MigrationTask, TaskStatus
 from ..models.quality_assessment import QualityAssessment
 
@@ -47,7 +47,7 @@ class ComponentDiscoveryRequest(BaseModel):
 class ComponentDiscoveryResponse(BaseModel):
     """Response model for component discovery"""
     discovery_id: str
-    components: List[LegacyComponent]
+    components: List[ConsciousnessComponent]
     total_files_analyzed: int
     consciousness_components_found: int
 
@@ -239,9 +239,8 @@ async def assess_component_quality(
     try:
         # In a real implementation, would retrieve component from storage
         # For now, create a mock component for demonstration
-        from ..models.legacy_component import ConsciousnessFunctionality, StrategicValue
 
-        mock_component = LegacyComponent(
+        mock_component = ConsciousnessComponent(
             component_id=request.component_id,
             name="mock_component",
             file_path="/mock/path",
@@ -296,9 +295,8 @@ async def enhance_component(
     """
     try:
         # In a real implementation, would retrieve component from storage
-        from ..models.legacy_component import ConsciousnessFunctionality, StrategicValue
 
-        mock_component = LegacyComponent(
+        mock_component = ConsciousnessComponent(
             component_id=request.component_id,
             name="mock_component",
             file_path="/mock/path",

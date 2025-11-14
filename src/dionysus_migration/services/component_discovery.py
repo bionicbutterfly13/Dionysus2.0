@@ -13,10 +13,10 @@ from typing import Dict, List, Optional, Set, Tuple
 
 from ..config import get_migration_config
 from ..logging_config import get_migration_logger
-from ..models.legacy_component import (
+from ..models.consciousness_component import (
     AnalysisStatus,
     ConsciousnessFunctionality,
-    LegacyComponent,
+    ConsciousnessComponent,
     StrategicValue
 )
 
@@ -32,7 +32,7 @@ class ComponentDiscoveryService:
         self.consciousness_patterns = self._load_consciousness_patterns()
         self.strategic_indicators = self._load_strategic_indicators()
 
-    def discover_components(self, codebase_path: str) -> List[LegacyComponent]:
+    def discover_components(self, codebase_path: str) -> List[ConsciousnessComponent]:
         """
         Discover all components in the legacy codebase
 
@@ -79,7 +79,7 @@ class ComponentDiscoveryService:
 
         return discovered_components
 
-    def _analyze_file(self, file_path: Path) -> List[LegacyComponent]:
+    def _analyze_file(self, file_path: Path) -> List[ConsciousnessComponent]:
         """
         Analyze a single Python file for consciousness components
 
@@ -129,7 +129,7 @@ class ComponentDiscoveryService:
         node: ast.AST,
         file_path: Path,
         source_code: str
-    ) -> Optional[LegacyComponent]:
+    ) -> Optional[ConsciousnessComponent]:
         """
         Analyze a specific AST node (class or function) for consciousness patterns
 
@@ -139,7 +139,7 @@ class ComponentDiscoveryService:
             source_code: Complete source code
 
         Returns:
-            LegacyComponent if consciousness patterns detected, None otherwise
+            ConsciousnessComponent if consciousness patterns detected, None otherwise
         """
         if not hasattr(node, 'name'):
             return None
@@ -158,7 +158,7 @@ class ComponentDiscoveryService:
             component_source = ""
 
         # Generate component ID
-        component_id = LegacyComponent.generate_component_id(
+        component_id = ConsciousnessComponent.generate_component_id(
             str(file_path), component_source
         )
 
@@ -173,7 +173,7 @@ class ComponentDiscoveryService:
         )
 
         # Calculate quality score
-        quality_score = LegacyComponent.calculate_quality_score(
+        quality_score = ConsciousnessComponent.calculate_quality_score(
             consciousness_functionality,
             strategic_value,
             consciousness_weight=self.config.consciousness_weight,
@@ -181,7 +181,7 @@ class ComponentDiscoveryService:
         )
 
         # Create component
-        component = LegacyComponent(
+        component = ConsciousnessComponent(
             component_id=component_id,
             name=component_name,
             file_path=str(file_path.absolute()),
@@ -399,7 +399,7 @@ class ComponentDiscoveryService:
 
         return patterns
 
-    def _is_consciousness_relevant(self, component: LegacyComponent) -> bool:
+    def _is_consciousness_relevant(self, component: ConsciousnessComponent) -> bool:
         """Check if component has sufficient consciousness relevance for migration"""
         # Component is relevant if it has consciousness patterns or reasonable scores
         has_consciousness_patterns = len(component.consciousness_patterns) > 0
