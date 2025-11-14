@@ -201,7 +201,7 @@ class DocumentSummarizer:
             raise RuntimeError("Local LLM summarization unavailable")
 
         prompt = (
-            "You are the Dionysus Flux document summarizer. Create a concise, factual summary "
+            "You are the Dionysus document summarizer. Create a concise, factual summary "
             "that captures the primary findings, key data points, and conclusions from the "
             "provided document.\n\n"
             "Requirements:\n"

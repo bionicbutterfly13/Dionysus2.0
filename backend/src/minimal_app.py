@@ -13,7 +13,7 @@ def create_minimal_app() -> FastAPI:
     """Create minimal FastAPI application for Phase 1."""
     
     app = FastAPI(
-        title="Flux Minimal Backend",
+        title="Dionysus Minimal Backend",
         description="Minimal backend for TDD Phase 1",
         version="0.1.0"
     )
@@ -30,7 +30,7 @@ def create_minimal_app() -> FastAPI:
     @app.get("/health")
     async def health_check():
         """Basic health check endpoint."""
-        return {"status": "healthy", "service": "flux-backend"}
+        return {"status": "healthy", "service": "dionysus-backend"}
 
     @app.get("/api/stats/dashboard")
     async def dashboard_stats():

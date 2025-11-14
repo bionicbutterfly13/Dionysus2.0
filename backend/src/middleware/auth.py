@@ -1,6 +1,6 @@
 """
 Local Authentication Middleware - T033
-Flux Self-Evolving Consciousness Emulator
+Dionysus 2.0
 
 Implements local authentication for self-hosted deployment.
 Constitutional compliance: local-first operation, no external dependencies.
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 class LocalAuthMiddleware(BaseHTTPMiddleware):
     """
-    Local authentication middleware for Flux backend.
+    Local authentication middleware for Dionysus backend.
 
     Features:
     - JWT token validation for authenticated endpoints
@@ -31,7 +31,7 @@ class LocalAuthMiddleware(BaseHTTPMiddleware):
 
     def __init__(self, app, secret_key: Optional[str] = None, algorithm: str = "HS256"):
         super().__init__(app)
-        self.secret_key = secret_key or os.getenv("SECRET_KEY", "flux-dev-secret-change-in-production")
+        self.secret_key = secret_key or os.getenv("SECRET_KEY", "dionysus-dev-secret-change-in-production")
         self.algorithm = algorithm
         self.security = HTTPBearer(auto_error=False)
 
@@ -44,7 +44,7 @@ class LocalAuthMiddleware(BaseHTTPMiddleware):
         }
 
         # Development mode
-        self.dev_mode = os.getenv("FLUX_ENV", "development") == "development"
+        self.dev_mode = os.getenv("DIONYSUS_ENV", "development") == "development"
 
     async def dispatch(self, request: Request, call_next) -> Response:
         """Process request through authentication middleware."""
@@ -138,7 +138,7 @@ class LocalAuthMiddleware(BaseHTTPMiddleware):
 # Utility functions for token management
 def create_access_token(user_id: str, expires_delta: Optional[timedelta] = None) -> str:
     """Create access token for authenticated user."""
-    secret_key = os.getenv("SECRET_KEY", "flux-dev-secret-change-in-production")
+    secret_key = os.getenv("SECRET_KEY", "dionysus-dev-secret-change-in-production")
     algorithm = os.getenv("ALGORITHM", "HS256")
 
     if expires_delta:
@@ -158,7 +158,7 @@ def create_access_token(user_id: str, expires_delta: Optional[timedelta] = None)
 
 def verify_token(token: str) -> Optional[dict]:
     """Verify token and return payload."""
-    secret_key = os.getenv("SECRET_KEY", "flux-dev-secret-change-in-production")
+    secret_key = os.getenv("SECRET_KEY", "dionysus-dev-secret-change-in-production")
     algorithm = os.getenv("ALGORITHM", "HS256")
 
     try:

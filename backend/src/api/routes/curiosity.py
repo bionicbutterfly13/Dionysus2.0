@@ -1,6 +1,6 @@
 """
 Curiosity Mission API Routes - Spec 029 / T030
-Flux Self-Evolving Consciousness Emulator
+Dionysus 2.0
 
 Handles curiosity mission creation, management, and replay scheduling.
 """

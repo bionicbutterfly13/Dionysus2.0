@@ -1,6 +1,6 @@
 """
 Request Validation Middleware - T032
-Flux Self-Evolving Consciousness Emulator
+Dionysus 2.0
 
 Handles request validation, error formatting, and constitutional compliance checks.
 """
@@ -110,14 +110,14 @@ class ValidationMiddleware(BaseHTTPMiddleware):
         """Validate outgoing response."""
 
         # Add constitutional compliance headers
-        response.headers["X-Flux-Constitutional-Compliance"] = "enabled"
-        response.headers["X-Flux-Local-First"] = "true"
-        response.headers["X-Flux-Evaluation-Framework"] = "active"
+        response.headers["X-Dionysus-Constitutional-Compliance"] = "enabled"
+        response.headers["X-Dionysus-Local-First"] = "true"
+        response.headers["X-Dionysus-Evaluation-Framework"] = "active"
 
         # Add mock data transparency headers if applicable
         if hasattr(request.state, 'mock_data_used') and request.state.mock_data_used:
-            response.headers["X-Flux-Mock-Data"] = "true"
-            response.headers["X-Flux-Mock-Data-Disclosure"] = "This response contains mock data for development purposes"
+            response.headers["X-Dionysus-Mock-Data"] = "true"
+            response.headers["X-Dionysus-Mock-Data-Disclosure"] = "This response contains mock data for development purposes"
 
         return response
 

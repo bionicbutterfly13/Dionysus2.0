@@ -13,7 +13,7 @@ Pipeline:
 6. Store in knowledge graph with consciousness metadata
 
 Based on:
-- SurfSense: /Volumes/Asylum/dev/Flux/surfsense_backend/app/tasks/document_processors/
+- SurfSense: /Volumes/Asylum/dev/SurfSense/surfsense_backend/app/tasks/document_processors/
 - Dionysus: five_level_concept_extraction.py, granular_chunking.py
 """
 

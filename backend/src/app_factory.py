@@ -63,7 +63,7 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
 
-    # Default CORS origins (no longer loading from flux.yaml)
+    # Default CORS origins
     cors_origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
     app = FastAPI(

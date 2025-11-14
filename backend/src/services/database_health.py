@@ -1,5 +1,5 @@
 """
-Database Health Service for Flux
+Database Health Service for Dionysus
 Handles health checks for Neo4j, Redis, and Qdrant databases.
 
 Constitutional Compliance (Spec 040 M2):
@@ -82,7 +82,7 @@ class DatabaseHealthService:
         self,
         neo4j_uri: str = "bolt://localhost:7687",
         neo4j_user: str = "neo4j",
-        neo4j_password: str = "flux_password",
+        neo4j_password: str = "dionysus_password",
         redis_host: str = "localhost",
         redis_port: int = 6379,
         redis_db: int = 0,

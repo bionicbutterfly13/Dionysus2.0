@@ -1,5 +1,5 @@
 """
-Flux API Routes
+Dionysus API Routes
 Route handlers for documents, curiosity, visualization, stats, query, and CLAUSE endpoints.
 """
 

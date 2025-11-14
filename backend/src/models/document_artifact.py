@@ -1,6 +1,6 @@
 """
 DocumentArtifact Model - T016
-Flux Self-Evolving Consciousness Emulator
+Dionysus 2.0
 
 Represents documents, files, and digital artifacts with semantic analysis
 and consciousness-aware processing capabilities.
@@ -65,7 +65,7 @@ class SemanticAnalysis(BaseModel):
 
 class DocumentArtifact(BaseModel):
     """
-    Document artifact model for the Flux consciousness system.
+    Document artifact model for the Dionysus consciousness system.
 
     Represents digital documents and files with semantic analysis,
     consciousness-aware processing, and integration capabilities.

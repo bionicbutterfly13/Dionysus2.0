@@ -1,6 +1,6 @@
 """
 EventNode Model - T015
-Flux Self-Evolving Consciousness Emulator
+Dionysus 2.0
 
 Represents individual events with Mosaic observation schema for consciousness tracking.
 Constitutional compliance: mock data transparency, evaluation feedback integration.

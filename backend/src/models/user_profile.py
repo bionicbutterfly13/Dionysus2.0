@@ -1,6 +1,6 @@
 """
 UserProfile Model - T013
-Flux Self-Evolving Consciousness Emulator
+Dionysus 2.0
 
 Represents user profile information for personalized consciousness modeling.
 Constitutional compliance: mock data transparency, evaluation feedback integration.
@@ -32,7 +32,7 @@ class ConsciousnessLevel(str, Enum):
 
 class UserProfile(BaseModel):
     """
-    User profile model for Flux consciousness emulator.
+    User profile model for Dionysus consciousness emulator.
 
     Tracks user information, preferences, and consciousness development
     with constitutional compliance for mock data transparency.

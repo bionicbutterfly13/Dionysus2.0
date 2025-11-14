@@ -1,5 +1,5 @@
 """
-Flux Middleware Components
+Dionysus Middleware Components
 Authentication, validation, and request processing middleware.
 """
 

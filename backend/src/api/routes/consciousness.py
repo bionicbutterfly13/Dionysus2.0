@@ -2,7 +2,7 @@
 Consciousness API Routes
 
 Exposes the modular consciousness pipeline through REST endpoints
-for real-time consciousness visualization in Flux frontend.
+for real-time consciousness visualization in Dionysus frontend.
 """
 
 from fastapi import APIRouter, HTTPException
@@ -135,8 +135,8 @@ async def process_consciousness(request: ConsciousnessRequest):
         
         # Prepare processing context
         processing_context = {
-            "session_id": "flux_session",
-            "processing_id": f"flux_proc_{int(time.time())}",
+            "session_id": "dionysus_session",
+            "processing_id": f"dionysus_proc_{int(time.time())}",
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ")
         }
         

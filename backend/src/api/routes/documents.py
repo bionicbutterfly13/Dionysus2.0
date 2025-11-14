@@ -1,6 +1,6 @@
 """
 Document Ingestion API Routes - T029 (Updated with Daedalus Gateway per Spec 021)
-Flux Self-Evolving Consciousness Emulator
+Dionysus 2.0
 
 Handles document upload through Daedalus perceptual information gateway.
 Constitutional compliance: mock data transparency, evaluation framework.
@@ -119,7 +119,7 @@ async def ingest_documents(
     tags: Optional[str] = Form(None)
 ):
     """
-    Ingest documents into Flux consciousness system via Daedalus Gateway.
+    Ingest documents into Dionysus consciousness system via Daedalus Gateway.
 
     Updated per Spec 021: Uses simplified Daedalus as perceptual information gateway.
     Daedalus receives uploads and creates LangGraph agents for processing.

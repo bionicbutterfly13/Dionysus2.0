@@ -1,6 +1,6 @@
 """
 ConceptNode Model - T017
-Flux Self-Evolving Consciousness Emulator
+Dionysus 2.0
 
 Represents concepts in the consciousness system with semantic relationships,
 activation patterns, and integration with thoughtseed attractor dynamics.
@@ -73,7 +73,7 @@ class ConceptActivation(BaseModel):
 
 class ConceptNode(BaseModel):
     """
-    Concept node model for the Flux consciousness system.
+    Concept node model for the Dionysus consciousness system.
 
     Represents individual concepts with semantic relationships, activation patterns,
     and integration with thoughtseed attractor dynamics and consciousness development.

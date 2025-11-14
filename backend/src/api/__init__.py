@@ -1,4 +1,4 @@
 """
-Flux API Package
+Dionysus API Package
 REST API endpoints for the Self-Evolving Consciousness Emulator.
 """

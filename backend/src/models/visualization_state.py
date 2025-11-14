@@ -1,6 +1,6 @@
 """
 VisualizationState Model - T021
-Flux Self-Evolving Consciousness Emulator
+Dionysus 2.0
 
 Represents visualization and UI state for consciousness system interface
 with user preferences and real-time display configurations.
@@ -62,7 +62,7 @@ class VisualizationState(BaseModel):
     Visualization state model for consciousness system UI.
 
     Manages UI state, user preferences, and real-time visualization configurations
-    for the Flux consciousness development interface.
+    for the Dionysus consciousness development interface.
     """
 
     # Core Identity

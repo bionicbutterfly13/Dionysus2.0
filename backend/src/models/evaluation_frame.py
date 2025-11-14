@@ -1,6 +1,6 @@
 """
 EvaluationFrame Model - T020
-Flux Self-Evolving Consciousness Emulator
+Dionysus 2.0
 
 Represents evaluation frameworks and feedback collection for consciousness development
 with constitutional compliance and user consent management.

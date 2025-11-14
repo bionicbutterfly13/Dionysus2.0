@@ -81,7 +81,7 @@ class OllamaAnswerGenerator:
 
         prompt = dedent(
             f"""
-            You are the Flux research synthesizer. Answer the user's question using only the material provided in the sources.
+            You are the Dionysus research synthesizer. Answer the user's question using only the material provided in the sources.
             Instructions:
             - Write at least two detailed paragraphs (minimum 200 characters).
             - Reference supporting statements with bracketed citations like [1], [2].
