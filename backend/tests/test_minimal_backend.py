@@ -33,7 +33,7 @@ def test_health_endpoint_includes_service_name(client):
     assert response.status_code == 200
     data = response.json()
     assert "service" in data
-    assert data["service"] == "flux-backend"
+    assert data["service"] == "dionysus-backend"
 
 def test_dashboard_stats_endpoint(client):
     """Test that dashboard stats endpoint responds with required fields."""

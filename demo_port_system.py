@@ -13,23 +13,23 @@ import time
 
 def demo_port_conflict_resolution():
     """Demonstrate the port conflict resolution system."""
-    print("🔍 Testing Flux Port Management System")
+    print("🔍 Testing Dionysus Port Management System")
     print("=" * 50)
 
     port_manager = PortManager()
 
     # Show preferred ports
     print("\n📋 Flux Preferred Ports:")
-    for service, port in port_manager.flux_port_preferences.items():
+    for service, port in port_manager.dionysus_port_preferences.items():
         print(f"  {service}: {port}")
 
     # Test 1: Normal case (no conflicts)
     print("\n✅ Test 1: Normal allocation (no conflicts)")
-    ports1 = port_manager.get_flux_ports()
+    ports1 = port_manager.get_dionysus_ports()
     notifications1 = port_manager.get_notifications()
 
     for service, port in ports1.items():
-        print(f"  {service}: {port} {'✅ (preferred)' if port == port_manager.flux_port_preferences[service] else '⚠️ (alternative)'}")
+        print(f"  {service}: {port} {'✅ (preferred)' if port == port_manager.dionysus_port_preferences[service] else '⚠️ (alternative)'}")
 
     if notifications1:
         print(f"  Conflicts detected: {len(notifications1)}")
@@ -46,7 +46,7 @@ def demo_port_conflict_resolution():
     occupied_ports = []
 
     try:
-        for service, preferred_port in port_manager.flux_port_preferences.items():
+        for service, preferred_port in port_manager.dionysus_port_preferences.items():
             if port_manager.is_port_available(preferred_port):
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.bind(('127.0.0.1', preferred_port))
@@ -58,12 +58,12 @@ def demo_port_conflict_resolution():
         print("\n🔄 Requesting Flux ports with conflicts...")
 
         port_manager_conflict = PortManager()  # Fresh instance
-        ports2 = port_manager_conflict.get_flux_ports()
+        ports2 = port_manager_conflict.get_dionysus_ports()
         notifications2 = port_manager_conflict.get_notifications()
 
         print(f"\n🎯 Resolution Results:")
         for service, port in ports2.items():
-            preferred = port_manager_conflict.flux_port_preferences[service]
+            preferred = port_manager_conflict.dionysus_port_preferences[service]
             if port == preferred:
                 print(f"  {service}: {port} ✅ (got preferred port)")
             else:

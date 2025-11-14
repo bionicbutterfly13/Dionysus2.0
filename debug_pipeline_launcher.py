@@ -2,7 +2,7 @@
 Debug Pipeline Launcher
 =======================
 
-Helper script for local development: starts the Flux backend + frontend, opens
+Helper script for local development: starts the Dionysus backend + frontend, opens
 the debug pipeline dashboard, and queues a sample document through the new
 debug processing API so you immediately see events streaming.
 
@@ -51,12 +51,12 @@ _port_checker = PortManager()
 # ---------------------------------------------------------------------------
 
 def start_frontend(port: int) -> None:
-    """Launch the Vite dev server for the Flux frontend."""
+    """Launch the Vite dev server for the Dionysus frontend."""
     if not _port_checker.is_port_available(port):
         print(f"ℹ️  Frontend dev server already running on port {port}; skipping auto-start.")
         return
 
-    print(f"🎨 Starting Flux frontend on port {port}...")
+    print(f"🎨 Starting Dionysus frontend on port {port}...")
     try:
         subprocess.Popen(
             ["npm", "run", "dev"],
@@ -75,7 +75,7 @@ def open_browser_routes(frontend_port: int) -> None:
     """Open both the main dashboard and the debug pipeline panel."""
     time.sleep(2)
     base_url = FRONTEND_URL_TEMPLATE.format(port=frontend_port)
-    print(f"🌐 Opening Flux UI at {base_url}")
+    print(f"🌐 Opening Dionysus UI at {base_url}")
     webbrowser.open(base_url)
 
     time.sleep(1)
@@ -107,9 +107,9 @@ def queue_sample_document(host: str, port: int) -> None:
         return
 
     endpoint = f"http://{host}:{port}/api/debug/process-document"
-    boundary = f"----FluxDebugBoundary{uuid.uuid4().hex}"
+    boundary = f"----DionysusDebugBoundary{uuid.uuid4().hex}"
     sample_text = (
-        "Flux Debug Pipeline Demo\n"
+        "Dionysus Debug Pipeline Demo\n"
         "=========================\n\n"
         "This document is generated automatically by debug_pipeline_launcher.py\n"
         "to demonstrate the real-time LangGraph telemetry. You should see queue,\n"
@@ -168,7 +168,7 @@ def main() -> None:
             print(f"  - {notification}")
         print(f"✅ Auto-resolved to port {port}")
     else:
-        print(f"✅ Flux backend starting on port {port}")
+        print(f"✅ Dionysus backend starting on port {port}")
 
     is_primary_launch = os.environ.get("FLUX_DEBUG_LAUNCHER_PRIMARY") != "1"
 
@@ -185,7 +185,7 @@ def main() -> None:
     else:
         print("🔁 Detected uvicorn reload worker; skipping frontend/browser launch.")
 
-    print("🚀 Flux Debug Pipeline launcher starting...")
+    print("🚀 Dionysus Debug Pipeline launcher starting...")
     print(f"   Backend API: http://{host}:{port}")
     print(f"   Debug Panel: {frontend_url}/debug/pipeline")
     print("\n✨ Press CTRL+C to stop Flux\n")

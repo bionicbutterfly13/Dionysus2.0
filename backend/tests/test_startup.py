@@ -25,9 +25,8 @@ class TestCriticalImports:
 
     def test_app_factory_import(self):
         """Test main application factory imports"""
-        from src.app_factory import create_app, load_flux_config
+        from src.app_factory import create_app
         assert create_app is not None
-        assert load_flux_config is not None
 
     def test_daedalus_import(self):
         """Test Daedalus gateway imports"""
@@ -156,23 +155,22 @@ class TestPortAvailability:
         assert result in [0, 1, 61]
 
 
-class TestFluxConfig:
-    """Test flux.yaml configuration loading"""
+class TestDionysusConfig:
+    """Test Dionysus configuration"""
 
-    def test_flux_config_exists(self):
-        """Test flux.yaml configuration file exists"""
-        from src.app_factory import load_flux_config
-        config = load_flux_config()
-        # Should return dict even if file missing (empty dict)
-        assert isinstance(config, dict)
+    def test_config_defaults(self):
+        """Test default configuration exists"""
+        from src.app_factory import create_app
+        app = create_app()
+        assert app is not None
+        assert app.title == "Dionysus 2.0 API"
 
     def test_cors_origins_config(self):
-        """Test CORS origins can be loaded from config"""
-        from src.app_factory import load_flux_config
-        config = load_flux_config()
-        # Either has cors_origins or uses default
-        if 'server' in config:
-            assert isinstance(config.get('server', {}), dict)
+        """Test CORS origins are configured"""
+        from src.app_factory import create_app
+        app = create_app()
+        # CORS middleware should be configured
+        assert any(m.__class__.__name__ == 'CORSMiddleware' for m in app.user_middleware)
 
 
 class TestAppFactoryCreation:

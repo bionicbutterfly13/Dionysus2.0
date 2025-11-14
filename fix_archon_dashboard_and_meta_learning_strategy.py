@@ -62,9 +62,9 @@ class ArchonDashboardFixer:
         (utils_dir / "__init__.py").touch()
         
         # Create port_manager.py
-        port_manager_content = '''"""Port management utilities for Flux backend."""
+        port_manager_content = '''"""Port management utilities for Dionysus backend."""
 
-def get_flux_backend_port():
+def get_dionysus_backend_port():
     """Get the configured backend port."""
     import os
     return int(os.environ.get("FLUX_BACKEND_PORT", "8000"))
@@ -130,7 +130,7 @@ def check_neo4j_health():
     """Check Neo4j connectivity."""
     try:
         result = subprocess.run([
-            'docker', 'exec', 'neo4j-flux', 'cypher-shell', 
+            'docker', 'exec', 'neo4j-dionysus', 'cypher-shell', 
             '-u', 'neo4j', '-p', 'neo4j_password',
             'RETURN 1 as health'
         ], capture_output=True, text=True, timeout=5)

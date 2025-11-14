@@ -28,7 +28,7 @@ class SystemMetric:
     details: Dict[str, Any] = None
 
 
-class FluxDevMonitor:
+class DionysusDevMonitor:
     """Real-time monitoring system for Flux development."""
 
     def __init__(self):
@@ -179,7 +179,7 @@ class FluxDevMonitor:
         """Print status to terminal for non-web monitoring."""
         os.system('clear' if os.name == 'posix' else 'cls')
 
-        print("🖥️  Flux Development Monitor")
+        print("🖥️  Dionysus Development Monitor")
         print("=" * 60)
         print(f"⏰ {datetime.now().strftime('%H:%M:%S')}")
         print()
@@ -238,7 +238,7 @@ class FluxDevMonitor:
         # Start WebSocket server
         websocket_server = websockets.serve(self.websocket_handler, "localhost", 8765)
 
-        print("🚀 Flux Development Monitor starting...")
+        print("🚀 Dionysus Development Monitor starting...")
         print("📡 WebSocket server on ws://localhost:8765")
 
         try:
@@ -250,7 +250,7 @@ class FluxDevMonitor:
 
 def main():
     """Main entry point."""
-    monitor = FluxDevMonitor()
+    monitor = DionysusDevMonitor()
 
     try:
         asyncio.run(monitor.run_monitoring())

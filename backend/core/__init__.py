@@ -1,5 +1,5 @@
 """
-Flux Core Module
+Dionysus Core Module
 Constitutional compliance and core functionality
 """
 
