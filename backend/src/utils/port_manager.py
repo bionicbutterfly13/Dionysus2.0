@@ -1,5 +1,5 @@
 """
-Port Management System for Flux
+Port Management System for Dionysus
 Handles port conflict detection, auto-resolution, and notification system.
 """
 import socket
@@ -31,12 +31,12 @@ class PortManager:
     - Automatic conflict resolution
     - Random port generation for high availability
     - Notification system for conflicts
-    - Flux-specific port configuration
+    - Dionysus-specific port configuration
     """
 
     def __init__(self):
         self.notifications: List[PortConflictNotification] = []
-        self.flux_port_preferences = {
+        self.dionysus_port_preferences = {
             'backend_api': 9127,      # Unique odd port less likely to conflict
             'frontend_dev': 9243,     # Another unique odd port
             'websocket_stream': 9129, # Sequential odd from backend
@@ -109,16 +109,16 @@ class PortManager:
         # Fallback to sequential search if random fails
         return self.find_next_available_port(min_port)
 
-    def get_flux_ports(self) -> Dict[str, int]:
+    def get_dionysus_ports(self) -> Dict[str, int]:
         """
-        Get all Flux service ports with automatic conflict resolution.
+        Get all Dionysus service ports with automatic conflict resolution.
 
         Returns:
             Dictionary mapping service names to allocated port numbers
         """
         allocated_ports = {}
 
-        for service_name, preferred_port in self.flux_port_preferences.items():
+        for service_name, preferred_port in self.dionysus_port_preferences.items():
             if self.is_port_available(preferred_port):
                 allocated_ports[service_name] = preferred_port
                 logger.info(f"Allocated preferred port {preferred_port} for {service_name}")
@@ -157,12 +157,12 @@ class PortManager:
 
     def get_port_status(self) -> Dict[str, any]:
         """
-        Get comprehensive port status for all Flux services.
+        Get comprehensive port status for all Dionysus services.
 
         Returns:
             Dictionary with port allocation status and conflicts
         """
-        ports = self.get_flux_ports()
+        ports = self.get_dionysus_ports()
         status = {
             'allocated_ports': ports,
             'conflicts_detected': len(self.notifications),
@@ -177,15 +177,15 @@ class PortManager:
 port_manager = PortManager()
 
 
-def get_flux_backend_port() -> int:
-    """Get the allocated backend API port for Flux."""
-    ports = port_manager.get_flux_ports()
+def get_dionysus_backend_port() -> int:
+    """Get the allocated backend API port for Dionysus."""
+    ports = port_manager.get_dionysus_ports()
     return ports['backend_api']
 
 
-def get_flux_frontend_port() -> int:
-    """Get the allocated frontend dev port for Flux."""
-    ports = port_manager.get_flux_ports()
+def get_dionysus_frontend_port() -> int:
+    """Get the allocated frontend dev port for Dionysus."""
+    ports = port_manager.get_dionysus_ports()
     return ports['frontend_dev']
 
 

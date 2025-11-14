@@ -1,5 +1,5 @@
 """
-Flux Backend Configuration
+Dionysus Backend Configuration
 Environment-based configuration with constitutional compliance
 """
 
@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     """Application settings with constitutional compliance"""
     
     # Application
-    app_name: str = "Flux - Self-Evolving Consciousness Emulator"
+    app_name: str = "Dionysus 2.0"
     app_version: str = "0.1.0"
     debug: bool = Field(default=False, description="Debug mode")
     mock_data: bool = Field(default=True, description="Use mock data - constitutional requirement")
@@ -27,10 +27,10 @@ class Settings(BaseSettings):
     # Qdrant (Vector Database)
     qdrant_host: str = Field(default="localhost", description="Qdrant host")
     qdrant_port: int = Field(default=6333, description="Qdrant port")
-    qdrant_collection: str = Field(default="flux_embeddings", description="Qdrant collection name")
-    
+    qdrant_collection: str = Field(default="dionysus_embeddings", description="Qdrant collection name")
+
     # SQLite (Structured Data)
-    sqlite_path: str = Field(default="flux.db", description="SQLite database path")
+    sqlite_path: str = Field(default="dionysus.db", description="SQLite database path")
     
     # Redis (Real-time Streams)
     redis_host: str = Field(default="localhost", description="Redis host")
@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     )
     
     # Security
-    secret_key: str = Field(default="flux-secret-key-change-in-production", description="Secret key")
+    secret_key: str = Field(default="dionysus-secret-key-change-in-production", description="Secret key")
     
     # Constitutional Compliance
     evaluation_feedback_enabled: bool = Field(default=True, description="Enable evaluative feedback framework")

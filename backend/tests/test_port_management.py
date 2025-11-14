@@ -36,19 +36,19 @@ class TestPortManager:
         """Test finding the next available port from a starting point."""
         port_manager = PortManager()
 
-        # Start from Flux's preferred port
+        # Start from Dionysus's preferred port range
         available_port = port_manager.find_next_available_port(9100)
 
         # Should return a port >= 9100
         assert available_port >= 9100
         assert port_manager.is_port_available(available_port) is True
 
-    def test_get_flux_ports_with_conflicts(self):
-        """Test getting Flux ports with automatic conflict resolution."""
+    def test_get_dionysus_ports_with_conflicts(self):
+        """Test getting Dionysus ports with automatic conflict resolution."""
         port_manager = PortManager()
 
-        # Get Flux ports (should handle conflicts automatically)
-        ports = port_manager.get_flux_ports()
+        # Get Dionysus ports (should handle conflicts automatically)
+        ports = port_manager.get_dionysus_ports()
 
         # Should return all required ports
         expected_ports = ['backend_api', 'frontend_dev', 'websocket_stream', 'health_monitor']
@@ -65,7 +65,7 @@ class TestPortManager:
         # First check if port 9127 is available, if not, skip this test gracefully
         if not port_manager.is_port_available(9127):
             # Port already occupied - request ports and verify we get alternatives
-            ports = port_manager.get_flux_ports()
+            ports = port_manager.get_dionysus_ports()
             notifications = port_manager.get_notifications()
 
             # Should have generated notifications for occupied ports
@@ -76,10 +76,10 @@ class TestPortManager:
         # If 9127 is available, occupy it temporarily for testing
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            sock.bind(('127.0.0.1', 9127))  # Occupy Flux's preferred port
+            sock.bind(('127.0.0.1', 9127))  # Occupy Dionysus's preferred port
 
-            # Request Flux ports - should detect conflict and notify
-            ports = port_manager.get_flux_ports()
+            # Request Dionysus ports - should detect conflict and notify
+            ports = port_manager.get_dionysus_ports()
 
             # Should have generated a conflict notification
             notifications = port_manager.get_notifications()

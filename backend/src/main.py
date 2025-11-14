@@ -1,18 +1,18 @@
 """
-Flux Backend Main Entry Point
+Dionysus Backend Main Entry Point
 Starts the FastAPI server with uvicorn.
 """
 
 import uvicorn
 import os
 from dotenv import load_dotenv
-from utils.port_manager import get_flux_backend_port, check_port_conflicts
+from utils.port_manager import get_dionysus_backend_port, check_port_conflicts
 
 load_dotenv()
 
 if __name__ == "__main__":
     # Use port manager for conflict detection and auto-resolution
-    port = get_flux_backend_port()
+    port = get_dionysus_backend_port()
     host = os.getenv("HOST", "127.0.0.1")
 
     # Check for port conflicts and notify
@@ -23,7 +23,7 @@ if __name__ == "__main__":
             print(f"  - {notification}")
         print(f"✅ Auto-resolved to port {port}")
     else:
-        print(f"✅ All Flux ports available - starting on preferred port {port}")
+        print(f"✅ All Dionysus ports available - starting on preferred port {port}")
 
     uvicorn.run(
         "app_factory:app",

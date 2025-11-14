@@ -1,5 +1,5 @@
 """
-Flux Self-Evolving Consciousness Emulator - Application Factory
+Dionysus 2.0 - Application Factory
 FastAPI application setup with dependency injection and middleware configuration.
 """
 
@@ -50,41 +50,30 @@ if not CRAWL_AVAILABLE:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan management for startup/shutdown tasks."""
-    logger.info("Starting Flux backend services...")
+    logger.info("Starting Dionysus backend services...")
 
     # Initialize database connections
-    # TODO: Add Neo4j, Redis, Qdrant initialization here
+    # TODO: Add Neo4j, Redis initialization here
 
     yield
 
-    logger.info("Shutting down Flux backend services...")
+    logger.info("Shutting down Dionysus backend services...")
     # TODO: Add cleanup tasks here
-
-def load_flux_config():
-    """Load flux.yaml configuration."""
-    config_path = Path(__file__).parent.parent.parent / "configs" / "flux.yaml"
-    try:
-        with open(config_path, 'r') as f:
-            return yaml.safe_load(f)
-    except Exception as e:
-        logger.error(f"Failed to load flux.yaml: {e}")
-        return {}
 
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
-    
-    # Load configuration
-    config = load_flux_config()
-    cors_origins = config.get('server', {}).get('cors_origins', ["http://localhost:3000"])
+
+    # Default CORS origins (no longer loading from flux.yaml)
+    cors_origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
     app = FastAPI(
-        title="Flux Self-Evolving Consciousness Emulator API",
-        description="Backend services for document ingestion, consciousness processing, and curiosity-driven learning",
+        title="Dionysus 2.0 API",
+        description="Consciousness-enhanced document processing with multi-agent coordination",
         version="0.1.0",
         lifespan=lifespan
     )
 
-    # Add CORS middleware with flux.yaml origins
+    # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
         allow_origins=cors_origins,
@@ -116,36 +105,27 @@ def create_app() -> FastAPI:
     async def root():
         """Root endpoint with API information."""
         return {
-            "name": "Flux Self-Evolving Consciousness Emulator API",
+            "name": "Dionysus 2.0 API",
             "version": "0.1.0",
             "status": "healthy",
             "documentation": "/docs",
             "endpoints": {
                 "health": "/health",
                 "api": "/api/v1",
-                "dashboard_stats": "/api/stats/dashboard",
-                "config": "/configs/flux.yaml"
+                "dashboard_stats": "/api/stats/dashboard"
             }
         }
 
     @app.get("/health")
     async def health_check():
         """Basic health check endpoint."""
-        return {"status": "healthy", "service": "flux-backend"}
+        return {"status": "healthy", "service": "dionysus-backend"}
 
     @app.get("/health/databases")
     async def database_health_check():
         """Database connectivity health check endpoint."""
         from .services.database_health import get_database_health
         return get_database_health()
-
-    @app.get("/configs/flux.yaml")
-    async def flux_config_file():
-        """Expose the flux.yaml so the frontend can load runtime settings."""
-        config_path = Path(__file__).parent.parent.parent / "configs" / "flux.yaml"
-        if config_path.exists():
-            return FileResponse(config_path)
-        return JSONResponse({"error": "flux.yaml not found"}, status_code=404)
 
 
     return app
