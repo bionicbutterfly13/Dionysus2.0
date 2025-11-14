@@ -99,6 +99,13 @@ tmp/
 temp/
 .cache/
 
+# Migration artifacts (temporary)
+downloaded_page/
+downloaded_page_clean/
+gohighlevel_ready/
+download_*.py
+*_ghl_*.py
+
 # Node.js
 node_modules/
 npm-debug.log*
@@ -112,6 +119,8 @@ coverage/
 playwright-report/
 test-results/
 test-files/
+.pytest_cache/
+.mypy_cache/
 
 # Build artifacts
 dist/
