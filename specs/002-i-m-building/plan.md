@@ -31,7 +31,7 @@
 - Phase 3-4: Implementation execution (manual or via tools)
 
 ## Summary
-Build Flux (our lifelong learning partner) that processes documents through ASI-Arch ThoughtSeed attractor basins, creates autobiographical memories, and surfaces curiosity-driven insights. Priority: document upload → conscious processing → graph database pipeline. Integrate Dionysus modules, adapt SurfSense components, maintain local-first operation with Ollama/LLaMA.
+Build Dionysus (our lifelong learning partner) that processes documents through ASI-Arch ThoughtSeed attractor basins, creates autobiographical memories, and surfaces curiosity-driven insights. Priority: document upload → conscious processing → graph database pipeline. Integrate Dionysus modules, adapt SurfSense components, maintain local-first operation with Ollama/LLaMA.
 
 ## Technical Context
 **Language/Version**: Python 3.11 (existing ASI-Arch virtualenv)  
@@ -53,7 +53,7 @@ Build Flux (our lifelong learning partner) that processes documents through ASI-
 - Test-First Development: ✅ Phase 1 includes contract/integration tests before implementation.
 - No Shortcuts Policy: ✅ Plan integrates full Dionysus modules rather than stubs; requires real-data validation before readiness.
 - Consciousness-Guided Development: ✅ Active inference pipeline, ThoughtSeed channels, curiosity engine all central.
-- Modular Component Architecture: ✅ Flux services separated (ingestion, learning_loop, context_engineering, interfaces).
+- Modular Component Architecture: ✅ Dionysus services separated (ingestion, learning_loop, context_engineering, interfaces).
 - Preserve Expert ASI-Arch Core: ✅ Extends knowledge graph/ThoughtSeed pipelines; no core replacements.
 - Cross-Project Redundancy Safeguard: ✅ Mandatory reuse of Dionysus/SurfSense components with redundancy audits.
 - Mock Data Transparency: ✅ Quickstart mandates disclosure and real-data validation before production claims.
@@ -76,7 +76,7 @@ Result: **PASS** (Updated Constitution Check - Infrastructure + Agent Behavior)
 ### Post-Design Constitution Check (Phase 1)
 - Generated artifacts (`data-model.md`, `contracts/*.yaml`, `quickstart.md`, `.github/copilot-instructions.md`) uphold all constitutional constraints.
 - Contracts enforce evaluative feedback, mock-data disclosure, knowledge graph SSoT, and local inference requirements.
-- Quickstart documents real-data validation prior to readiness and ensures SurfSense credit while emphasizing Flux implementation.
+- Quickstart documents real-data validation prior to readiness and ensures SurfSense credit while emphasizing Dionysus implementation.
 
 Result: **PASS** (Post-Design Constitution Check)
 
@@ -130,7 +130,7 @@ ios/ or android/
 └── [platform-specific structure]
 ```
 
-**Structure Decision**: Option 2 (web application) — Flux requires backend services + frontend interface.
+**Structure Decision**: Option 2 (web application) — Dionysus requires backend services + frontend interface.
 
 ## Phase 0: Outline & Research
 1. **Extract unknowns from Technical Context** above:

@@ -7,7 +7,7 @@
 
 ## Overview
 
-Integration specification for existing research papers and formulas on narrative formation, concept learning, representational redescription, and structure learning within the active inference framework. This leverages the comprehensive Dionysus research foundation to enhance Flux CE's narrative and consciousness processing capabilities.
+Integration specification for existing research papers and formulas on narrative formation, concept learning, representational redescription, and structure learning within the active inference framework. This leverages the comprehensive Dionysus research foundation to enhance Dionysus CE's narrative and consciousness processing capabilities.
 
 ## Research Foundation Analysis
 
@@ -43,7 +43,7 @@ Based on the discovered files, we have extensive research on:
 - System MUST extract mathematical formulas and computational frameworks
 - System MUST identify research-validated approaches for narrative processing
 - System MUST maintain research provenance and citation links
-- System MUST apply peer-reviewed methodologies to Flux CE processing
+- System MUST apply peer-reviewed methodologies to Dionysus CE processing
 
 ### FR-002: Active Inference Formula Implementation
 - System MUST implement active inference mathematical frameworks from papers
@@ -234,7 +234,7 @@ class DionysusResearchBridge:
         self.archetypal_system = self._import_archetypal_processing()
         
     async def integrate_research_components(self) -> Dict[str, Any]:
-        """Integrate existing research components into Flux CE"""
+        """Integrate existing research components into Dionysus CE"""
         
         # Import narrative active inference research
         narrative_research = await self._integrate_narrative_research()
@@ -397,7 +397,7 @@ CREATE (method)-[:BASED_ON]->(rp)
 ## 🧠 **Current Active Agents (12 Total):**
 
 ### SurfSense Development (3 agents):
-- **UI Agent (44c20242)**: Flux CE branding + butterfly logo
+- **UI Agent (44c20242)**: Dionysus CE branding + butterfly logo
 - **Core Agent (0088bcdb)**: Top 5 consciousness features  
 - **Spec Agent (bff045bf)**: Interface specifications
 

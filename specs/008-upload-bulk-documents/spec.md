@@ -13,7 +13,7 @@
    → Actors: researchers, system administrators, developers
    → Actions: bulk upload, system traversal, memory processing, database storage, visualization
    → Data: documents, memory types, databases, basins, datatypes, hierarchical trees
-   → Constraints: full pipeline visibility, debug panel integration, Flux interface
+   → Constraints: full pipeline visibility, debug panel integration, Dionysus interface
 3. For each unclear aspect:
    → [NEEDS CLARIFICATION: document size limits and supported file types for bulk operations]
    → [NEEDS CLARIFICATION: real-time vs batch processing preferences and performance targets]
@@ -41,7 +41,7 @@
 ## User Scenarios & Testing *(mandatory)*
 
 ### Primary User Story
-A researcher wants to upload multiple documents in bulk and observe their complete journey through the entire system architecture, from initial processing through memory formation, database storage, and attractor basin formation, with detailed visibility into data transformations and hierarchical relationships through an interactive debug panel in the Flux interface.
+A researcher wants to upload multiple documents in bulk and observe their complete journey through the entire system architecture, from initial processing through memory formation, database storage, and attractor basin formation, with detailed visibility into data transformations and hierarchical relationships through an interactive debug panel in the Dionysus interface.
 
 ### Acceptance Scenarios
 1. **Given** a user has multiple documents to process, **When** they upload documents in bulk through Flux, **Then** the system processes each document through the complete pipeline and provides real-time visibility into each processing stage
@@ -58,9 +58,9 @@ A researcher wants to upload multiple documents in bulk and observe their comple
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
-- **FR-001**: System MUST support bulk document upload through the Flux web interface with drag-and-drop and file selection capabilities
+- **FR-001**: System MUST support bulk document upload through the Dionysus web interface with drag-and-drop and file selection capabilities
 - **FR-002**: System MUST track each document through every processing stage from upload to final storage and basin formation
-- **FR-003**: System MUST provide real-time visualization of document processing pipeline status and progress in the Flux debug panel
+- **FR-003**: System MUST provide real-time visualization of document processing pipeline status and progress in the Dionysus debug panel
 - **FR-004**: System MUST display hierarchical data trees showing document transformations, memory classifications, and database relationships
 - **FR-005**: System MUST classify and route documents to appropriate memory types (episodic, semantic, procedural) with visible decision paths
 - **FR-006**: System MUST show database storage operations including target databases, data structures, and relationship formations
@@ -80,7 +80,7 @@ A researcher wants to upload multiple documents in bulk and observe their comple
 - **Memory Type Classification**: System categorization of documents into episodic, semantic, and procedural memory types with decision criteria
 - **Database Storage Operations**: Specific database interactions including target selection, data insertion, relationship creation, and indexing
 - **Attractor Basin Formation**: Dynamic clustering and relationship patterns that emerge from document processing and storage
-- **Debug Panel Interface**: Interactive visualization component in Flux providing real-time and historical pipeline monitoring
+- **Debug Panel Interface**: Interactive visualization component in Dionysus providing real-time and historical pipeline monitoring
 - **Hierarchical Data Tree**: Explorable tree structure showing document transformations, relationships, and system traversal paths
 - **Data Type Information**: Metadata describing input formats, transformation types, output structures, and processing characteristics
 - **Processing Status Tracking**: Real-time monitoring of document progress through pipeline stages with error handling and recovery information

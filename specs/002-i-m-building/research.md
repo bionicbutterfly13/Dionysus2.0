@@ -24,16 +24,16 @@
 | **Dreaming integration**: Nightly insights go directly to knowledge graph with flags | Dreams are episodic memories with ThoughtSeed consciousness state markers | Add "dreaming" to ThoughtSeed consciousness state enumeration |
 
 ## 1.2 Priority Focus
-**HIGHEST PRIORITY**: Get Flux interface (our implementation) working with document upload → conscious processing → graph database pipeline. We'll draw inspiration from SurfSense (open source) components while building our own Flux-branded system. All other details deferred until core upload functionality is demonstrated.
+**HIGHEST PRIORITY**: Get Dionysus interface (our implementation) working with document upload → conscious processing → graph database pipeline. We'll draw inspiration from SurfSense (open source) components while building our own Dionysus-branded system. All other details deferred until core upload functionality is demonstrated.
 
 ## 2. Asset & Capability Inventory
 - **Dionysus Modules**: ThoughtSeed processing, curiosity engine scaffolding, perceptual gateway, attractor visualizations, memory orchestrator adapters. Task: catalog module entry points and dependencies to import into ASI-Arch while eliminating redundancy.  
-- **SurfSense Components** (open source): UI card stacks, knowledge graph explorers, upload flows, observability widgets. Task: identify reusable components from SurfSense to adapt for Flux (our implementation) with proper attribution.  
+- **SurfSense Components** (open source): UI card stacks, knowledge graph explorers, upload flows, observability widgets. Task: identify reusable components from SurfSense to adapt for Dionysus (our implementation) with proper attribution.  
 - **ASI-Arch Core**: Knowledge graph export (Neo4j/Qdrant), Pipeline evolve modules, context-engineering library, Redis-backed learning captures. Task: confirm schemas, API endpoints, and evaluate overlap with Dionysus implementations.  
 - **Local Runtime Tooling**: Ollama + LLaMA models, local Neo4j/Qdrant deployments, Redis server configuration, OLA orchestration scripts. Task: document required versions, resource usage, and startup procedures.
 
-## 2.1 Existing Dionysus Flux Implementation Audit
-**CRITICAL**: Examine existing Dionysus Flux implementation (web-based + desktop) that already handles document upload → conscious processing → graph database pipeline. Priority tasks:
+## 2.1 Existing Dionysus Dionysus Implementation Audit
+**CRITICAL**: Examine existing Dionysus Dionysus implementation (web-based + desktop) that already handles document upload → conscious processing → graph database pipeline. Priority tasks:
 - Map current upload flows and processing steps
 - Identify what's working vs what needs enhancement
 - Assess integration points with AutoSchema KG

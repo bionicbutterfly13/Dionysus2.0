@@ -158,7 +158,7 @@ class Daedalus:
 - N/A for this feature (no NumPy usage)
 
 ✅ **Environment Isolation**
-- Uses existing flux-backend-env
+- Uses existing dionysus-backend-env
 - No new dependencies
 
 ## Usage Examples

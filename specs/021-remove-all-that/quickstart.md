@@ -5,7 +5,7 @@ The Daedalus class serves as the simplified perceptual information gateway, rece
 
 ## Prerequisites
 - Python 3.11+
-- flux-backend-env virtual environment activated
+- dionysus-backend-env virtual environment activated
 - Backend services running
 
 ## Quick Test
@@ -25,7 +25,7 @@ cat backend/src/services/daedalus.py
 ### 2. Run Contract Tests
 ```bash
 cd /Volumes/Asylum/dev/Dionysus-2.0
-source backend/flux-backend-env/bin/activate
+source backend/dionysus-backend-env/bin/activate
 
 # Run Daedalus contract tests
 pytest backend/tests/contract/test_daedalus_spec_021.py -v

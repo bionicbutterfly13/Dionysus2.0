@@ -7,7 +7,7 @@
 
 ## Overview
 
-Implementation specification for explainable AI components that extract narrative maps from document collections, providing multi-level explanations for document relationships, event connections, and high-level narrative structures. This system integrates with Flux CE consciousness processing to enhance narrative understanding and trust.
+Implementation specification for explainable AI components that extract narrative maps from document collections, providing multi-level explanations for document relationships, event connections, and high-level narrative structures. This system integrates with Dionysus CE consciousness processing to enhance narrative understanding and trust.
 
 ## Research Foundation
 
@@ -58,7 +58,7 @@ Based on peer-reviewed research from Text2Story'25 Workshop demonstrating:
   - **Structural importance**: Degree centrality with coherence weighting
 - System MUST visually mark important events on narrative maps
 
-### FR-005: Flux CE Integration Requirements
+### FR-005: Dionysus CE Integration Requirements
 - System MUST integrate with existing consciousness processing pipeline
 - System MUST leverage ThoughtSeed attractor basins for narrative coherence
 - System MUST store narrative maps in Neo4j graph database
@@ -352,7 +352,7 @@ class ConsciousnessNarrativeBridge:
 ### Task 5: Integration and Testing Agent
 **Specialization**: System integration and validation  
 **Deliverables**:
-- Integrate all components with Flux CE system
+- Integrate all components with Dionysus CE system
 - Create comprehensive testing suite
 - Validate explanation accuracy and consistency
 - Optimize performance for large datasets
@@ -418,6 +418,6 @@ class ConsciousnessNarrativeBridge:
 
 - Research validates multi-level explanation approach for narrative analysis
 - Focus on preventing information overload through adaptive explanation depth
-- Integrate with existing Flux CE consciousness and curiosity systems
+- Integrate with existing Dionysus CE consciousness and curiosity systems
 - Maintain explanation consistency and reliability through validation
 - Support both extractive and future abstractive storyline naming approaches

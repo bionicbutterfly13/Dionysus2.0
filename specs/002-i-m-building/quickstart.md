@@ -1,4 +1,4 @@
-# Quickstart: Flux Self-Teaching Consciousness Emulator
+# Quickstart: Dionysus Self-Teaching Consciousness Emulator
 
 **Branch**: `002-i-m-building`  
 **Spec**: [spec.md](spec.md)  
@@ -131,7 +131,7 @@ redis-cli ping  # Redis
 
 ---
 
-## 3. Launch Flux Services
+## 3. Launch Dionysus Services
 
 ### 3.1 Initialize Databases
 **FIRST RUN ONLY**: Initialize database schemas and collections:
@@ -212,7 +212,7 @@ python extensions/context_engineering/hybrid_fusion_langgraph_engine.py
 
 ## 4. Core Workflow Validation
 ### 4.1 Document Ingestion
-1. Launch Flux UI (`localhost:3000`).
+1. Launch Dionysus UI (`localhost:3000`).
 2. Upload sample documents (use real PDF/Markdown to avoid mock-only flows).
 3. Monitor backend logs for ThoughtSeed activation.
 4. Verify Neo4j nodes via Neo4j Browser:
@@ -226,7 +226,7 @@ python extensions/context_engineering/hybrid_fusion_langgraph_engine.py
    ```
 
 ### 4.2 Explanation & Visualization
-- Open Flux visualization dashboard → confirm graph & card stack updates.
+- Open Dionysus visualization dashboard → confirm graph & card stack updates.
 - Check WebSocket logs for `VisualizationMessage` payloads (type `evaluation_frame` and `mosaic_state`).
 - Ensure Mosaic dimensions reflect the Mosaic Systems LLC schema (values 0-1).
 
@@ -271,6 +271,6 @@ python extensions/context_engineering/hybrid_fusion_langgraph_engine.py
 ## 7. Next Steps
 - Execute `/tasks` after `/plan` Phase 1 completes to generate implementation tasks.
 - Integrate migrated Dionysus modules into ASI-Arch `backend/src/` structure.
-- Develop Flux UI components based on SurfSense inspirations with Flux branding and attribution.
+- Develop Dionysus UI components based on SurfSense inspirations with Dionysus branding and attribution.
 
-This quickstart ensures Flux respects our constitution, maintains local-first privacy, and demonstrates the core co-thinking loop from document ingestion through curiosity-driven insight. Continue with `tasks.md` generation once plan artifacts are complete.
+This quickstart ensures Dionysus respects our constitution, maintains local-first privacy, and demonstrates the core co-thinking loop from document ingestion through curiosity-driven insight. Continue with `tasks.md` generation once plan artifacts are complete.

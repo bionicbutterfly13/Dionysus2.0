@@ -63,7 +63,7 @@ Found comprehensive LangGraph integration:
 - System MUST enable state inspection and debugging
 
 ### FR-004: Optimal Memory System Integration
-- System MUST evaluate and select best memory system for Flux CE
+- System MUST evaluate and select best memory system for Dionysus CE
 - System MUST integrate chosen memory system with agent coordination
 - System MUST support episodic, semantic, procedural, and working memory types
 - System MUST enable memory sharing between agents
@@ -381,10 +381,10 @@ class MemorySystemSelector:
             }
         }
         
-        # Recommendation based on Flux CE requirements
+        # Recommendation based on Dionysus CE requirements
         recommendation = "context_engineering"
         reasoning = """
-        For Flux CE consciousness emulator with narrative extraction, archetypal patterns,
+        For Dionysus CE consciousness emulator with narrative extraction, archetypal patterns,
         and IFS integration, Context Engineering provides the best fit because:
         
         1. Consciousness Integration: Native support for consciousness processing

@@ -16,8 +16,8 @@
 - [ ] **T000.6** Migrate paper database and research memories (episodic/semantic/procedural .jsonl files) as DocumentArtifacts with thoughtseed_version="1.0"
 - [ ] **T000.6a** Implement selective re-processing system: legacy data can be upgraded to ThoughtSeed 2.0 features on-demand
 - [ ] **T000.6b** Create data migration dashboard showing legacy vs enhanced content statistics
-- [ ] **T000.7 [P]** Integrate Daedalus constitutional controller and agent delegation patterns with Flux service layer
-- [ ] **T000.8** Bridge Daedalus LangGraph patterns (state management + conditional edges) with Flux ThoughtSeed pipeline
+- [ ] **T000.7 [P]** Integrate Daedalus constitutional controller and agent delegation patterns with Dionysus service layer
+- [ ] **T000.8** Bridge Daedalus LangGraph patterns (state management + conditional edges) with Dionysus ThoughtSeed pipeline
 - [ ] **T000.9** Create multi-modal processing endpoints: POST /api/v1/media/{video|audio|image} with episodic memory creation
 - [ ] **T000.10** Test complete pipeline: video upload → perceptual processing → consciousness traces → episodic memories → knowledge graph
 - [ ] **T000.11 [P]** Migrate LangExtract + Ultimate Preprocessing Pipeline from Dionysus - includes GEPA, LangGraph, Nemori, CPA-Meta-ToT (75% reasoning boost), River Metaphor flow
@@ -25,10 +25,10 @@
 - [ ] **T000.13 [URGENT]** Fix all timestamp systems - ensure episodic memories use correct date (September 25, 2025) instead of hardcoded old dates
 
 ## Phase 3.1: Setup
-- [x] **T001** Initialize Flux backend project skeleton in `backend/src/` (FastAPI app, poetry/requirements sync, env loaders) per plan.md
+- [x] **T001** Initialize Dionysus backend project skeleton in `backend/src/` (FastAPI app, poetry/requirements sync, env loaders) per plan.md
 - [x] **T002** Install and pin backend dependencies (FastAPI, Neo4j driver, Redis, Qdrant client, LangGraph, context-engineering library, Ollama bindings) in `backend/pyproject.toml` and lock file
 - [x] **T003 [P]** Configure backend linting/formatting (`ruff`, `black`, `isort`) and CI hooks in `backend/pyproject.toml` and `.github/workflows/lint.yml`
-- [x] **T004** Scaffold Flux frontend workspace in `frontend/` (React/Vite) and install SurfSense-inspired UI component dependencies with attribution markers
+- [x] **T004** Scaffold Dionysus frontend workspace in `frontend/` (React/Vite) and install SurfSense-inspired UI component dependencies with attribution markers
 - [x] **T005 [P]** Add shared configuration files (`configs/flux.yaml`, `.env.example`) capturing Neo4j, Qdrant, Redis, Ollama endpoints and constitutional toggles
 
 ## Phase 3.2: Tests First (TDD)
@@ -36,7 +36,7 @@
 - [x] **T006 [P]** Contract test for `POST /api/v1/documents` in `backend/tests/contract/test_documents_post.py`
 - [x] **T007 [P]** Contract test for curiosity mission endpoints (`POST/GET/PATCH /api/v1/curiosity/missions`) in `backend/tests/contract/test_curiosity_missions.py`
 - [x] **T008 [P]** Contract test for visualization WebSocket `/ws/v1/visualizations` in `backend/tests/contract/test_visualization_ws.py`
-- [x] **T009 [P]** Integration test for Flux document ingestion flow (upload → ThoughtSeed trace → evaluation frame) in `backend/tests/integration/test_document_ingestion_flow.py`
+- [x] **T009 [P]** Integration test for Dionysus document ingestion flow (upload → ThoughtSeed trace → evaluation frame) in `backend/tests/integration/test_document_ingestion_flow.py`
 - [x] **T010 [P]** Integration test for curiosity mission lifecycle (gap trigger → web crawl → trust scoring → replay scheduling) in `backend/tests/integration/test_curiosity_lifecycle.py`
 - [x] **T011 [P]** Integration test for visualization stream (graph + card stack updates + mosaic state) in `backend/tests/integration/test_visualization_stream.py`
 - [x] **T012 [P]** Integration test for nightly dreaming replay (dreaming flag + evaluation frame) in `backend/tests/integration/test_dream_replay.py`
@@ -69,7 +69,7 @@
 - [x] **T032** Add backend dependency wiring (routers, services, repositories) in `backend/src/app_factory.py`
 
 ### Frontend
-- [ ] **T033** Create Flux upload dashboard (card stack + SurfSense-inspired UI) in `frontend/src/pages/UploadDashboard.tsx`
+- [ ] **T033** Create Dionysus upload dashboard (card stack + SurfSense-inspired UI) in `frontend/src/pages/UploadDashboard.tsx`
 - [ ] **T034** Implement curiosity monitor UI (replay controls, trust scoring) in `frontend/src/pages/CuriosityMonitor.tsx`
 - [ ] **T035** Implement visualization canvas (graph + mosaic gauges) in `frontend/src/pages/VisualizationCanvas.tsx`
 - [ ] **T036** Wire frontend API/WebSocket clients in `frontend/src/services/apiClient.ts`
@@ -80,13 +80,13 @@
 - [ ] **T039** Configure Redis streams + durability mirroring in `backend/src/integrations/redis_setup.py`
 - [ ] **T040** Integrate Ollama local inference wrapper (summaries, embeddings) in `backend/src/integrations/ollama_adapter.py`
 - [ ] **T041** Migrate critical Dionysus ThoughtSeed modules into `backend/src/legacy/dionysus_adapter/` ensuring redundancy audit
-- [ ] **T042** Hook SurfSense component styles into Flux frontend with attribution in `frontend/src/styles/fluxTheme.css`
+- [ ] **T042** Hook SurfSense component styles into Dionysus frontend with attribution in `frontend/src/styles/fluxTheme.css`
 
 ## Phase 3.5: Polish & Validation
 - [ ] **T043 [P]** Add unit tests for services (evaluation, curiosity, visualization) in `backend/tests/unit/test_services.py`
 - [ ] **T044 [P]** Add unit tests for Mosaic observation serialization in `backend/tests/unit/test_mosaic_serialization.py`
 - [ ] **T045 [P]** Document mock-data disclosure behavior in `docs/mock-data-policy.md`
-- [ ] **T046** Update `README.md` with Flux vs SurfSense attribution and local-first instructions
+- [ ] **T046** Update `README.md` with Dionysus vs SurfSense attribution and local-first instructions
 - [ ] **T047 [P]** Performance smoke test for ingestion throughput (50 docs/hr target) in `backend/tests/performance/test_ingestion_performance.py`
 - [ ] **T048** Manual validation following `quickstart.md`: rerun ingestion, curiosity, visualization, dreaming scenarios and log evaluation frames
 

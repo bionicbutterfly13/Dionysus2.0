@@ -1,9 +1,9 @@
-# Feature Specification: Consolidated Flux Interface with Unified Main Entry Point
+# Feature Specification: Consolidated Dionysus Interface with Unified Main Entry Point
 
 **Feature Branch**: `011-i-want-a`  
 **Created**: 2025-09-27  
 **Status**: Draft  
-**Input**: User description: "I want a single main.py file that has everything that's needed to start the flux interface consolidated into it. I also want App here because there is one single app with some components and we treat it accordingly. I want the app to early in the process open Archimedes and open Daedalus. Archimedes implements all the content from the paper that I'm attaching and the former core code from ASI-GO. As soon as the flux front end is up it should be able to connect into all the servers that it needs. So those servers should be initialized beforehand. If the flux can't access a server, it should use a JavaScript alert window (or whatever the best practice is) to create something that lets me know what servers is having issues with. And in that error—for exception—it should suggest my next steps or what something I can copy and paste to you and tell you where in the pipeline something has gone wrong. This may be a feature we shut off. It may be a debug feature that we shut off in production. But I want every interaction we're having to be able to look at my screen and see what's happening. Also, we use PlayWrite for debugging right now. We should also be using the Python testing framework because we're doing test-driven development. So there should be a testing class for our main so that we get everything implemented in main. Let's get this moving.Before we implement anything else, before we even start dealing with the specs, I need to see my Flux view. Just bear implementation, get it up. I don't care what is broken or what's working—I want to see the view. I also want us to clean up all the former desktop implementation of Flux. There should be no files from the desktop implementation anywhere. If you can list them for me—all Flux that involve the desktop or that involves old implementations—so we can confirm which ones to clean out, that would be great. This is largely a cleaning mission, even as we're moving forward."
+**Input**: User description: "I want a single main.py file that has everything that's needed to start the flux interface consolidated into it. I also want App here because there is one single app with some components and we treat it accordingly. I want the app to early in the process open Archimedes and open Daedalus. Archimedes implements all the content from the paper that I'm attaching and the former core code from ASI-GO. As soon as the flux front end is up it should be able to connect into all the servers that it needs. So those servers should be initialized beforehand. If the flux can't access a server, it should use a JavaScript alert window (or whatever the best practice is) to create something that lets me know what servers is having issues with. And in that error—for exception—it should suggest my next steps or what something I can copy and paste to you and tell you where in the pipeline something has gone wrong. This may be a feature we shut off. It may be a debug feature that we shut off in production. But I want every interaction we're having to be able to look at my screen and see what's happening. Also, we use PlayWrite for debugging right now. We should also be using the Python testing framework because we're doing test-driven development. So there should be a testing class for our main so that we get everything implemented in main. Let's get this moving.Before we implement anything else, before we even start dealing with the specs, I need to see my Dionysus view. Just bear implementation, get it up. I don't care what is broken or what's working—I want to see the view. I also want us to clean up all the former desktop implementation of Flux. There should be no files from the desktop implementation anywhere. If you can list them for me—all Dionysus that involve the desktop or that involves old implementations—so we can confirm which ones to clean out, that would be great. This is largely a cleaning mission, even as we're moving forward."
 
 ## Execution Flow (main)
 ```
@@ -18,11 +18,11 @@
    → [NEEDS CLARIFICATION: Paper attachment referenced but not provided]
    → [NEEDS CLARIFICATION: Specific ASI-GO core code location and functionality]
 4. Fill User Scenarios & Testing section
-   → Primary flow: Developer starts app → sees Flux interface → monitors server status
+   → Primary flow: Developer starts app → sees Dionysus interface → monitors server status
 5. Generate Functional Requirements
    → Each requirement focuses on observable system behavior
 6. Identify Key Entities
-   → Main Application, Archimedes Server, Daedalus Server, Flux Interface, Legacy Files
+   → Main Application, Archimedes Server, Daedalus Server, Dionysus Interface, Legacy Files
 7. Run Review Checklist
    → WARN "Spec has uncertainties regarding paper content and ASI-GO specifics"
 8. Return: SUCCESS (spec ready for planning with noted clarifications)
@@ -58,27 +58,27 @@ When creating this spec from a user prompt:
 ## User Scenarios & Testing *(mandatory)*
 
 ### Primary User Story
-A developer needs to start the complete Flux system with a single command and immediately see the interface working. They want instant visual feedback about server connectivity status and clear guidance when issues occur. The system should provide comprehensive debugging capabilities while maintaining a clean, consolidated entry point.
+A developer needs to start the complete Dionysus system with a single command and immediately see the interface working. They want instant visual feedback about server connectivity status and clear guidance when issues occur. The system should provide comprehensive debugging capabilities while maintaining a clean, consolidated entry point.
 
 ### Acceptance Scenarios
-1. **Given** the system is not running, **When** developer executes the main entry point, **Then** Flux interface appears and all required servers are initialized
-2. **Given** all servers are running, **When** Flux interface loads, **Then** user sees a functional interface with no error messages
-3. **Given** a server is unavailable, **When** Flux attempts connection, **Then** user sees clear error notification with suggested remediation steps
+1. **Given** the system is not running, **When** developer executes the main entry point, **Then** Dionysus interface appears and all required servers are initialized
+2. **Given** all servers are running, **When** Dionysus interface loads, **Then** user sees a functional interface with no error messages
+3. **Given** a server is unavailable, **When** Dionysus attempts connection, **Then** user sees clear error notification with suggested remediation steps
 4. **Given** system is in debug mode, **When** any interaction occurs, **Then** detailed status information is visible to the developer
 5. **Given** legacy desktop files exist, **When** cleanup is requested, **Then** all old implementation files are identified and removable
 
 ### Edge Cases
 - What happens when Archimedes server fails to start during initialization?
 - How does system handle partial server connectivity (some servers up, others down)?
-- What occurs when Flux interface loads but cannot establish WebSocket connections?
+- What occurs when Dionysus interface loads but cannot establish WebSocket connections?
 - How does system behave when switching between debug and production modes?
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
-- **FR-001**: System MUST provide a single main entry point that starts the complete Flux application
+- **FR-001**: System MUST provide a single main entry point that starts the complete Dionysus application
 - **FR-002**: System MUST initialize Archimedes and Daedalus servers before presenting the user interface
-- **FR-003**: System MUST display the Flux interface immediately upon successful startup
+- **FR-003**: System MUST display the Dionysus interface immediately upon successful startup
 - **FR-004**: System MUST check connectivity to all required servers and report status to user
 - **FR-005**: System MUST display clear error notifications when server connections fail
 - **FR-006**: Error messages MUST include specific remediation steps or copy-pasteable diagnostic information

@@ -1,15 +1,14 @@
 ---
-description: Launch Flux (backend + frontend + browser)
+description: Launch Dionysus backend server
 allowed-tools: Bash(python:*)
 ---
 
-Launch the complete Flux stack (backend + frontend + browser).
+Launch the Dionysus 2.0 backend API server.
 
-!`cd /Volumes/Asylum/dev/Dionysus-2.0 && python main.py > /dev/null 2>&1 &`
+!`cd /Volumes/Asylum/dev/Dionysus-2.0/backend && python -m src.main > /dev/null 2>&1 &`
 
-✅ Flux is launching!
-- Backend: http://127.0.0.1:9127
-- Frontend: http://localhost:9243
-- Browser opens automatically
+✅ Dionysus is launching!
+- Backend API: http://127.0.0.1:9127
+- API Docs: http://127.0.0.1:9127/docs
 
-The application will be ready in a few seconds! 🚀
+The server will be ready in a few seconds! 🚀

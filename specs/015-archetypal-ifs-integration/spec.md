@@ -7,7 +7,7 @@
 
 ## Overview
 
-Integration specification for archetypal pattern recognition and Internal Family Systems (IFS) analysis within the Flux CE narrative extraction system. This enhancement enables deep psychological pattern matching, episodic memory analysis, and isomorphic metaphor detection for therapeutic and transformational insights.
+Integration specification for archetypal pattern recognition and Internal Family Systems (IFS) analysis within the Dionysus CE narrative extraction system. This enhancement enables deep psychological pattern matching, episodic memory analysis, and isomorphic metaphor detection for therapeutic and transformational insights.
 
 ## Theoretical Foundation
 

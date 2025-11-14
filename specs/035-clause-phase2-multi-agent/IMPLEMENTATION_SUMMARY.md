@@ -187,7 +187,7 @@ All endpoints implemented in `/backend/src/api/routes/clause.py`:
 
 ### Article I: Dependency Management ✅
 - ✅ NumPy 2.2.6 (≥2.0 required)
-- ✅ Environment isolated (flux-backend-env)
+- ✅ Environment isolated (dionysus-backend-env)
 - ✅ Binary distributions verified
 
 ### Article II: System Integration Standards ✅

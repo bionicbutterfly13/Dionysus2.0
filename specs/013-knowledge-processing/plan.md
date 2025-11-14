@@ -27,7 +27,7 @@ Comprehensive knowledge base content extraction and processing with depth-based 
 
 **✅ NumPy 2.0+ Compliance**: Processing pipeline uses NumPy 2.3.3 for consciousness features
 **✅ TDD Standards**: Contract tests required for crawling, extraction, and migration services
-**✅ Environment Isolation**: Uses flux-backend-env with frozen dependencies
+**✅ Environment Isolation**: Uses dionysus-backend-env with frozen dependencies
 **✅ Code Complexity**: Modular extractors, single-purpose queue processors
 **✅ Testing Protocols**: Contract tests for each depth queue, integration tests for full pipeline
 

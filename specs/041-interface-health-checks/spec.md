@@ -152,7 +152,7 @@ echo "🚀 Starting backend..."
 
 export PYTHONPATH=/Volumes/Asylum/dev/Dionysus-2.0/backend/src:$PYTHONPATH
 cd /Volumes/Asylum/dev/Dionysus-2.0/backend
-/Volumes/Asylum/dev/Dionysus-2.0/backend/flux-backend-env/bin/uvicorn src.app_factory:app --host 127.0.0.1 --port 9127 --reload
+/Volumes/Asylum/dev/Dionysus-2.0/backend/dionysus-backend-env/bin/uvicorn src.app_factory:app --host 127.0.0.1 --port 9127 --reload
 ```
 
 ### Playwright: Test Setup

@@ -2,7 +2,7 @@
 
 **Branch**: `002-i-m-building`  
 **Source Spec**: [spec.md](spec.md)  
-**Context**: Flux (our implementation) integrates Dionysus and SurfSense capabilities while enforcing knowledge graph single-source-of-truth and context-engineering best practices.
+**Context**: Dionysus (our implementation) integrates Dionysus and SurfSense capabilities while enforcing knowledge graph single-source-of-truth and context-engineering best practices.
 
 ## 1. Storage Overview
 - **Knowledge Graph (Neo4j / AutoSchema KG)**: Canonical record for all long-lived entities and relationships.

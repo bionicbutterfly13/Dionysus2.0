@@ -1,4 +1,4 @@
-# Feature Specification: Unified Self-Learning Research Tool with Flux Web Interface
+# Feature Specification: Unified Self-Learning Research Tool with Dionysus Web Interface
 
 **Feature Branch**: `007-search-the-current`
 **Created**: 2025-09-26
@@ -13,7 +13,7 @@
    → Actors: researchers, system administrators, data scientists
    → Actions: search codebase, consolidate implementations, self-learning, web access
    → Data: research implementations, AI-Researcher, open_deep_research, ThoughtSeed, databases
-   → Constraints: accessible through Flux web interface, most effective integration
+   → Constraints: accessible through Dionysus web interface, most effective integration
 3. For each unclear aspect:
    → [NEEDS CLARIFICATION: specific research domains and scope of consolidation]
    → [NEEDS CLARIFICATION: self-learning algorithms and optimization criteria]
@@ -44,7 +44,7 @@
 A researcher wants to access a comprehensive, unified research tool that automatically consolidates all available research implementations from the codebase into a single, self-optimizing system that learns from usage patterns and provides intelligent research assistance through an intuitive web interface.
 
 ### Acceptance Scenarios
-1. **Given** a user accesses the Flux web interface, **When** they request research capabilities, **Then** the system presents a unified dashboard showing all available research tools and their integration status
+1. **Given** a user accesses the Dionysus web interface, **When** they request research capabilities, **Then** the system presents a unified dashboard showing all available research tools and their integration status
 2. **Given** multiple research implementations exist in the codebase, **When** the system performs consolidation, **Then** it identifies overlapping functionalities and creates an optimized integration layer
 3. **Given** a user interacts with the research tool, **When** they perform research tasks, **Then** the system learns from these interactions and improves future research recommendations and workflows
 4. **Given** a user needs specific research capabilities, **When** they query the system, **Then** it intelligently routes requests to the most appropriate research subsystem and presents unified results
@@ -61,7 +61,7 @@ A researcher wants to access a comprehensive, unified research tool that automat
 - **FR-001**: System MUST scan the entire codebase to identify all research-related implementations and capabilities
 - **FR-002**: System MUST consolidate identified research tools into a unified framework with standardized interfaces
 - **FR-003**: System MUST implement self-learning algorithms that optimize research tool selection and workflow recommendations
-- **FR-004**: System MUST provide a web-based interface through the existing Flux system for accessing all research capabilities
+- **FR-004**: System MUST provide a web-based interface through the existing Dionysus system for accessing all research capabilities
 - **FR-005**: System MUST maintain compatibility with existing research implementations while providing enhanced integration
 - **FR-006**: System MUST track user interactions and research outcomes to improve future recommendations
 - **FR-007**: System MUST provide intelligent routing between different research subsystems based on query type and context

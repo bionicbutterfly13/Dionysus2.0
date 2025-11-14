@@ -4,7 +4,7 @@
 **Input**: Feature specification from `/specs/008-upload-bulk-documents/spec.md`
 
 ## Summary
-Implement comprehensive bulk document upload system with real-time pipeline visualization showing document flow through consciousness processing stages, memory type classification, database storage, and attractor basin formation. Primary focus: end-to-end observability via debug panel in Flux interface with hierarchical explorable data trees.
+Implement comprehensive bulk document upload system with real-time pipeline visualization showing document flow through consciousness processing stages, memory type classification, database storage, and attractor basin formation. Primary focus: end-to-end observability via debug panel in Dionysus interface with hierarchical explorable data trees.
 
 ## Technical Context
 **Language/Version**: Python 3.11+ (backend), TypeScript/React (frontend)
@@ -22,7 +22,7 @@ Implement comprehensive bulk document upload system with real-time pipeline visu
 
 **✅ NumPy 2.0+ Compliance**: Backend uses NumPy 2.3.3 frozen environment for consciousness processing
 **✅ TDD Standards**: All pipeline stages require contract tests before implementation
-**✅ Environment Isolation**: Uses existing flux-backend-env with frozen dependencies
+**✅ Environment Isolation**: Uses existing dionysus-backend-env with frozen dependencies
 **✅ Code Complexity**: Modular pipeline stages, single responsibility per processor
 **✅ Testing Protocols**: Contract + integration tests for upload → storage → visualization flow
 
@@ -211,7 +211,7 @@ response:
 
 ### Quickstart (`quickstart.md`)
 
-1. Upload bulk documents via Flux UI drag-drop
+1. Upload bulk documents via Dionysus UI drag-drop
 2. Monitor pipeline in debug panel real-time view
 3. Explore hierarchical data tree showing transformations
 4. Inspect memory classifications and database routes

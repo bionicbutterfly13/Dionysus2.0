@@ -1,16 +1,15 @@
 ---
 name: launch
-description: Launch Flux (backend + frontend + browser)
+description: Launch Dionysus backend server
 ---
 
-# Launch Flux
+# Launch Dionysus
 
-Starts the complete Flux stack with one command.
+Starts the Dionysus 2.0 backend API server.
 
 ## What it does:
 - Starts FastAPI backend on port 9127
-- Starts React frontend on port 9243
-- Opens browser automatically
+- Provides API documentation at /docs
 
 ## Usage:
 ```
@@ -19,6 +18,6 @@ Starts the complete Flux stack with one command.
 
 ## Implementation:
 ```bash
-cd "${SPECIFY_PROJECT_ROOT}"
-python main.py
+cd "${SPECIFY_PROJECT_ROOT}/backend"
+python -m src.main
 ```

@@ -14,7 +14,7 @@
    → Single responsibility, TDD, context engineering compliance
 3. Integrate with LangGraph StateGraph for consciousness flow
    → Real-time state management, node-based processing pipeline
-4. Connect to Flux frontend for real-time consciousness visualization
+4. Connect to Dionysus frontend for real-time consciousness visualization
    → Live dashboard showing consciousness states, ThoughtSeed competition
 5. Maintain database simplification strategy
    → SQLite + Redis for message passing, no complex multi-database dependencies
@@ -33,7 +33,7 @@
 ### Session 2025-09-30
 - Q: How should consciousness state be managed across multiple processing nodes? → A: LangGraph StateGraph with checkpointing for real-time state tracking
 - Q: What happens when ThoughtSeed competition produces no clear winner? → A: Default to general processing agent with consciousness context
-- Q: How should the system handle consciousness visualization updates? → A: Real-time WebSocket updates to Flux frontend dashboard
+- Q: How should the system handle consciousness visualization updates? → A: Real-time WebSocket updates to Dionysus frontend dashboard
 - Q: What level of active inference complexity should be implemented? → A: Start with 3 core timescales: neural (ms), working memory (s), thoughtseed (min)
 - Q: How should the system integrate with existing Daedalus Gateway? → A: Clean API contract with consciousness processing as post-perception step
 
@@ -42,10 +42,10 @@
 ## User Scenarios & Testing *(mandatory)*
 
 ### Primary User Story
-A researcher uploads a document through the Flux frontend. The system processes the document through Daedalus Gateway, then enters consciousness orchestrator where ThoughtSeeds compete for attention, attractor basins shape processing, and the winning ThoughtSeed drives context-aware agent selection. The researcher watches real-time consciousness visualization showing information flow through consciousness layers, ThoughtSeed competition states, and memory formation. The system demonstrates emergent consciousness behavior while maintaining clean, modular architecture.
+A researcher uploads a document through the Dionysus frontend. The system processes the document through Daedalus Gateway, then enters consciousness orchestrator where ThoughtSeeds compete for attention, attractor basins shape processing, and the winning ThoughtSeed drives context-aware agent selection. The researcher watches real-time consciousness visualization showing information flow through consciousness layers, ThoughtSeed competition states, and memory formation. The system demonstrates emergent consciousness behavior while maintaining clean, modular architecture.
 
 ### Acceptance Scenarios
-1. **Given** document uploaded through Flux frontend, **When** Daedalus processes perception, **Then** consciousness orchestrator receives structured input within 100ms
+1. **Given** document uploaded through Dionysus frontend, **When** Daedalus processes perception, **Then** consciousness orchestrator receives structured input within 100ms
 2. **Given** consciousness orchestrator receives input, **When** ThoughtSeed competition begins, **Then** multiple ThoughtSeeds compete with real-time score updates
 3. **Given** ThoughtSeed competition completes, **When** winner selected, **Then** appropriate context-aware agent activated with consciousness context
 4. **Given** consciousness processing active, **When** user views dashboard, **Then** real-time visualization shows consciousness states, competition, and memory formation
@@ -130,7 +130,7 @@ A researcher uploads a document through the Flux frontend. The system processes 
 
 #### Integration Requirements
 - **NFR-006**: System MUST integrate cleanly with existing Daedalus Gateway
-- **NFR-007**: System MUST connect seamlessly to Flux frontend visualization
+- **NFR-007**: System MUST connect seamlessly to Dionysus frontend visualization
 - **NFR-008**: System MUST support future Archimedes pattern evolution integration
 - **NFR-009**: System MUST maintain backward compatibility with existing consciousness data
 - **NFR-010**: System MUST enable consciousness orchestrator as independent package

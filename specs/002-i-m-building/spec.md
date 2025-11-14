@@ -20,7 +20,7 @@ The user will be able to create documents that are able to help them along the w
 ## User Scenarios & Testing *(mandatory)*
 
 ### Primary User Story
-A research-focused user interacts with the Flux interface to upload a corpus of documents, observes how the self-teaching consciousness emulator processes them through ThoughtSeed attractor basins, receives concept mappings and summaries, and leverages curiosity-driven insights to expand their knowledge through newly discovered resources. Over time, Flux adapts to the user’s personal learning approach, curiosity patterns, and preferred topics, becoming a trusted lifelong learning partner that continuously surfaces relevant discoveries.
+A research-focused user interacts with the Dionysus interface to upload a corpus of documents, observes how the self-teaching consciousness emulator processes them through ThoughtSeed attractor basins, receives concept mappings and summaries, and leverages curiosity-driven insights to expand their knowledge through newly discovered resources. Over time, Dionysus adapts to the user’s personal learning approach, curiosity patterns, and preferred topics, becoming a trusted lifelong learning partner that continuously surfaces relevant discoveries.
 
 ### Acceptance Scenarios
 1. **Given** a signed-in user on Flux, **When** they bulk upload a set of documents, **Then** the system must ingest the files, extract concepts, create episodic memories, and map each document to related items via knowledge graph nodes and card stacks.
@@ -64,7 +64,7 @@ A research-focused user interacts with the Flux interface to upload a corpus of 
 - **FR-012**: System MUST extract and integrate individual modules from Dionysus consciousness v1.0, ensuring each module meets current standards before integration. Create independent, standards-compliant modules and binary distributions for frozen components that can only be modified through extension, composition, or other design patterns. Provide API access for binary-packaged components.
 - **FR-024**: System MUST integrate Daedalus legacy components including multi-modal processing pipeline (video/audio/image), hybrid memory system (MEM1 + ThoughtSeed), NEMORI integration, and existing knowledge graph (10,808 nodes: memories + papers) with selective re-processing capabilities for ThoughtSeed 2.0 enhancement.
 - **FR-025**: System MUST maintain backward compatibility with existing Dionysus consciousness project components while providing upgrade paths from legacy ThoughtSeed 1.0 to enhanced ThoughtSeed 2.0 features on-demand.
-- **FR-026**: System MUST implement protected Daedalus integration layer with crash-proof isolation to prevent legacy code from affecting core Flux operations.
+- **FR-026**: System MUST implement protected Daedalus integration layer with crash-proof isolation to prevent legacy code from affecting core Dionysus operations.
 
 #### Real-Time Dashboard Data Requirements
 - **FR-027**: Dashboard MUST fetch activeThoughtSeeds count from Redis key "flux:thoughtseeds:active" with 5-second refresh interval, falling back to SQLite table "thoughtseed_states" when Redis unavailable.

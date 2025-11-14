@@ -30,7 +30,7 @@ docker ps | grep -E "neo4j|redis"
 ```bash
 # Use existing backend environment
 cd backend
-source flux-backend-env/bin/activate
+source dionysus-backend-env/bin/activate
 
 # Verify NumPy 2.0+ (Constitution Article I)
 python -c "import numpy; assert numpy.__version__.startswith('2.'), 'NumPy 1.x detected'"
