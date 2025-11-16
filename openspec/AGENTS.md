@@ -63,6 +63,119 @@ After deployment, create separate PR to:
 - Use `openspec archive <change-id> --skip-specs --yes` for tooling-only changes (always pass the change ID explicitly)
 - Run `openspec validate --strict` to confirm the archived change passes checks
 
+## Archon Integration (Task Management)
+
+OpenSpec integrates with Archon MCP for automated task tracking and bidirectional sync between specifications and project management.
+
+### Integrated Workflow
+
+```
+1. Create OpenSpec change
+   ↓
+2. /openspec:import-to-archon <change-id>
+   ├─ Creates Archon project
+   ├─ Imports all tasks from tasks.md
+   └─ Stores .archon-project-id for linking
+   ↓
+3. Work on tasks in Archon
+   ├─ Get tasks: find_tasks(status="todo")
+   ├─ Start: manage_task(status="doing")
+   ├─ Complete: manage_task(status="done")
+   └─ Track progress in real-time
+   ↓
+4. /openspec:sync-status <change-id>
+   ├─ Queries Archon for task status
+   ├─ Updates tasks.md checkboxes
+   ├─ Commits changes automatically
+   └─ Shows completion percentage
+   ↓
+5. /openspec:archive <change-id>
+   ├─ Validates all Archon tasks done
+   ├─ Archives Archon project (optional)
+   ├─ Archives OpenSpec change
+   └─ Updates main specs
+```
+
+### Commands
+
+**Import to Archon**:
+```bash
+/openspec:import-to-archon <change-id>
+```
+- Creates Archon project with title from proposal.md
+- Creates one Archon task per tasks.md checkbox
+- Stores UUID in `.archon-project-id`
+- Tasks inherit priority from document order (task_order: 100-1)
+
+**Sync Status**:
+```bash
+/openspec:sync-status <change-id>
+```
+- Fetches Archon task status (todo/doing/review/done)
+- Matches tasks by title (85% similarity threshold)
+- Updates checkboxes: `[ ]` → `[x]` for completed tasks
+- Auto-commits: `chore: sync task status from Archon [N/M complete]`
+- Conflict resolution: Manual `[x]` checkboxes take precedence
+
+**Archive with Validation**:
+```bash
+/openspec:archive <change-id>
+```
+- Reads `.archon-project-id` if exists
+- Validates all Archon tasks are "done"
+- If incomplete: warns + prompts for confirmation
+- If complete: offers to archive Archon project
+- Proceeds with OpenSpec archive
+
+### Configuration
+
+Create `.openspec.config.json` to customize sync behavior:
+
+```json
+{
+  "archon_sync": {
+    "sync_interval_seconds": 30,
+    "auto_sync_on_archive": true,
+    "conflict_resolution": "archon_wins",
+    "similarity_threshold": 0.85,
+    "auto_commit": true
+  }
+}
+```
+
+### Checkbox Symbols
+
+- `[ ]` - Not started (todo)
+- `[-]` - In progress (doing)
+- `[~]` - Under review (review)
+- `[x]` - Completed (done)
+
+### Best Practices
+
+1. **Import early**: Run import command right after creating change proposal
+2. **Sync regularly**: Run sync before major commits or before archive
+3. **Complete in Archon**: Mark tasks done in Archon (not manually in tasks.md)
+4. **Validate before archive**: Ensure all tasks complete to avoid orphaned work
+
+### Troubleshooting
+
+**No .archon-project-id file**:
+- Run `/openspec:import-to-archon <change-id>` first
+- File created automatically during import
+
+**Tasks not matching**:
+- Task titles must be 85%+ similar between Archon and tasks.md
+- Avoid major rewording after import
+- Check match results in sync output
+
+**Incomplete tasks blocking archive**:
+```
+⚠️ Archon project has 5 incomplete tasks (3 todo, 2 doing)
+```
+- Option 1: Complete remaining tasks, then re-run archive
+- Option 2: Force archive (not recommended - leaves orphaned tasks)
+- Option 3: Sync status first to verify tasks.md is current
+
 ## Before Any Task
 
 **Context Checklist:**
