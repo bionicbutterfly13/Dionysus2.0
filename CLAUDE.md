@@ -132,10 +132,64 @@ This project uses **OpenSpec** for specifications and **Archon MCP** for task ma
 - ✅ **Validate strictly**: Run `openspec validate <id> --strict` before sharing proposals
 
 **Legacy Specs** (Pre-OpenSpec):
+- `specs/`: 58+ numbered specifications (001-058+)
+  - 6 completed implementations running in production (021, 034, 035, 040, 054, 055)
+  - Still referenced by backend code, tests, and documentation
+  - **Status**: ACTIVE (not deprecated), maintained for historical reference
 - `spec-management/Consciousness-Specs/`:
   - `CLEAN_CONSCIOUSNESS_SPEC.md`: Core implementation specification
   - `UNIFIED_DATABASE_MIGRATION_SPEC.md`: Database architecture migration plan
   - `CONSCIOUSNESS_IMPLEMENTATION_SUMMARY.md`: Implementation status and results
+
+### Current Specification State (2025-11-15)
+
+**OpenSpec Migration Complete**:
+- ✅ Migrated 3 core capabilities to OpenSpec format:
+  - `openspec/specs/document-processing/` (from specs 021, 054, 055)
+  - `openspec/specs/clause-multi-agent/` (from specs 034, 035)
+  - `openspec/specs/knowledge-graph/` (from specs 001, 040)
+- ✅ Each capability has `spec.md` (requirements) and `design.md` (implementation patterns)
+- ✅ OpenSpec CLI v0.14.0 installed and validated
+
+**Active Change Proposals**:
+1. **integrate-openspec-archon-sync**: Automated bidirectional sync between OpenSpec and Archon
+   - Creates `/openspec:import-to-archon` command for automatic task import
+   - Syncs Archon task completion back to OpenSpec `tasks.md`
+   - Validates Archon completion on `/openspec:archive`
+   - **Status**: Proposal complete, ready for implementation
+
+2. **ingest-specs-to-neo4j**: Pipeline to ingest OpenSpec specs into knowledge graph
+   - Processes specs through Daedalus → LangGraph → Neo4j
+   - Enables semantic search across specifications
+   - Discovers cross-spec relationships via ThoughtSeeds
+   - **Status**: Proposal complete, ready for implementation
+
+**Dual-System Coexistence**:
+- **Legacy `specs/`**: Historical numbered specifications (001-058+), read-only reference
+- **OpenSpec `openspec/specs/`**: Current capability specifications, actively maintained
+- Both systems valid: Legacy for completed features, OpenSpec for new changes
+
+**OpenSpec ↔ Archon Relationship**:
+```
+Current (Manual):
+  OpenSpec proposal → Manual task import → Archon project
+
+Future (Automated via integrate-openspec-archon-sync):
+  OpenSpec proposal → /openspec:import-to-archon → Archon project + tasks
+  Archon task completion → Auto-update tasks.md checkboxes
+  /openspec:archive → Validate Archon completion
+```
+
+**OpenSpec → Neo4j Integration** (via ingest-specs-to-neo4j):
+```
+openspec/specs/*.md → POST /api/documents → Daedalus → LangGraph → Neo4j
+  ↓
+Document:Specification nodes with:
+  - Semantic search capabilities
+  - Cross-spec ThoughtSeeds
+  - Requirement/Scenario extraction
+  - AttractorBasin clustering
+```
 
 ## Development Commands
 
