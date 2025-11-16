@@ -152,11 +152,11 @@ This project uses **OpenSpec** for specifications and **Archon MCP** for task ma
 - ✅ OpenSpec CLI v0.14.0 installed and validated
 
 **Active Change Proposals**:
-1. **integrate-openspec-archon-sync**: Automated bidirectional sync between OpenSpec and Archon
+1. ~~**integrate-openspec-archon-sync**~~ → **✅ IMPLEMENTED** (2025-11-16)
    - Creates `/openspec:import-to-archon` command for automatic task import
    - Syncs Archon task completion back to OpenSpec `tasks.md`
    - Validates Archon completion on `/openspec:archive`
-   - **Status**: Proposal complete, ready for implementation
+   - **Files**: `.claude/commands/openspec/{import-to-archon,sync-status}.md`, `scripts/sync_openspec_archon_status.py`
 
 2. **ingest-specs-to-neo4j**: Pipeline to ingest OpenSpec specs into knowledge graph
    - Processes specs through Daedalus → LangGraph → Neo4j
@@ -169,15 +169,92 @@ This project uses **OpenSpec** for specifications and **Archon MCP** for task ma
 - **OpenSpec `openspec/specs/`**: Current capability specifications, actively maintained
 - Both systems valid: Legacy for completed features, OpenSpec for new changes
 
-**OpenSpec ↔ Archon Relationship**:
+**OpenSpec ↔ Archon Integration** (✅ ACTIVE):
 ```
-Current (Manual):
-  OpenSpec proposal → Manual task import → Archon project
+Current Workflow (Automated):
+  1. OpenSpec proposal → /openspec:import-to-archon <id> → Archon project + tasks
+  2. Work on tasks → Archon MCP (todo → doing → review → done)
+  3. Sync status → /openspec:sync-status <id> → Auto-update tasks.md checkboxes
+  4. Archive → /openspec:archive <id> → Validate Archon completion → Archive both
+```
 
-Future (Automated via integrate-openspec-archon-sync):
-  OpenSpec proposal → /openspec:import-to-archon → Archon project + tasks
-  Archon task completion → Auto-update tasks.md checkboxes
-  /openspec:archive → Validate Archon completion
+### Practical Examples
+
+**Example 1: Starting a new feature**
+```bash
+# 1. Create OpenSpec change proposal
+/openspec:proposal add-user-analytics
+
+# 2. Import to Archon (creates project + tasks automatically)
+/openspec:import-to-archon add-user-analytics
+
+# Output:
+# ✅ Import complete!
+# Archon Project: 550e8400-e29b-41d4-a716-446655440000
+# Tasks created: 12
+# Reference stored: .archon-project-id
+
+# 3. Get next task
+mcp__archon__find_tasks(filter_by="status", filter_value="todo")
+
+# 4. Start working
+mcp__archon__manage_task("update", task_id="task-123", status="doing")
+
+# 5. Implement feature...
+
+# 6. Mark complete
+mcp__archon__manage_task("update", task_id="task-123", status="done")
+
+# 7. Sync progress to OpenSpec (updates checkboxes)
+/openspec:sync-status add-user-analytics
+
+# Output:
+# ✅ Sync complete!
+# Completion: 1/12 tasks (8%)
+# Updates applied: 1
+```
+
+**Example 2: Checking progress**
+```bash
+# View all tasks for a project
+mcp__archon__find_tasks(project_id="550e8400-...")
+
+# Check completion percentage
+/openspec:sync-status add-user-analytics
+
+# Output shows:
+# Completion: 8/12 tasks (67%)
+```
+
+**Example 3: Archiving completed change**
+```bash
+# After completing all tasks, sync one final time
+/openspec:sync-status add-user-analytics
+
+# Archive (with Archon validation)
+/openspec:archive add-user-analytics
+
+# If tasks incomplete:
+# ⚠️ Archon project has 4 incomplete tasks (3 todo, 1 doing)
+# Archive anyway? (This will leave incomplete tasks in Archon)
+
+# If all complete:
+# ✅ All Archon tasks complete (12 tasks)
+# Archive Archon project too? (Recommended) → yes
+# ✅ OpenSpec change archived to changes/archive/2025-11-16-add-user-analytics/
+# ✅ Archon project archived
+```
+
+**Example 4: Researching before implementation**
+```bash
+# Search knowledge base for related patterns
+mcp__archon__rag_search_knowledge_base(query="analytics tracking")
+
+# Find code examples
+mcp__archon__rag_search_code_examples(query="event logging")
+
+# List available documentation sources
+mcp__archon__rag_get_available_sources()
 ```
 
 **OpenSpec → Neo4j Integration** (via ingest-specs-to-neo4j):
