@@ -1,17 +1,17 @@
 # Implementation Tasks
 
 ## Phase 1: Import Command (Core Integration)
-- [ ] Create `/openspec:import-to-archon` slash command in `.claude/commands/openspec/`
-- [ ] Implement task parser to extract tasks from `tasks.md` markdown
-- [ ] Add Archon project creation logic (title from proposal.md)
-- [ ] Add Archon task creation loop (one per tasks.md item)
-- [ ] Store Archon project_id in `.archon-project-id` file
-- [ ] Add error handling for Archon API failures
-- [ ] Test import with sample OpenSpec change (3-5 tasks)
+- [x] Create `/openspec:import-to-archon` slash command in `.claude/commands/openspec/`
+- [x] Implement task parser to extract tasks from `tasks.md` markdown
+- [x] Add Archon project creation logic (title from proposal.md)
+- [x] Add Archon task creation loop (one per tasks.md item)
+- [x] Store Archon project_id in `.archon-project-id` file
+- [x] Add error handling for Archon API failures
+- [x] Test import with sample OpenSpec change (3-5 tasks)
 
 ## Phase 2: Status Sync (Bidirectional Updates)
-- [ ] Design status sync mechanism (polling vs webhook)
-- [ ] Implement Archon task status poller (check for "done" tasks)
+- [x] Design status sync mechanism (polling vs webhook)
+- [-] Implement Archon task status poller (check for "done" tasks)
 - [ ] Implement tasks.md checkbox updater (parse and modify markdown)
 - [ ] Add git commit for automatic tasks.md updates
 - [ ] Handle sync conflicts (manual edits vs automatic updates)
