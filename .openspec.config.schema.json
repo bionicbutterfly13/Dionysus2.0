@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OpenSpec Configuration",
+  "description": "Configuration for OpenSpec + Archon integration",
+  "type": "object",
+  "properties": {
+    "archon_sync": {
+      "type": "object",
+      "description": "Archon status sync configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable Archon sync functionality",
+          "default": true
+        },
+        "sync_interval_seconds": {
+          "type": "integer",
+          "description": "Interval for automatic status polling (future feature)",
+          "default": 30,
+          "minimum": 5,
+          "maximum": 3600
+        },
+        "auto_sync_on_archive": {
+          "type": "boolean",
+          "description": "Automatically sync before archiving",
+          "default": true
+        },
+        "conflict_resolution": {
+          "type": "string",
+          "description": "How to resolve conflicts between Archon and tasks.md",
+          "enum": ["archon_wins", "manual_wins", "prompt"],
+          "default": "archon_wins"
+        },
+        "similarity_threshold": {
+          "type": "number",
+          "description": "Minimum similarity ratio for task matching (0.0 to 1.0)",
+          "default": 0.85,
+          "minimum": 0.5,
+          "maximum": 1.0
+        },
+        "auto_commit": {
+          "type": "boolean",
+          "description": "Automatically commit checkbox updates",
+          "default": true
+        },
+        "commit_message_template": {
+          "type": "string",
+          "description": "Template for auto-commit messages ({completed}, {total} available)",
+          "default": "chore: sync task status from Archon [{completed}/{total} complete]"
+        }
+      }
+    },
+    "import": {
+      "type": "object",
+      "description": "Import configuration",
+      "properties": {
+        "default_status": {
+          "type": "string",
+          "description": "Default status for imported tasks",
+          "enum": ["todo", "doing", "review", "done"],
+          "default": "todo"
+        },
+        "task_order_strategy": {
+          "type": "string",
+          "description": "How to assign task_order values",
+          "enum": ["reverse", "sequential", "preserve"],
+          "default": "reverse"
+        },
+        "preserve_completed_tasks": {
+          "type": "boolean",
+          "description": "Import [x] tasks as status='done'",
+          "default": true
+        }
+      }
+    },
+    "archive": {
+      "type": "object",
+      "description": "Archive validation configuration",
+      "properties": {
+        "validate_archon_completion": {
+          "type": "boolean",
+          "description": "Check Archon project completion before archiving",
+          "default": true
+        },
+        "require_all_tasks_done": {
+          "type": "boolean",
+          "description": "Require all Archon tasks to be 'done' status",
+          "default": true
+        },
+        "auto_archive_archon_project": {
+          "type": "boolean",
+          "description": "Automatically archive Archon project on OpenSpec archive",
+          "default": true
+        }
+      }
+    }
+  }
+}

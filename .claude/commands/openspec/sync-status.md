@@ -170,9 +170,33 @@ Example matches:
 #   - Continue working: manage_task("update", task_id="...", status="doing")
 ```
 
+## Configuration
+
+Sync behavior can be customized in `.openspec.config.json`:
+
+```json
+{
+  "archon_sync": {
+    "sync_interval_seconds": 30,
+    "auto_sync_on_archive": true,
+    "conflict_resolution": "archon_wins",
+    "similarity_threshold": 0.85,
+    "auto_commit": true
+  }
+}
+```
+
+**Options**:
+- `sync_interval_seconds`: Polling interval for automatic sync (future)
+- `auto_sync_on_archive`: Run sync before archiving
+- `conflict_resolution`: `archon_wins` | `manual_wins` | `prompt`
+- `similarity_threshold`: Task matching threshold (0.5-1.0, default: 0.85)
+- `auto_commit`: Automatically commit checkbox updates
+
 ## Notes
 
 - Sync is one-way: Archon → OpenSpec (for now)
 - Can be run multiple times safely (idempotent)
 - Use before `/openspec:archive` to ensure tasks.md reflects actual completion
+- Configuration file: `.openspec.config.json` (optional)
 - Future: Add automatic periodic polling or webhook triggers

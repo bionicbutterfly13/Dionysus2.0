@@ -1,0 +1,23 @@
+{
+  "$schema": "https://openspec.dev/config-schema.json",
+  "version": "1.0",
+  "archon_sync": {
+    "enabled": true,
+    "sync_interval_seconds": 30,
+    "auto_sync_on_archive": true,
+    "conflict_resolution": "archon_wins",
+    "similarity_threshold": 0.85,
+    "auto_commit": true,
+    "commit_message_template": "chore: sync task status from Archon [{completed}/{total} complete]"
+  },
+  "import": {
+    "default_status": "todo",
+    "task_order_strategy": "reverse",
+    "preserve_completed_tasks": true
+  },
+  "archive": {
+    "validate_archon_completion": true,
+    "require_all_tasks_done": true,
+    "auto_archive_archon_project": true
+  }
+}
