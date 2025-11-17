@@ -176,6 +176,266 @@ Create `.openspec.config.json` to customize sync behavior:
 - Option 2: Force archive (not recommended - leaves orphaned tasks)
 - Option 3: Sync status first to verify tasks.md is current
 
+## OpenSpec Metadata Schema (Neo4j Knowledge Graph)
+
+OpenSpec specifications can be ingested into the Neo4j knowledge graph for semantic search, cross-spec relationship discovery, and consciousness-enhanced processing. This section documents the metadata schema used when specs are processed through the document pipeline.
+
+### Node Labels
+
+**Document:Specification**:
+- Represents a capability's `spec.md` file (requirements and scenarios)
+- Source: `openspec/specs/<capability>/spec.md`
+
+**Document:DesignDocument**:
+- Represents a capability's `design.md` file (implementation patterns)
+- Source: `openspec/specs/<capability>/design.md`
+
+**Concept:Requirement**:
+- Individual requirement extracted from spec.md
+- Created from `### Requirement:` headers
+
+**Concept:Scenario**:
+- Test scenario within a requirement
+- Created from `#### Scenario:` headers
+- Contains given/when/then structure
+
+### Node Properties
+
+**Specification/DesignDocument nodes**:
+```cypher
+(:Document:Specification {
+  id: "uuid",                              # Unique document identifier
+  title: "Document Processing",            # Derived from capability name
+  content_hash: "abc123...",               # SHA-256 hash for deduplication
+  source_type: "openspec",                 # Always "openspec" for ingested specs
+  capability: "document-processing",       # Parent directory name (kebab-case)
+  spec_type: "spec",                       # "spec" or "design"
+  version: "1.0",                          # Semantic version (incremented on changes)
+  extracted_text: "...",                   # Full markdown content
+  summary: "...",                          # AI-generated summary
+  created_at: datetime(),                  # Ingestion timestamp
+  updated_at: datetime()                   # Last modification timestamp
+})
+```
+
+**Requirement nodes**:
+```cypher
+(:Concept:Requirement {
+  id: "uuid",
+  title: "Import OpenSpec specifications",  # From ### Requirement: header
+  description: "..."                         # Full requirement text
+})
+```
+
+**Scenario nodes**:
+```cypher
+(:Concept:Scenario {
+  id: "uuid",
+  title: "Specification ingested successfully",  # From #### Scenario: header
+  given: "...",                                  # Preconditions
+  when: "...",                                   # Action
+  then: "..."                                    # Expected outcome
+})
+```
+
+### Relationships
+
+**HAS_REQUIREMENT**:
+```cypher
+(:Specification)-[:HAS_REQUIREMENT]->(:Requirement)
+```
+Links a specification document to its extracted requirements.
+
+**HAS_SCENARIO**:
+```cypher
+(:Requirement)-[:HAS_SCENARIO]->(:Scenario)
+```
+Links a requirement to its test scenarios (at least one per requirement).
+
+**DEFINES_CAPABILITY**:
+```cypher
+(:Specification)-[:DEFINES_CAPABILITY]->(capability_string)
+```
+Connects specification to its capability domain (e.g., "document-processing", "clause-multi-agent").
+
+**SIMILAR_TO**:
+```cypher
+(:Specification)-[:SIMILAR_TO {score: 0.87}]->(:Specification)
+```
+Cross-spec similarity discovered via ThoughtSeeds (semantic embeddings).
+
+**HAS_THOUGHTSEED**:
+```cypher
+(:Specification)-[:HAS_THOUGHTSEED]->(:ThoughtSeed)
+```
+Links specification to consciousness-generated concepts that emerge during processing.
+
+**BELONGS_TO_BASIN**:
+```cypher
+(:Specification)-[:BELONGS_TO_BASIN]->(:AttractorBasin)
+```
+Groups related specifications into conceptual clusters.
+
+**NEXT_VERSION**:
+```cypher
+(:Specification {version: "1.0"})-[:NEXT_VERSION]->(:Specification {version: "1.1"})
+```
+Links version history when specs are updated (preserves old versions).
+
+### ThoughtSeed Connections
+
+**How ThoughtSeeds Connect Specifications**:
+
+1. **During Ingestion**:
+   - Each spec.md/design.md is processed through DocumentProcessingGraph
+   - Consciousness layer generates 5-level concepts (ThoughtSeeds)
+   - Embeddings created for semantic similarity
+
+2. **Cross-Spec Discovery**:
+   - ThoughtSeeds with similar embeddings link related concepts
+   - Example: "Authentication patterns" ThoughtSeed connects:
+     - `document-processing` spec (user credentials)
+     - `clause-multi-agent` spec (agent authentication)
+     - `knowledge-graph` spec (access control)
+
+3. **Query Pattern**:
+```cypher
+// Find all specs related via shared ThoughtSeeds
+MATCH (s1:Specification {capability: "document-processing"})
+MATCH (s1)-[:HAS_THOUGHTSEED]->(ts:ThoughtSeed)
+MATCH (ts)<-[:HAS_THOUGHTSEED]-(s2:Specification)
+WHERE s1 <> s2
+RETURN s1.capability, s2.capability, ts.content, ts.level
+```
+
+4. **AttractorBasin Clustering**:
+```cypher
+// Find specifications in same conceptual cluster
+MATCH (s:Specification)-[:BELONGS_TO_BASIN]->(b:AttractorBasin)
+RETURN b.name, collect(s.capability) as related_capabilities
+```
+
+### Schema Constraints and Indexes
+
+**Constraints**:
+```cypher
+CREATE CONSTRAINT spec_id IF NOT EXISTS
+FOR (s:Specification) REQUIRE s.id IS UNIQUE;
+
+CREATE CONSTRAINT design_id IF NOT EXISTS
+FOR (d:DesignDocument) REQUIRE d.id IS UNIQUE;
+```
+
+**Indexes**:
+```cypher
+CREATE INDEX spec_capability IF NOT EXISTS
+FOR (s:Specification) ON (s.capability);
+
+CREATE INDEX spec_content_hash IF NOT EXISTS
+FOR (s:Specification) ON (s.content_hash);
+
+CREATE INDEX spec_source_type IF NOT EXISTS
+FOR (s:Specification) ON (s.source_type);
+```
+
+### Deduplication Strategy
+
+**Content Hash Checking**:
+1. Before ingestion, SHA-256 hash calculated from file content
+2. Query Neo4j for existing node with same `content_hash`
+3. If exists: Return 409 Conflict, skip processing
+4. If new: Proceed with normal ingestion
+
+**Version Updates**:
+1. Detect change: `content_hash` differs from existing spec
+2. Increment version: `1.0` → `1.1`
+3. Create new node (don't overwrite old version)
+4. Link versions: `(v1.0)-[:NEXT_VERSION]->(v1.1)`
+
+### Search Integration
+
+**Semantic Search Example**:
+```python
+# Query: "Find specs about authentication"
+POST /api/query
+{
+  "query": "authentication patterns",
+  "filters": {
+    "source_type": "openspec"
+  }
+}
+
+# Returns:
+[
+  {
+    "document_id": "uuid-1",
+    "title": "Document Processing",
+    "capability": "document-processing",
+    "relevance_score": 0.87,
+    "matched_concepts": ["Authentication", "User credentials"]
+  },
+  {
+    "document_id": "uuid-2",
+    "title": "CLAUSE Multi-Agent System",
+    "capability": "clause-multi-agent",
+    "relevance_score": 0.72,
+    "matched_concepts": ["Agent authentication", "Trust verification"]
+  }
+]
+```
+
+**Graph Traversal Example**:
+```cypher
+// Find requirements for a capability
+MATCH (s:Specification {capability: "document-processing"})
+MATCH (s)-[:HAS_REQUIREMENT]->(r:Requirement)
+MATCH (r)-[:HAS_SCENARIO]->(sc:Scenario)
+RETURN s.title, r.title, collect(sc.title) as scenarios
+```
+
+### Ingestion Workflow
+
+**Command**:
+```bash
+# Ingest all capabilities
+python backend/scripts/ingest_openspec_specs.py --all
+
+# Ingest specific capability
+python backend/scripts/ingest_openspec_specs.py --capability document-processing
+
+# Preview without ingesting
+python backend/scripts/ingest_openspec_specs.py --all --dry-run
+```
+
+**Flow**:
+1. Script scans `openspec/specs/` for spec.md/design.md files
+2. Extracts metadata (capability, spec_type, content_hash)
+3. POSTs to `/api/documents` with multipart/form-data
+4. Daedalus gateway receives and passes to DocumentProcessingGraph
+5. 6-node LangGraph workflow processes (extract, research, consciousness, analyze, refine, finalize)
+6. DocumentRepository persists to Neo4j with metadata
+7. Requirements/scenarios parsed and linked via HAS_REQUIREMENT/HAS_SCENARIO
+8. ThoughtSeeds discover cross-spec relationships via semantic similarity
+
+### Performance Characteristics
+
+**Ingestion**:
+- Target: < 10 seconds per spec file
+- Bottleneck: Consciousness processing (5-10s per document)
+- Optimization: Parallel processing via asyncio
+
+**Search**:
+- Target: < 500ms for semantic search across all specs
+- Optimization: Neo4j vector index on embeddings
+- Storage: ~100KB per spec.md (text + embeddings + concepts)
+
+### Related Documentation
+
+- Design document: `openspec/changes/ingest-specs-to-neo4j/design.md`
+- Implementation script: `backend/scripts/ingest_openspec_specs.py` (when created)
+- API endpoint: `backend/src/api/routes/documents.py` (POST /api/documents)
+- Processing pipeline: `backend/src/services/document_processing_graph.py`
+
 ## Before Any Task
 
 **Context Checklist:**

@@ -171,12 +171,27 @@ This project uses **OpenSpec** for specifications and **Archon MCP** for task ma
 
 **OpenSpec ↔ Archon Integration** (✅ ACTIVE):
 ```
-Current Workflow (Automated):
+Current Workflow (Manual Sync):
   1. OpenSpec proposal → /openspec:import-to-archon <id> → Archon project + tasks
   2. Work on tasks → Archon MCP (todo → doing → review → done)
   3. Sync status → /openspec:sync-status <id> → Auto-update tasks.md checkboxes
   4. Archive → /openspec:archive <id> → Validate Archon completion → Archive both
+
+Automated Sync (Background Daemon):
+  1. Start daemon: python scripts/openspec_sync_daemon.py start
+  2. Work on tasks → Archon MCP (todo → doing → review → done)
+  3. Tasks.md auto-updates every 30s (no manual sync needed!)
+  4. Archive → /openspec:archive <id> → Validate Archon completion → Archive both
+
+Quick Sync (All Changes):
+  ./scripts/sync_all_changes.sh
 ```
+
+**Sync Options**:
+- **Manual**: Run `/openspec:sync-status <id>` when needed
+- **Daemon**: Background polling every 30s (see `docs/AUTOMATED_SYNC_GUIDE.md`)
+- **Scheduled**: Cron/launchd for periodic sync
+- **Git Hooks**: Auto-sync before commits
 
 ### Practical Examples
 

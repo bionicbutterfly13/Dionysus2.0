@@ -219,7 +219,7 @@ async def ingest_documents(
             )
 
         return {
-            "message": f"Successfully ingested {len(files)} documents via Daedalus gateway",
+            "message": f"Successfully ingested {len(file_list)} documents via Daedalus gateway",
             "documents": results,
             "gateway_info": {
                 "gateway_used": "daedalus",
@@ -235,7 +235,9 @@ async def ingest_documents(
     except HTTPException:
         raise
     except Exception as e:
+        import traceback
         logger.error(f"Error processing documents: {str(e)}")
+        logger.error(f"Traceback:\n{traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Document processing failed: {str(e)}"

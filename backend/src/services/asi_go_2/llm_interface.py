@@ -25,16 +25,24 @@ class LLMInterface:
     def _initialize_provider(self):
         """Initialize the selected LLM provider"""
         try:
-            if self.provider == "openai":
+            if self.provider == "ollama":
+                # Use local Ollama models (no API key required)
+                import httpx
+                self.client = httpx.Client(timeout=90.0)
+                self.model = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+                self.ollama_endpoint = os.getenv("OLLAMA_ENDPOINT", "http://localhost:11434")
+                logger.info(f"Initialized Ollama with model {self.model} at {self.ollama_endpoint}")
+
+            elif self.provider == "openai":
                 from openai import OpenAI
                 api_key = os.getenv("OPENAI_API_KEY")
                 if not api_key:
                     raise ValueError("OPENAI_API_KEY not found in .env file")
-                
+
                 # Initialize OpenAI client
                 self.client = OpenAI(api_key=api_key)
                 self.model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-                
+
             elif self.provider == "google":
                 import google.generativeai as genai
                 api_key = os.getenv("GOOGLE_API_KEY")
@@ -43,7 +51,7 @@ class LLMInterface:
                 genai.configure(api_key=api_key)
                 self.model = os.getenv("GOOGLE_MODEL", "gemini-pro")
                 self.client = genai.GenerativeModel(self.model)
-                
+
             elif self.provider == "anthropic":
                 import anthropic
                 api_key = os.getenv("ANTHROPIC_API_KEY")
@@ -51,12 +59,12 @@ class LLMInterface:
                     raise ValueError("ANTHROPIC_API_KEY not found in .env file")
                 self.client = anthropic.Anthropic(api_key=api_key)
                 self.model = os.getenv("ANTHROPIC_MODEL", "claude-3-opus-20240229")
-                
+
             else:
                 raise ValueError(f"Unsupported LLM provider: {self.provider}")
-                
+
             logger.info(f"Initialized {self.provider} with model {self.model}")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize LLM provider: {e}")
             raise
@@ -64,12 +72,33 @@ class LLMInterface:
     def query(self, prompt: str, system_prompt: Optional[str] = None, max_tokens: int = 2000) -> str:
         """Send a query to the LLM and return the response"""
         try:
-            if self.provider == "openai":
+            if self.provider == "ollama":
+                # Build full prompt with system context
+                full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
+
+                # Query Ollama API
+                response = self.client.post(
+                    f"{self.ollama_endpoint}/api/generate",
+                    json={
+                        "model": self.model,
+                        "prompt": full_prompt,
+                        "stream": False,
+                        "options": {
+                            "temperature": self.temperature,
+                            "num_predict": max_tokens
+                        }
+                    }
+                )
+                response.raise_for_status()
+                result = response.json()
+                return result.get("response", "")
+
+            elif self.provider == "openai":
                 messages = []
                 if system_prompt:
                     messages.append({"role": "system", "content": system_prompt})
                 messages.append({"role": "user", "content": prompt})
-                
+
                 response = self.client.chat.completions.create(
                     model=self.model,
                     messages=messages,
@@ -77,15 +106,15 @@ class LLMInterface:
                     max_tokens=max_tokens
                 )
                 return response.choices[0].message.content
-                
+
             elif self.provider == "google":
                 full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
                 response = self.client.generate_content(full_prompt)
                 return response.text
-                
+
             elif self.provider == "anthropic":
                 full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
-                
+
                 response = self.client.messages.create(
                     model=self.model,
                     max_tokens=max_tokens,
@@ -93,7 +122,7 @@ class LLMInterface:
                     messages=[{"role": "user", "content": full_prompt}]
                 )
                 return response.content[0].text
-                
+
         except Exception as e:
             logger.error(f"LLM query failed: {e}")
             raise

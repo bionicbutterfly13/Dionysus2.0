@@ -121,11 +121,28 @@ class DocumentProcessingGraph:
         content = state["content"]
         filename = state["filename"]
 
+        # Debug logging
+        logger.debug(f"Content type: {type(content)}, length: {len(content) if content else 'None'}")
+        logger.debug(f"Filename: {filename}")
+
         # Process through consciousness document processor
-        if filename.endswith('.pdf'):
-            result = self.processor.process_pdf(content, filename)
-        else:
-            result = self.processor.process_text(content, filename)
+        try:
+            if filename.endswith('.pdf'):
+                result = self.processor.process_pdf(content, filename)
+            else:
+                result = self.processor.process_text(content, filename)
+
+            # Defensive checks
+            if result is None:
+                raise ValueError("Processor returned None result")
+            if not hasattr(result, 'concepts'):
+                raise ValueError(f"Result missing 'concepts' attribute: {type(result)}")
+            if result.concepts is None:
+                raise ValueError("Result.concepts is None")
+
+        except Exception as e:
+            logger.error(f"Processing failed: {e}", exc_info=True)
+            raise
 
         state["processing_result"] = result
         state["iteration"] = state.get("iteration", 0) + 1
@@ -269,20 +286,34 @@ class DocumentProcessingGraph:
         }
 
         # Process concepts through AutoSchemaKG to create knowledge graph
-        # NOTE: AutoSchemaKG processing is async, but we run it synchronously here
-        # to avoid making the entire LangGraph workflow async
+        # NOTE: AutoSchemaKG processing is async - run in thread pool to avoid event loop conflicts
         knowledge_graph = {}
         try:
             import asyncio
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            kg_result = loop.run_until_complete(
-                self.autoschema_service.process_document_concepts(
-                    concepts=concepts_for_kg,
-                    document_id=result.content_hash
+            import concurrent.futures
+
+            # Check if event loop is already running (e.g., in uvicorn)
+            try:
+                asyncio.get_running_loop()
+                # Loop is running - use thread pool executor
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(
+                        asyncio.run,
+                        self.autoschema_service.process_document_concepts(
+                            concepts=concepts_for_kg,
+                            document_id=result.content_hash
+                        )
+                    )
+                    kg_result = future.result(timeout=30)
+            except RuntimeError:
+                # No loop running - safe to create new loop
+                kg_result = asyncio.run(
+                    self.autoschema_service.process_document_concepts(
+                        concepts=concepts_for_kg,
+                        document_id=result.content_hash
+                    )
                 )
-            )
-            loop.close()
+
             knowledge_graph = kg_result
             logger.info(f"✅ AutoSchemaKG created {len(kg_result.get('nodes', []))} nodes and {len(kg_result.get('relationships', []))} relationships")
         except Exception as e:
